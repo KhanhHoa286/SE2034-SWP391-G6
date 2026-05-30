@@ -24,7 +24,9 @@ public class Shop {
     private String shopName;
     private String logoUrl;
     private String description;
-    private String address;
+    private Integer wardId;
+    private Ward ward;
+    private String streetAddress;
     private BigDecimal averageRating;
 
     private ApprovalStatus approvalStatus;
