@@ -1,0 +1,175 @@
+/* ===== Product Page Layout ===== */
+.page-header {
+    padding: 30px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 40px;
+}
+
+.page-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000 !important;
+    white-space: nowrap;
+}
+
+.product-meta {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.sort-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.sort-select {
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+}
+
+/* Replaced by Bootstrap row */
+
+/* ===== Sidebar / Filters ===== */
+.sidebar__widget {
+    margin-bottom: 35px;
+}
+
+.sidebar__widget-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar__widget-title i {
+    font-size: 0.8rem;
+}
+
+.filter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.filter-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Price Range */
+.price-range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.price-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.apply-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.apply-btn:hover {
+    background-color: #333;
+}
+
+/* Rating */
+.rating-stars {
+    color: var(--text-main);
+    font-size: 0.85rem;
+}
+
+/* ===== Product List Area ===== */
+/* Replaced by Bootstrap row */
+
+.product-card {
+    border: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    transition: box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.product-card__info {
+    padding: 0 15px;
+}
+
+/* Pagination */
+.moda-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 50px;
+    padding-left: 0;
+    list-style: none;
+}
+
+.moda-page-link, .moda-page-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    color: var(--text-main);
+    text-decoration: none;
+}
+
+.moda-page-num {
+    width: 40px;
+}
+
+.moda-page-link {
+    padding: 0 15px;
+}
+
+.moda-page-link:hover, .moda-page-num:hover {
+    background-color: var(--bg-light);
+}
+
+.moda-page-num.active {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border-color: var(--primary-color);
+}
+

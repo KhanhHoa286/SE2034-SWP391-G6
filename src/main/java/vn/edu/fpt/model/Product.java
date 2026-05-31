@@ -44,4 +44,8 @@ public class Product {
 
     private LocalDateTime createdAt;
 
+    // lấy ra giá giảm sau khi đã áp dụng khuyến mãi
+    public BigDecimal getDiscountedPrice(){
+        return this.basePrice.subtract(this.basePrice.multiply(BigDecimal.valueOf(this.discountPercentage)).divide(BigDecimal.valueOf(100)));
+    }
 }
