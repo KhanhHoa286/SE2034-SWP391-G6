@@ -177,3 +177,8 @@
     color: var(--primary-color);
 }
 
+.product-card__quantity {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}

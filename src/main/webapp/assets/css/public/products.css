@@ -167,9 +167,14 @@
     background-color: var(--bg-light);
 }
 
-.moda-page-num.active {
-    background-color: var(--primary-color);
-    color: var(--secondary-color);
-    border-color: var(--primary-color);
-}
+/*.moda-page-num.active {*/
+/*    background-color: var(--primary-color);*/
+/*    color: var(--secondary-color);*/
+/*    border-color: var(--primary-color);*/
+/*}*/
 
+.moda-page-num.active {
+    background-color: #e9ecef;
+    color: #333333;
+    border-color: #ced4da;
+}

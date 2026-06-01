@@ -9,8 +9,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.dao.ProductDAO;
 import vn.edu.fpt.dto.response.ProductResponse;
+import vn.edu.fpt.model.User;
 
 /**
  * HoaNK - HE195013
@@ -21,26 +23,11 @@ import vn.edu.fpt.dto.response.ProductResponse;
 @WebServlet(urlPatterns={"/home"})
 public class HomeServlet extends HttpServlet {
 
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet Name</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet Name at " + request.getContextPath () + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
+    private final ProductDAO productDAO = new ProductDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        ProductDAO productDAO = new ProductDAO();
         // Lấy danh sách sản phẩm ưu đãi sâu nhất
         List<ProductResponse> topDiscountedProducts = productDAO.getTopDiscountedProducts();
         // Lấy danh sách sản phẩm mới
@@ -58,7 +45,6 @@ public class HomeServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        processRequest(request, response);
     }
 
     @Override

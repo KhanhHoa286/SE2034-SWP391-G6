@@ -1,5 +1,7 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!-- Header -->
 <header class="header">
     <div class="container header__inner">
@@ -7,25 +9,40 @@
 
         <nav class="header__nav d-none d-md-block">
             <ul>
-                <li><a href="view-home-page.jsp">Trang chủ</a></li>
-                <li><a href="list-products.jsp">Nữ</a></li>
-                <li><a href="list-products.jsp">Nam</a></li>
-                <li><a href="list-products.jsp">Phụ kiện</a></li>
-                <li><a href="list-products.jsp" class="sale-link">Khuyến mãi</a></li>
+                <li><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
+                <li><a href="${pageContext.request.contextPath}/product-list?type=NU">Nữ</a></li>
+                <li><a href="${pageContext.request.contextPath}/product-list?type=NAM">Nam</a></li>
+                <li><a href="${pageContext.request.contextPath}/product-list?type=UNISEX">Unisex</a></li>
+<%--                <li><a href="${pageContext.request.contextPath}/product-list?type=accessory">Phụ kiện</a></li>--%>
+<%--                <li><a href="${pageContext.request.contextPath}/product-list?gender=sale_off" class="sale-link">Khuyến mãi</a></li>--%>
             </ul>
         </nav>
 
         <div class="header__icons">
             <div class="header__search">
-                <input type="text" placeholder="Tìm kiếm..." class="header__search-input">
-                <i class="fa-solid fa-magnifying-glass header__icon"></i>
+                <form action="product-list" method="get">
+                <input type="text" placeholder="Tìm kiếm..." class="header__search-input" name="text_search" value="${textSearch}">
+                    <button type="submit" style="border: 0px;background: transparent;"><i class="fa-solid fa-magnifying-glass header__icon"></i></button>
+                </form>
             </div>
-            <i class="fa-regular fa-heart header__icon"></i>
-            <a href="view-cart.jsp" class="header__icon header__icon-cart" style="color: inherit; text-decoration: none;">
-                <i class="fa-solid fa-bag-shopping"></i>
-                <span class="cart-count">3</span>
+            <a href="${pageContext.request.contextPath}/customer/wishlist" class="header__icon header__icon-cart" style="color: inherit; text-decoration: none;">
+                <i class="fa-regular fa-heart header__icon"></i>
+                <span class="cart-count">${numberProductCart}</span>
             </a>
-            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop" alt="User Avatar" class="header__avatar">
+            <a href="${pageContext.request.contextPath}/cart-list" class="header__icon header__icon-cart" style="color: inherit; text-decoration: none;">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span class="cart-count">${numberProductWishlist}</span>
+            </a>
+            <c:if test="${session.account != null}">
+                <a href="${pageContext.request.contextPath}/customer-dashboard" class="avatar-link">
+                <img src="${session.account.avatarUrl}" alt="User Avatar" class="header__avatar">
+                </a>
+            </c:if>
+            <c:if test="${session.account == null}">
+            <a href="${pageContext.request.contextPath}/customer-dashboard" class="avatar-link">
+                <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg" alt="User Avatar" class="header__avatar">
+            </a>
+                </c:if>
         </div>
     </div>
 </header>

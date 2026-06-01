@@ -28,7 +28,7 @@
     <section class="hero">
         <div class="container">
             <div class="hero__content">
-                <h1 class="hero__title">Architectural<br>Minimalism.</h1>
+                <h1 class="hero__title">Định Hình<br>Phong Cách.</h1>
                 <a href="list-products.jsp" class="hero__btn">Khám phá ngay</a>
             </div>
         </div>
@@ -38,7 +38,7 @@
     <section class="product-section container">
         <div class="section-header">
             <h2>Ưu đãi sâu nhất</h2>
-            <a href="list-products.jsp">Xem tất cả</a>
+            <a href="${pageContext.request.contextPath}/product-list?sort_by=discount">Xem tất cả</a>
         </div>
 
         <div class="row g-4">
@@ -46,15 +46,20 @@
             <c:forEach var="product" begin="0" end="3" items="${topDiscountedProducts}">
             <article class="product-card col-6 col-md-4 col-lg-3">
                 <a href="list-products.jsp" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
-                    <span class="product-card__badge">${product.discountPercentage}</span>
+                    <c:if test="${product.discountPercentage != 0}">
+                    <span class="product-card__badge">${product.discountPercentage}%</span>
+                    </c:if>
                     <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
                 </div></a>
                 <div class="product-card__info">
                     <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
                     <a href="list-products.jsp" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
                     <div class="product-card__price">
-                        <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                        <c:if test="${product.discountPercentage > 0}">
+                            <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                        </c:if>
                         <span class="product-card__price-old"><fmt:formatNumber value="${product.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                        <span class="product-card__quantity">Số lượng: ${product.totalStock}</span>
                     </div>
                 </div>
             </article>
@@ -66,7 +71,7 @@
     <section class="product-section container">
         <div class="section-header">
             <h2>Sản phẩm mới</h2>
-            <a href="list-products.jsp">Xem tất cả</a>
+            <a href="${pageContext.request.contextPath}/product-list?sort_by=lastest">Xem tất cả</a>
         </div>
 
         <div class="row g-4">
@@ -74,15 +79,20 @@
             <c:forEach var="product" begin="0" end="3" items="${latestProducts}">
             <article class="product-card col-6 col-md-4 col-lg-3">
                 <a href="list-products.jsp" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
-                    <span class="product-card__badge">${product.discountPercentage}</span>
+                    <c:if test="${product.discountPercentage != 0}">
+                        <span class="product-card__badge">${product.discountPercentage}%</span>
+                    </c:if>
                     <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
                 </div></a>
                 <div class="product-card__info">
                     <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
                     <a href="list-products.jsp" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
                     <div class="product-card__price">
-                        <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                        <c:if test="${product.discountPercentage > 0}">
+                            <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                        </c:if>
                         <span class="product-card__price-old"><fmt:formatNumber value="${product.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                        <span class="product-card__quantity">Số lượng: ${product.totalStock}</span>
                     </div>
                 </div>
             </article>
@@ -94,7 +104,7 @@
     <section class="product-section container">
         <div class="section-header">
             <h2>Sản phẩm bán chạy</h2>
-            <a href="list-products.jsp">Xem tất cả</a>
+            <a href="${pageContext.request.contextPath}/product-list?sort_by=best_seller">Xem tất cả</a>
         </div>
 
         <div class="row g-4">
@@ -102,15 +112,20 @@
             <c:forEach var="product" begin="0" end="3" items="${bestSellingProducts}">
             <article class="product-card col-6 col-md-4 col-lg-3">
                 <a href="list-products.jsp" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
-                    <span class="product-card__badge">${product.discountPercentage}</span>
+                    <c:if test="${product.discountPercentage != 0}">
+                        <span class="product-card__badge">${product.discountPercentage}%</span>
+                    </c:if>
                     <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
                 </div></a>
                 <div class="product-card__info">
                     <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
                     <a href="list-products.jsp" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
                     <div class="product-card__price">
+                        <c:if test="${product.discountPercentage > 0}">
                         <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                        </c:if>
                         <span class="product-card__price-old"><fmt:formatNumber value="${product.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                        <span class="product-card__quantity">Số lượng: ${product.totalStock}</span>
                     </div>
                 </div>
             </article>

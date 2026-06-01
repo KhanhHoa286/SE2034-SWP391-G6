@@ -29,4 +29,6 @@ public class ProductResponse {
     private Integer discountPercentage;
 
     private String thumbnailUrl;
+
+    private Integer totalStock;
 }
