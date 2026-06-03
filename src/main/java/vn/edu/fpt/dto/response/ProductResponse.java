@@ -31,4 +31,6 @@ public class ProductResponse {
     private String thumbnailUrl;
 
     private Integer totalStock;
+
+    private Integer totalSold;
 }
