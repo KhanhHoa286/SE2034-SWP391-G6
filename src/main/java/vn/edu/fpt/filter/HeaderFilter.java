@@ -9,7 +9,7 @@ import vn.edu.fpt.dao.WishlistDAO;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
-import java.util.logging.LogRecord;
+import java.lang.reflect.Method;
 
 // Qua các trang này sẽ load dữ liệu lên header
 @WebFilter(urlPatterns = {"/home", "/product-list"})
@@ -31,9 +31,11 @@ public class HeaderFilter implements Filter {
             int numberProductWishlist = 0;
         // đã đăng nhập thì load số lượng lên
         if(session.getAttribute("account") != null) {
-            User user = (User)session.getAttribute("account");
-            numberProductCart = cartDAO.getNumberOfProductCart(user.getUserId());
-            numberProductWishlist = wishlistDAO.getNumberOfProductCart(user.getUserId());
+            Integer userId = extractUserId(session.getAttribute("account"));
+            if (userId != null) {
+                numberProductCart = cartDAO.getNumberOfProductCart(userId);
+                numberProductWishlist = wishlistDAO.getNumberOfProductCart(userId);
+            }
         }
 
         // chưa đăng nhập thì mặc định vẫn là 0
@@ -46,5 +48,23 @@ public class HeaderFilter implements Filter {
     @Override
     public void destroy() {
         Filter.super.destroy();
+    }
+
+    private Integer extractUserId(Object account) {
+        if (account instanceof User user) {
+            return user.getUserId();
+        }
+
+        try {
+            Method getter = account.getClass().getMethod("getUserId");
+            Object value = getter.invoke(account);
+            if (value instanceof Integer userId) {
+                return userId;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
     }
 }

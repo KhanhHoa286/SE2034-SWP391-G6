@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <!-- Material Symbols -->
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/customer/list-orders.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/list-orders.css">
 </head>
 <body>
 <div class="promo-bar">
