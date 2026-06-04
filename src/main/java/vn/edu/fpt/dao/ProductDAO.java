@@ -1,19 +1,15 @@
 package vn.edu.fpt.dao;
 import vn.edu.fpt.common.DBContext;
-import vn.edu.fpt.dto.response.ProductResponse;
+import vn.edu.fpt.dto.response.*;
 import vn.edu.fpt.model.Product;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
+
 public class ProductDAO extends DBContext {
     /**
      * HoaNK - Lấy ra danh sách sản phẩm ưu đãi sâu nhất
@@ -274,6 +270,147 @@ public class ProductDAO extends DBContext {
         return product;
     }
 
+    /**
+     * HoaNK - Lay ra thong tin chi tiet san pham tu product_id
+     */
+    private final String GET_PRODUCT_DETAIL_BY_PRODUCTID = """
+            SELECT p.product_id,p.product_name,p.base_price,p.discount_percentage,p.description,s.shop_id,s.shop_name,s.logo_url,ISNULL(review_data.avg_rating, 0.0) AS average_rating,ISNULL(review_data.total_reviews, 0) AS total_reviews, ISNULL(sold_data.total_sold, 0) AS total_sold
+            FROM products p
+            JOIN shops s ON p.shop_id = s.shop_id
+            LEFT JOIN ( -- tính trung bình sao đánh gia và đếm số đánh giá
+                SELECT product_id,\s
+                       AVG(CAST(rating AS DECIMAL(3,2))) AS avg_rating,\s
+                       COUNT(review_id) AS total_reviews
+                FROM product_reviews
+                GROUP BY product_id
+            ) review_data ON p.product_id = review_data.product_id
+            LEFT JOIN ( -- tính tổng số đơn hàng đã bán được
+                SELECT od.product_id,\s
+                       SUM(od.quantity) AS total_sold
+                FROM order_items od
+                JOIN sub_orders so ON od.sub_order_id = so.sub_order_id
+                WHERE so.status = 'DELIVERED'
+                GROUP BY od.product_id
+            ) sold_data ON p.product_id = sold_data.product_id
+            WHERE p.product_id = ?;
+            """;
+    public ProductDetailResponse getProductDetailByProductId(Integer productId) {
+        String sql = GET_PRODUCT_DETAIL_BY_PRODUCTID;
+        ProductDetailResponse response = null;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            try(ResultSet rs = stmt.executeQuery()) {
+                if(rs.next()) {
+                    response = new ProductDetailResponse();
+                    response.setProductId(rs.getInt("product_id"));
+                    response.setProductName(rs.getString("product_name"));
+                    response.setBasePrice(rs.getBigDecimal("base_price"));
+                    response.setDiscountPercentage(rs.getInt("discount_percentage"));
+                    response.setDescription(rs.getString("description"));
+                    response.setShopId(rs.getInt("shop_id"));
+                    response.setShopName(rs.getString("shop_name"));
+                    response.setLogoUrl(rs.getString("logo_url"));
 
+                    // trung binh danh gai, tong review, va tong don hang da ban
+                    response.setAverageRating(rs.getDouble("average_rating"));
+                    response.setTotalReview(rs.getInt("total_reviews"));
+                    response.setTotalSold(rs.getInt("total_sold"));
+
+                    // 3 list hiển thị size, màu va ảnh chính phụ
+                    response.setSizes(getSizesByProductId(productId));
+                    response.setColors(getColorsByProductId(productId));
+                    response.setUrlImageDetails(getImagesByProductId(productId));
+
+                    // set gia sau khi giam %
+                    Product p = new Product();
+                    p.setDiscountPercentage(rs.getInt("discount_percentage"));
+                    p.setBasePrice(rs.getBigDecimal("base_price"));
+                    response.setFinalPrice(p.getDiscountedPrice());
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    /**
+     * HoaNK - Lấy ra list size theo productId
+     */
+    private final String GET_SIZE_BY_PRODUCTID = """
+            SELECT DISTINCT s.size_id, s.size_name\s
+                    FROM product_variants pv
+                    JOIN sizes s ON pv.size_id = s.size_id
+                    WHERE pv.product_id = ?
+            """;
+    private List<SizeResponse> getSizesByProductId(Integer productId) {
+        String sql = GET_SIZE_BY_PRODUCTID;
+        List<SizeResponse> sizes = new ArrayList<>();
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            try(ResultSet rs = stmt.executeQuery()) {
+               while(rs.next()) {
+                   SizeResponse response = new SizeResponse();
+                   response.setSizeId(rs.getInt("size_id"));
+                   response.setSizeName(rs.getString("size_name"));
+               }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return sizes;
+    }
+    /**
+     * HoaNK - Lấy ra list color theo productId
+     */
+    private final String GET_COLOR_BY_PRODUCTID = """
+            SELECT DISTINCT s.color_id, s.color_name\s
+                    FROM product_variants pv
+                    JOIN colors c ON pv.color_id = c.color_id
+                    WHERE pv.product_id = ?
+            """;
+    private List<ColorResponse> getColorsByProductId(Integer productId) {
+        String sql = GET_COLOR_BY_PRODUCTID;
+        List<ColorResponse> colors = new ArrayList<>();
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            try(ResultSet rs = stmt.executeQuery()) {
+                while(rs.next()) {
+                    ColorResponse response = new ColorResponse();
+                    response.setColorId(rs.getInt("color_id"));
+                    response.setColorName(rs.getString("color_name"));
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return colors;
+    }
+    /**
+     * HoaNK - Lấy ra list image details theo productId
+     */
+    private final String GET_IMAGES_BY_PRODUCTID = """
+                    SELECT image_id, image_url, is_primary 
+                    FROM product_images 
+                    WHERE product_id = ? ORDER BY is_primary DESC
+    """;
+    private List<ImageResponse> getImagesByProductId(Integer productId) {
+        String sql = GET_IMAGES_BY_PRODUCTID;
+        List<ImageResponse> images = new ArrayList<>();
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            try(ResultSet rs = stmt.executeQuery()) {
+                while(rs.next()) {
+                    ImageResponse response = new ImageResponse();
+                    response.setImageId(rs.getInt("image_id"));
+                    response.setImageUrl(rs.getString("image_url"));
+                    response.setIsPrimary(rs.getBoolean("is_primary"));
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return images;
+    }
 }
 

@@ -45,7 +45,7 @@
             <!-- Product 1 -->
             <c:forEach var="product" begin="0" end="3" items="${topDiscountedProducts}">
             <article class="product-card col-6 col-md-4 col-lg-3">
-                <a href="list-products.jsp" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
+                <a href="product-detail?pid=${product.productId}" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
                     <c:if test="${product.discountPercentage != 0}">
                     <span class="product-card__badge">${product.discountPercentage}%</span>
                     </c:if>
@@ -53,7 +53,7 @@
                 </div></a>
                 <div class="product-card__info">
                     <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
-                    <a href="list-products.jsp" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
+                    <a href="product-detail?pid=${product.productId}" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
                     <div class="product-card__price">
                         <c:if test="${product.discountPercentage > 0}">
                             <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
@@ -78,7 +78,7 @@
             <!-- Product 1 -->
             <c:forEach var="product" begin="0" end="3" items="${latestProducts}">
             <article class="product-card col-6 col-md-4 col-lg-3">
-                <a href="list-products.jsp" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
+                <a href="product-detail?pid=${product.productId}" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
                     <c:if test="${product.discountPercentage != 0}">
                         <span class="product-card__badge">${product.discountPercentage}%</span>
                     </c:if>
@@ -86,7 +86,7 @@
                 </div></a>
                 <div class="product-card__info">
                     <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
-                    <a href="list-products.jsp" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
+                    <a href="product-detail?pid=${product.productId}" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
                     <div class="product-card__price">
                         <c:if test="${product.discountPercentage > 0}">
                             <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
@@ -111,7 +111,7 @@
             <!-- Product 1 -->
             <c:forEach var="product" begin="0" end="3" items="${bestSellingProducts}">
             <article class="product-card col-6 col-md-4 col-lg-3">
-                <a href="list-products.jsp" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
+                <a href="product-detail?pid=${product.productId}" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
                     <c:if test="${product.discountPercentage != 0}">
                         <span class="product-card__badge">${product.discountPercentage}%</span>
                     </c:if>
@@ -119,7 +119,7 @@
                 </div></a>
                 <div class="product-card__info">
                     <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
-                    <a href="list-products.jsp" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
+                    <a href="product-detail?pid=${product.productId}" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
                     <div class="product-card__price">
                         <c:if test="${product.discountPercentage > 0}">
                         <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>

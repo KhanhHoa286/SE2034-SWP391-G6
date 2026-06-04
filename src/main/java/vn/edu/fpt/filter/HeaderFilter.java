@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.logging.LogRecord;
 
 // Qua các trang này sẽ load dữ liệu lên header
-@WebFilter(urlPatterns = {"/home", "/product-list"})
+@WebFilter(urlPatterns = {"/home", "/product-list", "/product-detail"})
 public class HeaderFilter implements Filter {
     private final CartDAO cartDAO = new CartDAO();
     private final WishlistDAO wishlistDAO = new WishlistDAO();
