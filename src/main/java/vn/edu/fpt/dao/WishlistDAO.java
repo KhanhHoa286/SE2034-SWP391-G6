@@ -11,5 +11,20 @@ import java.util.HashMap;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 public class WishlistDAO extends DBContext {
-
+    /**
+     * HoaNK - Đếm số lượng sản phẩm trong wishlisst
+     */
+    private final String COUNT_PRODUCT_WISHLIST = "SELECT COUNT(*) FROM wishlist WHERE user_id = ?";
+    public int getNumberOfProductCart(Integer userId) {
+        String sql = COUNT_PRODUCT_WISHLIST;
+        try(PreparedStatement stmt = connection.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
+            if(rs.next()) {
+                return rs.getInt(1);
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

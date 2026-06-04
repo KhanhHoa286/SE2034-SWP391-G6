@@ -22,7 +22,8 @@ public class User {
     private String email;
     private String phone;
     private String passwordHash;
-    private String avatarUrl;
+    @Builder.Default
+    private String avatarUrl = "https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg";
     private Gender gender;
     private LocalDate dateOfBirth;
     private Integer roleId;
