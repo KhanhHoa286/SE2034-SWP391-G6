@@ -18,9 +18,12 @@ public class CartDAO extends DBContext {
     public int getNumberOfProductCart(Integer userId) {
         String sql = COUNT_PRODUCT_CART;
         try(PreparedStatement stmt = connection.prepareStatement(sql);
-        ResultSet rs = stmt.executeQuery()) {
+        ) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
             if(rs.next()) {
                 return rs.getInt(1);
+            }
             }
         }catch(Exception e) {
             e.printStackTrace();

@@ -18,9 +18,12 @@ public class WishlistDAO extends DBContext {
     public int getNumberOfProductCart(Integer userId) {
         String sql = COUNT_PRODUCT_WISHLIST;
         try(PreparedStatement stmt = connection.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()) {
-            if(rs.next()) {
-                return rs.getInt(1);
+        ) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if(rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         }catch(Exception e) {
             e.printStackTrace();
