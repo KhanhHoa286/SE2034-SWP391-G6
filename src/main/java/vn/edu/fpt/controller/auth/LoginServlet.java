@@ -2,183 +2,165 @@ package vn.edu.fpt.controller.auth;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.*;
+import vn.edu.fpt.common.EmailUtils;
+import vn.edu.fpt.common.OtpUtils;
 import vn.edu.fpt.common.PasswordUtils;
+import vn.edu.fpt.dao.EmailVerificationDAO;
+import vn.edu.fpt.dao.UserDAO;
 import vn.edu.fpt.enums.UserStatus;
-import vn.edu.fpt.model.Role;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.Properties;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.regex.Pattern;
 
-@WebServlet(urlPatterns = {"/login"})
+@WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 
-    private static final String LOGIN_PAGE = "/public/auth/login.jsp";
-    private static final String DEMO_PASSWORD = "123456";
+    private final UserDAO userDao = new UserDAO();
+    private final EmailVerificationDAO otpDao = new EmailVerificationDAO();
+
+    private boolean isValidEmail(String email) {
+        return email != null
+                && Pattern.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", email);
+    }
+
+    private void forwardLogin(HttpServletRequest request,
+                              HttpServletResponse response,
+                              String error,
+                              String email)
+            throws ServletException, IOException {
+
+        request.setAttribute("error", error);
+        request.setAttribute("email", email);
+        request.getRequestDispatcher("/public/auth/login.jsp").forward(request, response);
+    }
+
+    private void sendOtp(String email) throws Exception {
+        String otp = OtpUtils.generateOtp();
+
+        otpDao.createOtp(email, otp, LocalDateTime.now().plusMinutes(1));
+
+        EmailUtils.sendEmail(
+                email,
+                "Xác thực tài khoản MODA",
+                "Xin chào,<br><br>"
+                        + "Bạn đang tiếp tục xác thực tài khoản tại MODA.<br>"
+                        + "Mã xác thực OTP của bạn là: <b style='font-size:18px;'>" + otp + "</b><br>"
+                        + "Mã này có hiệu lực trong 1 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.<br><br>"
+                        + "Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.<br><br>"
+                        + "Trân trọng,<br>"
+                        + "Đội ngũ MODA"
+        );
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher(LOGIN_PAGE).forward(request, response);
+        response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp");
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         request.setCharacterEncoding("UTF-8");
 
-        String email = trim(request.getParameter("email"));
-        String password = trim(request.getParameter("password"));
-        String redirect = trim(request.getParameter("redirect"));
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
 
-        request.setAttribute("email", email);
-        request.setAttribute("redirect", redirect);
+        email = email == null ? "" : email.trim().toLowerCase();
+        password = password == null ? "" : password;
 
-        if (email.isBlank() || password.isBlank()) {
-            request.setAttribute("errorMessage", "Vui lòng nhập email và mật khẩu.");
-            request.getRequestDispatcher(LOGIN_PAGE).forward(request, response);
+        if (email.isEmpty() || password.trim().isEmpty()) {
+            forwardLogin(request, response,
+                    "Vui lòng nhập đầy đủ email và mật khẩu.",
+                    email);
             return;
         }
 
-        try (Connection connection = openConnection()) {
-            LoginAccount account = findLoginAccount(connection, email);
-
-            if (account == null || !isPasswordAccepted(password, account.passwordHash())) {
-                request.setAttribute("errorMessage", "Email hoặc mật khẩu không đúng.");
-                request.getRequestDispatcher(LOGIN_PAGE).forward(request, response);
-                return;
-            }
-
-            if (!"ACTIVE".equalsIgnoreCase(account.status())) {
-                request.setAttribute("errorMessage", "Tài khoản chưa ở trạng thái ACTIVE.");
-                request.getRequestDispatcher(LOGIN_PAGE).forward(request, response);
-                return;
-            }
-
-            if (!"SELLER".equalsIgnoreCase(account.roleName())) {
-                request.setAttribute("errorMessage", "Demo này cần tài khoản SELLER để test payout account.");
-                request.getRequestDispatcher(LOGIN_PAGE).forward(request, response);
-                return;
-            }
-
-            if (account.shopId() == null) {
-                request.setAttribute("errorMessage", "Seller này chưa có shop nên chưa đủ điều kiện test payout account.");
-                request.getRequestDispatcher(LOGIN_PAGE).forward(request, response);
-                return;
-            }
-
-            User loginUser = User.builder()
-                    .userId(account.userId())
-                    .firstName(account.firstName())
-                    .lastName(account.lastName())
-                    .email(account.email())
-                    .phone(account.phone())
-                    .passwordHash(account.passwordHash())
-                    .roleId(account.roleId())
-                    .role(Role.builder()
-                            .roleId(account.roleId())
-                            .roleName(account.roleName())
-                            .build())
-                    .status(UserStatus.valueOf(account.status().toUpperCase()))
-                    .build();
-
-            HttpSession session = request.getSession();
-            session.setAttribute("account", loginUser);
-            session.setAttribute("demoShopId", account.shopId());
-            session.setAttribute("demoShopName", account.shopName());
-
-            String target = redirect.isBlank()
-                    ? request.getContextPath() + "/seller/finance/view-wallet"
-                    : request.getContextPath() + redirect;
-            response.sendRedirect(target);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            request.setAttribute("errorMessage", "Không thể đăng nhập demo lúc này. Kiểm tra kết nối database.");
-            request.getRequestDispatcher(LOGIN_PAGE).forward(request, response);
-        }
-    }
-
-    private LoginAccount findLoginAccount(Connection connection, String email) throws Exception {
-        String sql = """
-                SELECT u.user_id, u.first_name, u.last_name, u.email, u.phone, u.password_hash,
-                       u.role_id, u.status, r.role_name, s.shop_id, s.shop_name
-                FROM users u
-                INNER JOIN roles r ON u.role_id = r.role_id
-                LEFT JOIN shops s ON u.user_id = s.owner_id
-                WHERE u.email = ?
-                """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, email);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    Integer shopId = rs.getObject("shop_id") == null ? null : rs.getInt("shop_id");
-                    return new LoginAccount(
-                            rs.getInt("user_id"),
-                            rs.getString("first_name"),
-                            rs.getString("last_name"),
-                            rs.getString("email"),
-                            rs.getString("phone"),
-                            rs.getString("password_hash"),
-                            rs.getInt("role_id"),
-                            rs.getString("role_name"),
-                            rs.getString("status"),
-                            shopId,
-                            rs.getString("shop_name")
-                    );
-                }
-            }
-        }
-        return null;
-    }
-
-    private boolean isPasswordAccepted(String plainPassword, String passwordHash) {
-        return DEMO_PASSWORD.equals(plainPassword)
-                || passwordHash.equals(plainPassword)
-                || PasswordUtils.checkPassword(plainPassword, passwordHash);
-    }
-
-    private Connection openConnection() throws Exception {
-        Properties properties = new Properties();
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("ConnectDB.properties")) {
-            if (inputStream == null) {
-                throw new IllegalStateException("Không tìm thấy ConnectDB.properties.");
-            }
-            properties.load(inputStream);
+        if (!isValidEmail(email)) {
+            forwardLogin(request, response,
+                    "Email không hợp lệ. Vui lòng nhập đúng định dạng, ví dụ: example@gmail.com.",
+                    email);
+            return;
         }
 
-        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-        return DriverManager.getConnection(
-                properties.getProperty("url"),
-                properties.getProperty("userID"),
-                properties.getProperty("password")
-        );
-    }
+        User user = userDao.getUserByEmail(email);
 
-    private String trim(String value) {
-        return value == null ? "" : value.trim();
-    }
+        if (user == null) {
+            forwardLogin(request, response,
+                    "Email hoặc mật khẩu không đúng.",
+                    email);
+            return;
+        }
 
-    private record LoginAccount(
-            int userId,
-            String firstName,
-            String lastName,
-            String email,
-            String phone,
-            String passwordHash,
-            int roleId,
-            String roleName,
-            String status,
-            Integer shopId,
-            String shopName
-    ) {
+        boolean passwordMatched = PasswordUtils.checkPassword(password, user.getPasswordHash());
+
+        if (!passwordMatched) {
+            forwardLogin(request, response,
+                    "Email hoặc mật khẩu không đúng.",
+                    email);
+            return;
+        }
+
+        if (user.getStatus() == UserStatus.PENDING) {
+            try {
+                sendOtp(email);
+
+                String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+
+                response.sendRedirect(
+                        request.getContextPath()
+                                + "/public/auth/verify-otp.jsp?email="
+                                + encodedEmail
+                );
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                forwardLogin(request, response,
+                        "Tài khoản chưa xác thực OTP nhưng hệ thống chưa gửi lại được mã. Vui lòng kiểm tra thư rác hoặc thử lại sau.",
+                        email);
+                return;
+            }
+        }
+
+        if (user.getStatus() == UserStatus.LOCKED) {
+            forwardLogin(request, response,
+                    "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
+                    email);
+            return;
+        }
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            forwardLogin(request, response,
+                    "Trạng thái tài khoản không hợp lệ.",
+                    email);
+            return;
+        }
+
+        HttpSession session = request.getSession();
+        session.setAttribute("user", user);
+        session.setAttribute("userId", user.getUserId());
+        session.setAttribute("roleId", user.getRoleId());
+        session.setAttribute("fullName", user.getFirstName() + " " + user.getLastName());
+
+        String contextPath = request.getContextPath();
+
+        if (user.getRoleId() == 1) {
+            response.sendRedirect(contextPath + "/admin/dashboard/view-system-overview.jsp");
+        } else if (user.getRoleId() == 2) {
+            response.sendRedirect(contextPath + "/public/home/view-home.jsp");
+        } else if (user.getRoleId() == 3) {
+            response.sendRedirect(contextPath + "/seller/dashboard/view-seller-dashboard.jsp");
+        } else if (user.getRoleId() == 4) {
+            response.sendRedirect(contextPath + "/logistics/delivery/list-deliveries.jsp");
+        } else {
+            response.sendRedirect(contextPath + "/public/home/view-home.jsp");
+        }
     }
 }

@@ -1,240 +1,208 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%
+    String emailValue = "";
+
+    if (request.getAttribute("email") != null) {
+        emailValue = String.valueOf(request.getAttribute("email"));
+    } else if (request.getParameter("email") != null) {
+        emailValue = request.getParameter("email");
+    }
+
+    emailValue = emailValue
+            .replace("&", "&amp;")
+            .replace("\"", "&quot;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;");
+
+    String verified = request.getParameter("verified");
+%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demo Login - MODA</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
-    <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: #f5f6fb;
-            color: #07111f;
-            font-family: Arial, Helvetica, sans-serif;
-        }
+    <title>Đăng nhập | MODA</title>
 
-        .login-shell {
-            display: grid;
-            place-items: center;
-            min-height: 100vh;
-            padding: 32px 18px;
-        }
-
-        .login-card {
-            width: min(940px, 100%);
-            display: grid;
-            grid-template-columns: 1fr 1.1fr;
-            background: #ffffff;
-            border: 1px solid #d1c7c7;
-        }
-
-        .login-panel {
-            padding: 42px;
-            border-right: 1px solid #d1c7c7;
-        }
-
-        .login-panel h1 {
-            margin: 0 0 10px;
-            font-size: 30px;
-            font-weight: 800;
-        }
-
-        .login-panel p {
-            margin: 0 0 28px;
-            color: #4b5563;
-            line-height: 1.6;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 9px;
-            margin-bottom: 18px;
-        }
-
-        .form-group label {
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-        }
-
-        .form-control {
-            min-height: 48px;
-            padding: 0 14px;
-            border: 1px solid #cfc7c7;
-            background: #f6f7fb;
-            color: #07111f;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .form-control:focus {
-            border-color: #07111f;
-            background: #ffffff;
-        }
-
-        .login-button {
-            width: 100%;
-            min-height: 50px;
-            margin-top: 8px;
-            border: 0;
-            background: #000000;
-            color: #ffffff;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .alert-error {
-            margin-bottom: 18px;
-            padding: 13px 15px;
-            border: 1px solid #fecaca;
-            background: #fef2f2;
-            color: #b91c1c;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .demo-panel {
-            padding: 42px;
-            background: #fafafa;
-        }
-
-        .demo-panel h2 {
-            margin: 0 0 16px;
-            font-size: 14px;
-            font-weight: 800;
-            letter-spacing: 2.5px;
-            text-transform: uppercase;
-        }
-
-        .demo-list {
-            display: grid;
-            gap: 12px;
-        }
-
-        .demo-account {
-            width: 100%;
-            padding: 16px;
-            border: 1px solid #d1c7c7;
-            background: #ffffff;
-            cursor: pointer;
-            text-align: left;
-        }
-
-        .demo-account strong {
-            display: block;
-            margin-bottom: 4px;
-            color: #07111f;
-            font-size: 14px;
-        }
-
-        .demo-account span {
-            display: block;
-            color: #4b5563;
-            font-size: 13px;
-            line-height: 1.45;
-        }
-
-        .demo-note {
-            margin-top: 18px;
-            color: #4b5563;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 760px) {
-            .login-card {
-                grid-template-columns: 1fr;
-            }
-
-            .login-panel {
-                border-right: 0;
-                border-bottom: 1px solid #d1c7c7;
-            }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/css/public/login.css">
 </head>
+
 <body>
-<main class="login-shell">
-    <section class="login-card">
-        <div class="login-panel">
-            <h1>Demo Login</h1>
-            <p>Đăng nhập bằng tài khoản seller đã có shop để test màn Add Payout Account.</p>
 
-            <c:if test="${not empty errorMessage}">
-                <div class="alert-error">${errorMessage}</div>
-            </c:if>
+<header class="top-nav">
+    <a class="brand" href="<%= request.getContextPath() %>/public/home/view-home.jsp">MODA</a>
+</header>
 
-            <form action="${pageContext.request.contextPath}/login" method="POST">
-                <input type="hidden" name="redirect" value="${empty redirect ? '/seller/finance/view-wallet' : redirect}">
+<main class="login-page">
 
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email"
-                           id="email"
-                           name="email"
-                           class="form-control"
-                           placeholder="seller1@gmail.com"
-                           value="${empty email ? 'seller1@gmail.com' : email}"
-                           required>
-                </div>
+    <section class="login-visual">
+        <img
+                src="https://images2.thanhnien.vn/thumb_w/640/528068263637045248/2024/7/18/1-den-trang-decode-house-1721291431976503346008.jpg"
+                alt="MODA Fashion"
+        >
 
-                <div class="form-group">
-                    <label for="password">Mật khẩu demo</label>
-                    <input type="password"
-                           id="password"
-                           name="password"
-                           class="form-control"
-                           value="123456"
-                           required>
-                </div>
+        <div class="visual-overlay"></div>
 
-                <button type="submit" class="login-button">Đăng nhập để test</button>
-            </form>
-        </div>
-
-        <aside class="demo-panel">
-            <h2>Tài khoản đủ điều kiện</h2>
-            <div class="demo-list">
-                <button type="button" class="demo-account" data-email="seller1@gmail.com">
-                    <strong>seller1@gmail.com</strong>
-                    <span>Role SELLER, owner shop 1 - Men Shop, có ví seller.</span>
-                </button>
-                <button type="button" class="demo-account" data-email="hoahuy20@gmail.com">
-                    <strong>hoahuy20@gmail.com</strong>
-                    <span>Role SELLER, owner shop 2 - Cloth Store, có ví seller.</span>
-                </button>
-                <button type="button" class="demo-account" data-email="kimmita963@gmail.com">
-                    <strong>kimmita963@gmail.com</strong>
-                    <span>Role SELLER, owner shop 3 - Fashion Store, có ví seller.</span>
-                </button>
-            </div>
-            <p class="demo-note">
-                Password demo: <strong>123456</strong>. Servlet cũng chấp nhận password seed
-                <strong>hashed_pass</strong> để tiện test nhanh với database hiện tại.
+        <div class="visual-content">
+            <h2>ĐỊNH NGHĨA SỰ SÁNG TẠO HIỆN ĐẠI</h2>
+            <p>
+                Khám phá MODA, nơi phong cách, cá tính và thời trang hiện đại được kết nối trong từng lựa chọn.
             </p>
-        </aside>
+        </div>
     </section>
+
+    <section class="login-section">
+        <div class="login-card">
+
+            <div class="login-heading">
+                <h1>Đăng nhập</h1>
+                <p>Nhập thông tin chi tiết để truy cập tài khoản của bạn.</p>
+            </div>
+
+            <% if ("true".equals(verified)) { %>
+            <div class="message message-success">
+                Xác thực tài khoản thành công. Vui lòng nhập mật khẩu để đăng nhập.
+            </div>
+            <% } %>
+
+            <% if (request.getAttribute("error") != null) { %>
+            <div class="message message-error">
+                <%= request.getAttribute("error") %>
+            </div>
+            <% } %>
+
+            <form action="<%= request.getContextPath() %>/login" method="post" id="loginForm">
+
+                <div class="form-group">
+                    <label for="email">EMAIL</label>
+                    <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            required
+                            value="<%= emailValue %>"
+                            placeholder="hello@example.com"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">MẬT KHẨU</label>
+
+                    <div class="password-wrap">
+                        <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                required
+                                placeholder="••••••••"
+                        >
+
+                        <button type="button" class="toggle-password" onclick="togglePassword()">
+                            Xem
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <label class="remember">
+                        <input type="checkbox" name="remember">
+                        <span>Ghi nhớ đăng nhập</span>
+                    </label>
+
+                    <a href="#" class="forgot-link">Quên mật khẩu?</a>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    ĐĂNG NHẬP
+                </button>
+            </form>
+
+            <p class="register-text">
+                Chưa có tài khoản?
+                <a href="<%= request.getContextPath() %>/public/auth/register.jsp">Tạo tài khoản</a>
+            </p>
+
+        </div>
+    </section>
+
 </main>
 
-<script>
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
+<footer class="footer">
+    <div class="footer-brand">MODA</div>
 
-    document.querySelectorAll('.demo-account').forEach(function (button) {
-        button.addEventListener('click', function () {
-            emailInput.value = this.dataset.email;
-            passwordInput.value = '123456';
-            emailInput.focus();
-        });
+    <div class="footer-links">
+        <a href="#">ĐIỀU KHOẢN</a>
+        <a href="#">BẢO MẬT</a>
+        <a href="#">VẬN CHUYỂN</a>
+        <a href="#">LIÊN HỆ</a>
+    </div>
+
+    <p>© 2024 MODA. TẤT CẢ QUYỀN ĐƯỢC BẢO LƯU.</p>
+</footer>
+
+<script>
+    const loginForm = document.getElementById("loginForm");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+
+    function validateEmailInput() {
+        const value = emailInput.value.trim();
+        const regex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+        if (value.length === 0) {
+            emailInput.setCustomValidity("Email không được để trống.");
+            return false;
+        }
+
+        if (!regex.test(value)) {
+            emailInput.setCustomValidity("Email không hợp lệ. Ví dụ: example@gmail.com");
+            return false;
+        }
+
+        emailInput.setCustomValidity("");
+        return true;
+    }
+
+    function validatePasswordInput() {
+        if (passwordInput.value.trim().length === 0) {
+            passwordInput.setCustomValidity("Mật khẩu không được để trống.");
+            return false;
+        }
+
+        passwordInput.setCustomValidity("");
+        return true;
+    }
+
+    emailInput.addEventListener("input", validateEmailInput);
+    passwordInput.addEventListener("input", validatePasswordInput);
+
+    loginForm.addEventListener("submit", function (event) {
+        const emailValid = validateEmailInput();
+        const passwordValid = validatePasswordInput();
+
+        if (!emailValid || !passwordValid) {
+            event.preventDefault();
+            loginForm.reportValidity();
+            return;
+        }
+
+        const submitBtn = loginForm.querySelector(".submit-btn");
+        submitBtn.textContent = "ĐANG XỬ LÝ...";
+        submitBtn.classList.add("is-loading");
     });
+
+    function togglePassword() {
+        const btn = document.querySelector(".toggle-password");
+
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            btn.textContent = "Ẩn";
+        } else {
+            passwordInput.type = "password";
+            btn.textContent = "Xem";
+        }
+    }
 </script>
+
 </body>
 </html>
