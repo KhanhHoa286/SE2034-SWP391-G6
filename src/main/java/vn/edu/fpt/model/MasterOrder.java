@@ -26,6 +26,10 @@ public class MasterOrder {
 
     private String paymentMethod;
 
+    private String vnpTransactionNo;
+    private String vnpBankCode;
+    private LocalDateTime vnpPayDate;
+
     private PaymentStatus paymentStatus;
 
     private LocalDateTime createdAt;
