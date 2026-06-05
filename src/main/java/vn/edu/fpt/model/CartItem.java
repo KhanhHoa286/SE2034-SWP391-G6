@@ -18,9 +18,6 @@ public class CartItem {
     private Integer userId;
     private User user;
 
-    private Integer productId;
-    private Product product;
-
     private Integer variantId;
     private ProductVariant variant;
 
@@ -29,5 +26,4 @@ public class CartItem {
     private Boolean isSelected;
 
     private LocalDateTime addedAt;
-
 }

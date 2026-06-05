@@ -1,15 +1,18 @@
 package vn.edu.fpt.dao;
 import vn.edu.fpt.common.DBContext;
-import vn.edu.fpt.dto.response.*;
+import vn.edu.fpt.dto.response.ProductDetailResponse;
+import vn.edu.fpt.dto.response.ProductResponse;
+import vn.edu.fpt.dto.response.SizeResponse;
+import vn.edu.fpt.dto.response.ColorResponse;
+import vn.edu.fpt.dto.response.ImageResponse;
 import vn.edu.fpt.model.Product;
-
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.SQLException;
-
+import java.time.LocalDateTime;
 public class ProductDAO extends DBContext {
     /**
      * HoaNK - Lấy ra danh sách sản phẩm ưu đãi sâu nhất
@@ -261,6 +264,13 @@ public class ProductDAO extends DBContext {
         product.setThumbnailUrl(rs.getString("thumbnail_url"));
         product.setTotalStock(rs.getInt("total_stock"));
 
+        // set totalSold if it exists in ResultSet
+        try {
+            product.setTotalSold(rs.getInt("total_sold"));
+        } catch (SQLException e) {
+            product.setTotalSold(0);
+        }
+
         // tính khuyến mãi
         Product p = new Product();
         p.setDiscountPercentage(rs.getInt("discount_percentage"));
@@ -411,6 +421,54 @@ public class ProductDAO extends DBContext {
             e.printStackTrace();
         }
         return images;
+    }
+
+    public List<ProductResponse> getShopBestSellingProducts(int shopId, int limit) {
+        List<ProductResponse> products = new ArrayList<>();
+        String sql = """
+            SELECT TOP (?) 
+                p.product_id, 
+                s.shop_name, 
+                s.shop_id, 
+                pr.name AS province_name,
+                p.product_name, 
+                p.base_price, 
+                p.discount_percentage,
+                p.description, 
+                p.thumbnail_url, 
+                p.created_at, 
+                SUM(pa.stock_quantity) AS total_stock,
+                ISNULL(sold_data.total_sold, 0) AS total_sold
+            FROM products p
+            JOIN shops s ON p.shop_id = s.shop_id
+            JOIN wards w ON s.ward_id = w.id
+            JOIN provinces pr ON w.province_id = pr.id
+            JOIN product_variants pa ON p.product_id = pa.product_id
+            LEFT JOIN (
+                SELECT od.product_id, SUM(od.quantity) AS total_sold
+                FROM order_items od
+                JOIN sub_orders so ON od.sub_order_id = so.sub_order_id
+                WHERE so.status = 'DELIVERED'
+                GROUP BY od.product_id
+            ) sold_data ON p.product_id = sold_data.product_id
+            WHERE p.is_active = 1 AND p.is_deleted = 0 AND p.shop_id = ?
+            GROUP BY p.product_id, s.shop_name, s.shop_id, pr.name,
+                     p.product_name, p.base_price, p.discount_percentage,
+                     p.description, p.thumbnail_url, p.created_at, sold_data.total_sold
+            ORDER BY total_sold DESC
+            """;
+        try {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, limit);
+            stmt.setInt(2, shopId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                products.add(buildProductResponse(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return products;
     }
 }
 
