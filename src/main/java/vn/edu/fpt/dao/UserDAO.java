@@ -10,7 +10,7 @@ import java.sql.*;
 public class UserDAO extends DBContext {
 
     public boolean isEmailExist(String email) {
-        String sql = "SELECT 1 FROM users WHERE email=?";
+        String sql = "SELECT 1 FROM users WHERE email = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, email);
@@ -27,7 +27,7 @@ public class UserDAO extends DBContext {
     }
 
     public boolean isPhoneExist(String phone) {
-        String sql = "SELECT 1 FROM users WHERE phone=?";
+        String sql = "SELECT 1 FROM users WHERE phone = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, phone);
@@ -44,7 +44,8 @@ public class UserDAO extends DBContext {
     }
 
     public int getRoleIdByName(String roleName) {
-        String sql = "SELECT role_id FROM roles WHERE role_name=?";
+        String sql = "SELECT TOP 1 role_id FROM roles "
+                + "WHERE UPPER(LTRIM(RTRIM(role_name))) = UPPER(LTRIM(RTRIM(?)))";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, roleName);
@@ -62,10 +63,28 @@ public class UserDAO extends DBContext {
         return 0;
     }
 
+    public Integer getRoleIdByUserId(int userId) {
+        String sql = "SELECT TOP 1 role_id FROM user_roles WHERE user_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("role_id");
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     /*
-     * DB sql2.pdf không còn cột users.role_id.
-     * Method này chỉ insert thông tin user vào bảng users.
-     * Muốn gán quyền thì gọi thêm insertUserRole(...) hoặc dùng insertUserWithRole(...).
+     * DB sql2.pdf:
+     * Bảng users không còn cột role_id.
      */
     public int insertUser(User user) {
         String sql = "INSERT INTO users "
@@ -89,15 +108,13 @@ public class UserDAO extends DBContext {
         return 0;
     }
 
-    /*
-     * Dùng cho DB mới: user_id và role_id được lưu ở bảng user_roles.
-     */
     public boolean insertUserRole(int userId, int roleId) {
         String sql = "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.setInt(2, roleId);
+
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -108,16 +125,17 @@ public class UserDAO extends DBContext {
     }
 
     /*
-     * Insert user + gán role trong cùng transaction.
-     * Nếu gán role thất bại thì rollback để tránh user không có quyền.
+     * Đăng ký user + gán role CUSTOMER trong cùng transaction.
+     * Không sửa User.java, không dùng user.getRoleId().
      */
-    public int insertUserWithRole(User user) {
+    public int insertUserWithRole(User user, int roleId) {
         String insertUserSql = "INSERT INTO users "
                 + "(first_name, last_name, email, phone, password_hash, gender, date_of_birth, status, created_at) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
         String insertRoleSql = "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)";
 
-        if (user.getRoleId() == null || user.getRoleId() <= 0) {
+        if (roleId <= 0) {
             return 0;
         }
 
@@ -147,7 +165,7 @@ public class UserDAO extends DBContext {
 
             try (PreparedStatement psRole = connection.prepareStatement(insertRoleSql)) {
                 psRole.setInt(1, userId);
-                psRole.setInt(2, user.getRoleId());
+                psRole.setInt(2, roleId);
 
                 if (psRole.executeUpdate() <= 0) {
                     connection.rollback();
@@ -160,11 +178,13 @@ public class UserDAO extends DBContext {
 
         } catch (SQLException e) {
             e.printStackTrace();
+
             try {
                 connection.rollback();
             } catch (SQLException rollbackException) {
                 rollbackException.printStackTrace();
             }
+
         } finally {
             try {
                 connection.setAutoCommit(oldAutoCommit);
@@ -174,6 +194,48 @@ public class UserDAO extends DBContext {
         }
 
         return 0;
+    }
+
+    /*
+     * Cho phép đăng ký lại tài khoản đang PENDING:
+     * Không tạo user mới vì email/phone là UNIQUE.
+     * Chỉ update lại thông tin tạm, rồi gửi OTP mới.
+     */
+    public boolean updatePendingUserBeforeResendOtp(int userId, User user) {
+        String sql = "UPDATE users "
+                + "SET first_name = ?, "
+                + "last_name = ?, "
+                + "password_hash = ?, "
+                + "gender = ?, "
+                + "date_of_birth = ? "
+                + "WHERE user_id = ? AND status = 'PENDING'";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, user.getFirstName());
+            ps.setString(2, user.getLastName());
+            ps.setString(3, user.getPasswordHash());
+
+            if (user.getGender() != null) {
+                ps.setString(4, user.getGender().name());
+            } else {
+                ps.setNull(4, Types.NVARCHAR);
+            }
+
+            if (user.getDateOfBirth() != null) {
+                ps.setDate(5, Date.valueOf(user.getDateOfBirth()));
+            } else {
+                ps.setNull(5, Types.DATE);
+            }
+
+            ps.setInt(6, userId);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     private void setUserInsertParameters(PreparedStatement ps, User user) throws SQLException {
@@ -209,10 +271,7 @@ public class UserDAO extends DBContext {
     }
 
     public User getUserByEmail(String email) {
-        String sql = "SELECT u.*, ur.role_id "
-                + "FROM users u "
-                + "LEFT JOIN user_roles ur ON u.user_id = ur.user_id "
-                + "WHERE u.email=?";
+        String sql = "SELECT TOP 1 * FROM users WHERE email = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, email);
@@ -231,10 +290,7 @@ public class UserDAO extends DBContext {
     }
 
     public User getUserByPhone(String phone) {
-        String sql = "SELECT u.*, ur.role_id "
-                + "FROM users u "
-                + "LEFT JOIN user_roles ur ON u.user_id = ur.user_id "
-                + "WHERE u.phone=?";
+        String sql = "SELECT TOP 1 * FROM users WHERE phone = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, phone);
@@ -265,7 +321,11 @@ public class UserDAO extends DBContext {
 
         String gender = rs.getString("gender");
         if (gender != null && !gender.trim().isEmpty()) {
-            user.setGender(Gender.valueOf(gender));
+            try {
+                user.setGender(Gender.valueOf(gender.trim().toUpperCase()));
+            } catch (IllegalArgumentException ignored) {
+                user.setGender(null);
+            }
         }
 
         Date dob = rs.getDate("date_of_birth");
@@ -273,14 +333,13 @@ public class UserDAO extends DBContext {
             user.setDateOfBirth(dob.toLocalDate());
         }
 
-        int roleId = rs.getInt("role_id");
-        if (!rs.wasNull()) {
-            user.setRoleId(roleId);
-        }
-
         String status = rs.getString("status");
         if (status != null && !status.trim().isEmpty()) {
-            user.setStatus(UserStatus.valueOf(status));
+            try {
+                user.setStatus(UserStatus.valueOf(status.trim().toUpperCase()));
+            } catch (IllegalArgumentException ignored) {
+                user.setStatus(null);
+            }
         }
 
         Timestamp createdAt = rs.getTimestamp("created_at");
@@ -292,7 +351,7 @@ public class UserDAO extends DBContext {
     }
 
     public boolean updateUserStatus(int userId, UserStatus status) {
-        String sql = "UPDATE users SET status=? WHERE user_id=?";
+        String sql = "UPDATE users SET status = ? WHERE user_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, status.name());
