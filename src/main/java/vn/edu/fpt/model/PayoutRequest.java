@@ -23,8 +23,10 @@ public class PayoutRequest {
     private BigDecimal amount;
 
     private String bankName;
+    private String bankCode;
 
     private String accountNumber;
+    private String accountHolderName;
 
     private PayoutRequestStatus status;
 
