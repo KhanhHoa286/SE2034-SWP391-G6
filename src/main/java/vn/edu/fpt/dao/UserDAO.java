@@ -43,24 +43,24 @@ public class UserDAO extends DBContext {
         return false;
     }
 
-    public int getRoleIdByName(String roleName) {
-        String sql = "SELECT role_id FROM roles WHERE role_name=?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, roleName);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("role_id");
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return 0;
-    }
+//    public int getRoleIdByName(String roleName) {
+//        String sql = "SELECT role_id FROM roles WHERE role_name=?";
+//
+//        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+//            ps.setString(1, roleName);
+//
+//            try (ResultSet rs = ps.executeQuery()) {
+//                if (rs.next()) {
+//                    return rs.getInt("role_id");
+//                }
+//            }
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return 0;
+//    }
 
     public int insertUser(User user) {
         String sql = "INSERT INTO users "
@@ -86,7 +86,7 @@ public class UserDAO extends DBContext {
                 ps.setNull(7, Types.DATE);
             }
 
-            ps.setInt(8, user.getRoleId());
+//            ps.setInt(8, user.getRoleId());
             ps.setString(9, user.getStatus().name());
 
             if (user.getCreatedAt() != null) {
@@ -138,7 +138,7 @@ public class UserDAO extends DBContext {
                         user.setDateOfBirth(dob.toLocalDate());
                     }
 
-                    user.setRoleId(rs.getInt("role_id"));
+//                    user.setRoleId(rs.getInt("role_id"));
 
                     String status = rs.getString("status");
                     if (status != null && !status.trim().isEmpty()) {
@@ -188,7 +188,7 @@ public class UserDAO extends DBContext {
                         user.setDateOfBirth(dob.toLocalDate());
                     }
 
-                    user.setRoleId(rs.getInt("role_id"));
+//                    user.setRoleId(rs.getInt("role_id"));
 
                     String status = rs.getString("status");
                     if (status != null && !status.trim().isEmpty()) {

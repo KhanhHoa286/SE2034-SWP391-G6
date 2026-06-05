@@ -231,7 +231,6 @@ public class RegisterAccountServlet extends HttpServlet {
                 .passwordHash(PasswordUtils.hashPassword(password))
                 .gender(gender)
                 .dateOfBirth(dob)
-                .roleId(userDao.getRoleIdByName("CUSTOMER"))
                 .status(UserStatus.PENDING)
                 .createdAt(LocalDateTime.now())
                 .build();
