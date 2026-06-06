@@ -25,10 +25,12 @@ public class ProductDetailServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // lấy đường dẫn trang trước đó để gán vào nút quay lại
         String referrer = request.getHeader("referer");
-        String defaultBackUrl = request.getContextPath() + "/product-list"; // mặc định nếu ko có trang rước th về trang productlisst
+        String defaultBackUrl = request.getContextPath() + "/product-list";
+
         if (referrer == null || referrer.contains(".jsp") || !referrer.contains(request.getServerName())) {
             referrer = defaultBackUrl;
         }
+
         // hứng tham số
         String pid_raw = request.getParameter("pid");
         String gender = request.getParameter("gender");
