@@ -27,7 +27,7 @@
             </div>
             <a href="${pageContext.request.contextPath}/customer/wishlist" class="header__icon header__icon-cart" style="color: inherit; text-decoration: none;">
                 <i class="fa-regular fa-heart header__icon"></i>
-                <span class="cart-count">${numberProductWishlist}</span>
+                <span class="cart-count" id="wishlist-count">${numberProductWishlist}</span>
             </a>
             <a href="${pageContext.request.contextPath}/cart-list" class="header__icon header__icon-cart" style="color: inherit; text-decoration: none;">
                 <i class="fa-solid fa-bag-shopping"></i>

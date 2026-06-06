@@ -177,4 +177,28 @@ public class ShopDAO extends DBContext {
         }
         return list;
     }
+
+    /**
+     * HoaNK - Kiểm tra xem sản phẩm có thuộc shop người bán hay không
+     */
+    private final String CHECK_PRODUCT_SELLER = """
+            SELECT 1 FROM products p
+            JOIN shops s ON p.shop_id = s.shop_id
+            WHERE p.product_id = ? AND s.owner_id = ?;
+            """;
+    public boolean checkProductSeller(int pid, int ownerId) {
+        String sql = CHECK_PRODUCT_SELLER;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, pid);
+            stmt.setInt(2,ownerId);
+            try(ResultSet rs = stmt.executeQuery()){
+                if(rs.next()) {
+                    return (rs.getInt(1) == 1);
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

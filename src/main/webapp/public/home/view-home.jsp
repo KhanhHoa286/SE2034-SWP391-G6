@@ -51,6 +51,7 @@
                     </c:if>
                     <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
                 </div></a>
+                <button class="product-card__favorite" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
                 <div class="product-card__info">
                     <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
                     <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
@@ -84,6 +85,7 @@
                     </c:if>
                     <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
                 </div></a>
+                <button class="product-card__favorite" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
                 <div class="product-card__info">
                     <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
                     <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
@@ -117,6 +119,7 @@
                     </c:if>
                     <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
                 </div></a>
+                <button class="product-card__favorite" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
                 <div class="product-card__info">
                     <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
                     <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
@@ -137,6 +140,8 @@
 
 <jsp:include page="/public/footer.jsp" />
 
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/wishlist.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

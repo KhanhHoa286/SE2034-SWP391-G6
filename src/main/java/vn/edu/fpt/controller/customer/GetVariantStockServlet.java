@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import vn.edu.fpt.dao.ProductDAO;
+import vn.edu.fpt.util.ParamUtil;
 
 import java.io.IOException;
 
@@ -21,15 +22,13 @@ public class GetVariantStockServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1. Lấy chuỗi thô từ request về trước
-        String productIdStr = request.getParameter("product_id");
-        String sizeIdStr = request.getParameter("size_id");
-        String colorIdStr = request.getParameter("color_id");
+        //Lấy chuỗi thô từ request về trước
+        Integer productId = ParamUtil.getInteger(request,"product_id");
+        Integer sizeId = ParamUtil.getInteger(request,"size_id");
+        Integer colorId = ParamUtil.getInteger(request,"color_id");
 
-        // 2. TẤM LÁ CHẮN: Kiểm tra nếu có bất kỳ ông nào bị null hoặc rỗng ""
-        if (productIdStr == null || productIdStr.isEmpty() ||
-                sizeIdStr == null || sizeIdStr.isEmpty() ||
-                colorIdStr == null || colorIdStr.isEmpty()) {
+        //kiểm tra nếu có bất kỳ ông nào bị null hoặc rỗng ""
+        if (productId == null || sizeId == null || colorId == null ) {
 
             // Trả về số 0 lập tức và kết thúc hàm, không cho chạy xuống lệnh parseInt ở dưới
             response.setContentType("text/plain");
@@ -37,11 +36,7 @@ public class GetVariantStockServlet extends HttpServlet {
             return;
         }
 
-        // 3. Nếu dữ liệu đã an toàn và sạch sẽ, lúc này mới tự tin ép kiểu số int
-        int productId = Integer.parseInt(productIdStr);
-        int sizeId = Integer.parseInt(sizeIdStr);
-        int colorId = Integer.parseInt(colorIdStr);
-
+        //Nếu dữ liệu đã an toàn và sạch sẽ, lúc này mới tự tin ép kiểu số int
         ProductDAO dao = new ProductDAO();
         int stock = dao.getVariantStock(productId, sizeId, colorId);
 

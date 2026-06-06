@@ -30,4 +30,41 @@ public class WishlistDAO extends DBContext {
         }
         return 0;
     }
+
+    /**
+     * HoaNK - Thay đổi trạng thái của thêm xóa sản phẩm yeu thich
+     */
+        public String toggleWishlist(int userId, int productId) {
+            String checkSql = "SELECT 1 FROM wishlists WHERE user_id = ? AND product_id = ?";
+            String insertSql = "INSERT INTO wishlists (user_id, product_id) VALUES (?, ?)";
+            String deleteSql = "DELETE FROM wishlists WHERE user_id = ? AND product_id = ?";
+
+            //Kiểm tra xem người dùng đã thích sản phẩm này chưa
+            try (PreparedStatement psCheck = connection.prepareStatement(checkSql)) {
+                psCheck.setInt(1, userId);
+                psCheck.setInt(2, productId);
+                try (ResultSet rs = psCheck.executeQuery()) {
+                    if (rs.next()) {
+                        // ĐÃ THÍCH RỒI -> Tiến hành XÓA (Delete)
+                        try (PreparedStatement psDelete = connection.prepareStatement(deleteSql)) {
+                            psDelete.setInt(1, userId);
+                            psDelete.setInt(2, productId);
+                            psDelete.executeUpdate();
+                            return "DELETED";
+                        }
+                    } else {
+                        // CHƯA THÍCH -> Tiến hành THÊM (Insert)
+                        try (PreparedStatement psInsert = connection.prepareStatement(insertSql)) {
+                            psInsert.setInt(1, userId);
+                            psInsert.setInt(2, productId);
+                            psInsert.executeUpdate();
+                            return "INSERTED";
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return "ERROR";
+        }
 }

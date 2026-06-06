@@ -135,6 +135,7 @@
                 <button class="moda-btn moda-btn-outline" type="submit" id="add-order">MUA NGAY</button>
             </div>
     </form>
+            <span id="product-seller" class="text-danger fw-bold"></span>
 
             <!-- Description -->
             <div class="product-desc">
@@ -162,6 +163,7 @@
                     <span class="product-card__badge">${product.discountPercentage}%</span>
                     <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
                 </div></a>
+                <button class="product-card__favorite" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
                 <div class="product-card__info">
                     <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i>${product.provinceName}</span></div>
                     <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
@@ -181,6 +183,7 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/wishlist.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script><script>
     // thay đổi ảnh
     function changeImage(element) {
@@ -218,14 +221,23 @@
 
     // ajax cho việc lấy tồn kho khi chọn size và color
     function getVariantStock() {
+        // kiểm tra seller
+        const checkSeller = ${checkProductSeller};
         // lâấy ra 3 tham số để gửi đi
         const productId = ${productDetail.productId};
         const sizeId = document.getElementById("hidden-size-id").value;
         const colorId = document.getElementById("hidden-color-id").value;
+        const productSeller = document.getElementById("product-seller");
         // lấy 2 nút ấn và thẻ thẻ hiện thị số lượng
         const stockDisplay = document.getElementById("stock-display");
         const addToCart = document.getElementById("add-to-cart");
         const addOrder = document.getElementById("add-order");
+        //
+        if (checkSeller) {
+            productSeller.innerHTML = "* Sản phẩm thuộc shop! Không thể mua!"
+            addToCart.disabled = true;
+            addOrder.disabled = true;
+        }
         // bắn dữ liệu đi
         axios.get("${pageContext.request.contextPath}/get-variant-stock", {
             params: {
@@ -236,8 +248,10 @@
         }).then(response => {
             if(parseInt(response.data) > 0) {
                 stockDisplay.innerHTML = 'Còn lại: <strong class="text-success">' + response.data + '</strong> sản phẩm có sẵn';
-                            addToCart.disabled = false;
-                            addOrder.disabled = false; // nếu còn thif cho thao tác
+                            if(!checkSeller) {
+                                addToCart.disabled = false;
+                                addOrder.disabled = false; // nếu còn thif cho thao tác
+                            }
             }else{
                 stockDisplay.innerHTML = `<strong class="text-danger">Tạm hết hàng</strong> cho phân loại này`;
                             addToCart.disabled = true;
