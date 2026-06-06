@@ -1,7 +1,6 @@
 package vn.edu.fpt.common;
 
 import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.io.IOUtils;
 import jakarta.servlet.http.Part;

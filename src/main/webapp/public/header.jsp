@@ -27,18 +27,18 @@
             </div>
             <a href="${pageContext.request.contextPath}/customer/wishlist" class="header__icon header__icon-cart" style="color: inherit; text-decoration: none;">
                 <i class="fa-regular fa-heart header__icon"></i>
-                <span class="cart-count">${numberProductCart}</span>
+                <span class="cart-count">${numberProductWishlist}</span>
             </a>
             <a href="${pageContext.request.contextPath}/cart-list" class="header__icon header__icon-cart" style="color: inherit; text-decoration: none;">
                 <i class="fa-solid fa-bag-shopping"></i>
-                <span class="cart-count">${numberProductWishlist}</span>
+                <span class="cart-count">${numberProductCart}</span>
             </a>
-            <c:if test="${session.account != null}">
+            <c:if test="${session.user != null}">
                 <a href="${pageContext.request.contextPath}/customer-dashboard" class="avatar-link">
-                <img src="${session.account.avatarUrl}" alt="User Avatar" class="header__avatar">
+                <img src="${session.user.avatarUrl}" alt="User Avatar" class="header__avatar">
                 </a>
             </c:if>
-            <c:if test="${session.account == null}">
+            <c:if test="${session.user == null}">
             <a href="${pageContext.request.contextPath}/customer-dashboard" class="avatar-link">
                 <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg" alt="User Avatar" class="header__avatar">
             </a>

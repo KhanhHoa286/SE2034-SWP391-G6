@@ -99,7 +99,7 @@
 
                     <c:forEach items="${listProductFilter}" var="product">
                         <article class="product-card col-6 col-md-4 col-lg-3">
-                            <a href="product-detail?id=${product.productId}" style="color:inherit; text-decoration:none;">
+                            <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;">
                                 <div class="product-card__img-wrapper">
                                     <c:if test="${product.discountPercentage > 0}">
                                         <span class="product-card__badge">-${product.discountPercentage}%</span>
@@ -112,7 +112,7 @@
                                     <span>${product.shopName}</span>
                                     <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span>
                                 </div>
-                                <a href="product-detail?id=${product.productId}" style="color:inherit; text-decoration:none;">
+                                <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;">
                                     <h3 class="product-card__title">${product.productName}</h3>
                                 </a>
                                 <div class="product-card__price">
@@ -125,6 +125,7 @@
                                     <fmt:formatNumber value="${product.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/>
                                 </span>
                                 </div>
+                                <div style="font-size: 0.85rem; color: #777; margin-top: 4px;">Số lượng: ${product.totalStock}</div>
                             </div>
                         </article>
                     </c:forEach>

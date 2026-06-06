@@ -11,8 +11,10 @@ import vn.edu.fpt.model.User;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
-// Qua các trang này sẽ load dữ liệu lên header
-@WebFilter(urlPatterns = {"/home", "/product-list"})
+/**
+ * HoaNK - Load du lieu cart va wishlist len header cho tat cả cac trang co header
+ */
+@WebFilter(urlPatterns = {"/home", "/product-list", "/product-detail"})
 public class HeaderFilter implements Filter {
     private final CartDAO cartDAO = new CartDAO();
     private final WishlistDAO wishlistDAO = new WishlistDAO();
@@ -30,11 +32,11 @@ public class HeaderFilter implements Filter {
             int numberProductCart = 0;
             int numberProductWishlist = 0;
         // đã đăng nhập thì load số lượng lên
-        if(session.getAttribute("account") != null) {
-            Integer userId = extractUserId(session.getAttribute("account"));
+        if(session.getAttribute("user") != null) {
+            Integer userId = extractUserId(session.getAttribute("user"));
             if (userId != null) {
                 numberProductCart = cartDAO.getNumberOfProductCart(userId);
-                numberProductWishlist = wishlistDAO.getNumberOfProductCart(userId);
+                numberProductWishlist = wishlistDAO.getNumberOfProductWishlist(userId);
             }
         }
 
