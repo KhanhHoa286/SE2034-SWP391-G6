@@ -5,6 +5,7 @@ import vn.edu.fpt.dto.response.ProductResponse;
 import vn.edu.fpt.dto.response.SizeResponse;
 import vn.edu.fpt.dto.response.ColorResponse;
 import vn.edu.fpt.dto.response.ImageResponse;
+import vn.edu.fpt.enums.Gender;
 import vn.edu.fpt.model.Product;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
@@ -19,7 +20,7 @@ public class ProductDAO extends DBContext {
      */
     private static final String BASE_PRODUCT_QUERY = """
     SELECT p.product_id, s.shop_name, s.shop_id, pr.name AS province_name,
-            p.product_name, p.base_price, p.discount_percentage,p.description, p.thumbnail_url, p.created_at, 
+            p.product_name,p.gender, p.base_price, p.discount_percentage,p.description, p.thumbnail_url, p.created_at, 
             SUM(pa.stock_quantity) AS total_stock,ISNULL(sold_data.total_sold, 0) AS total_sold
     FROM products p
              JOIN shops s ON p.shop_id = s.shop_id
@@ -38,7 +39,7 @@ public class ProductDAO extends DBContext {
 
     private static final String GROUP_PRODUCT = """
            GROUP BY p.product_id, s.shop_name, s.shop_id, pr.name ,
-           p.product_name, p.base_price, p.discount_percentage,p.description, p.thumbnail_url, p.created_at, sold_data.total_sold
+           p.product_name,p.gender, p.base_price, p.discount_percentage,p.description, p.thumbnail_url, p.created_at, sold_data.total_sold
 """;
 
     private static final String PAGINATION_PRODUCT = """
@@ -47,7 +48,7 @@ public class ProductDAO extends DBContext {
 
     public List<ProductResponse> getTopDiscountedProducts() {
         List<ProductResponse> products = new ArrayList<>();
-        String sql = BASE_PRODUCT_QUERY + GROUP_PRODUCT+ " ORDER BY p.discount_percentage DESC";
+        String sql = BASE_PRODUCT_QUERY + GROUP_PRODUCT + " ORDER BY p.discount_percentage DESC";
         //
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();
@@ -85,7 +86,7 @@ public class ProductDAO extends DBContext {
 
     public List<ProductResponse> getTopBestSellingProducts() {
         List<ProductResponse> products = new ArrayList<>();
-        String sql = BASE_PRODUCT_QUERY + GROUP_PRODUCT + " ORDER BY sold_data.total_sold DESC " ;
+        String sql = BASE_PRODUCT_QUERY + GROUP_PRODUCT + " ORDER BY sold_data.total_sold DESC ";
         //
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();
@@ -105,7 +106,7 @@ public class ProductDAO extends DBContext {
         List<ProductResponse> products = new ArrayList<>();
         List<Object> params = new ArrayList<>();
         String sql = BASE_PRODUCT_QUERY;
-        if(type != null && !type.trim().isEmpty()) { // loc theo gioi tinh
+        if (type != null && !type.trim().isEmpty()) { // loc theo gioi tinh
             if ("UNISEX".equalsIgnoreCase(type.trim())) {
                 sql += " AND p.gender = ? ";
                 params.add(type);
@@ -114,13 +115,16 @@ public class ProductDAO extends DBContext {
                 params.add(type);
             }
         }
-        if(cid != null) { // loc theo category
+        if (cid != null) { // loc theo category
             sql += " AND p.category_id IN (SELECT category_id FROM categories where category_id = ? OR parent_id = ?)";
-            params.add(cid); params.add(cid);
+            params.add(cid);
+            params.add(cid);
         }
-        if(textSearch != null && !textSearch.trim().isEmpty()) { // loc theo search
+        if (textSearch != null && !textSearch.trim().isEmpty()) { // loc theo search
             sql += " AND (p.product_name LIKE ? OR p.description LIKE ? OR s.shop_name LIKE ?)";
-            params.add("%" + textSearch + "%"); params.add("%" + textSearch + "%"); params.add("%" + textSearch + "%");
+            params.add("%" + textSearch + "%");
+            params.add("%" + textSearch + "%");
+            params.add("%" + textSearch + "%");
         }
         if (provinceId != null) { // loc theo tinh thanh
             sql += " AND pr.id = ? ";
@@ -128,7 +132,7 @@ public class ProductDAO extends DBContext {
         }
 
         String sqlFinalPrice = "(p.base_price - (p.base_price * (p.discount_percentage / 100.0)))"; // giá cuối sau giảm giá
-        if(priceFrom != null && priceTo != null) {
+        if (priceFrom != null && priceTo != null) {
             sql += " AND " + sqlFinalPrice + " BETWEEN ? AND ? ";
             params.add(priceFrom);
             params.add(priceTo);
@@ -139,13 +143,13 @@ public class ProductDAO extends DBContext {
         // lọc theo view all hoặc giá tăng dần giảm dần
         if ("discount".equals(sortBy)) { // uus dai nhieu nhat
             sql += " ORDER BY p.discount_percentage DESC ";
-        } else if("best_seller".equals(sortBy)){ // ban chay nhat
+        } else if ("best_seller".equals(sortBy)) { // ban chay nhat
             sql += " ORDER BY total_sold DESC ";
-        }else if("high_price".equals(sortBy)) {
+        } else if ("high_price".equals(sortBy)) {
             sql += " ORDER BY " + sqlFinalPrice + " DESC";
-        }else if("low_price".equals(sortBy)){
+        } else if ("low_price".equals(sortBy)) {
             sql += " ORDER BY " + sqlFinalPrice + " ASC";
-        }else{ // mặc định sẽ sắp xếp theo mới nhất để còn phục vụ cho phân trang nếu ko có order nào đc chọn
+        } else { // mặc định sẽ sắp xếp theo mới nhất để còn phục vụ cho phân trang nếu ko có order nào đc chọn
             sql += " ORDER BY p.created_at DESC ";
         }
 
@@ -155,13 +159,13 @@ public class ProductDAO extends DBContext {
         params.add(pageSize); // 1 trang 8 sản phẩm
         sql += PAGINATION_PRODUCT;
         //
-        try (PreparedStatement stmt = connection.prepareStatement(sql)){
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             // đưa dữ liệu vào ?
-            for(int i = 0 ; i < params.size(); i++) {
+            for (int i = 0; i < params.size(); i++) {
                 stmt.setObject(i + 1, params.get(i));
             }
             //
-            try(ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     products.add(buildProductResponse(rs));
                 }
@@ -197,7 +201,7 @@ public class ProductDAO extends DBContext {
         List<Object> params = new ArrayList<>();
         String sql = BASE_COUNT_PRODUCT;
 
-        if(type != null && !type.trim().isEmpty()) { // loc theo gioi tinh
+        if (type != null && !type.trim().isEmpty()) { // loc theo gioi tinh
             if ("UNISEX".equalsIgnoreCase(type.trim())) {
                 sql += " AND p.gender = ? ";
                 params.add(type);
@@ -206,13 +210,16 @@ public class ProductDAO extends DBContext {
                 params.add(type);
             }
         }
-        if(cid != null) { // loc theo category
+        if (cid != null) { // loc theo category
             sql += " AND p.category_id IN (SELECT category_id FROM categories where category_id = ? OR parent_id = ?)";
-            params.add(cid); params.add(cid);
+            params.add(cid);
+            params.add(cid);
         }
-        if(textSearch != null && !textSearch.trim().isEmpty()) { // loc theo search
+        if (textSearch != null && !textSearch.trim().isEmpty()) { // loc theo search
             sql += " AND (p.product_name LIKE ? OR p.description LIKE ? OR s.shop_name LIKE ?)";
-            params.add("%" + textSearch + "%"); params.add("%" + textSearch + "%");params.add("%" + textSearch + "%");
+            params.add("%" + textSearch + "%");
+            params.add("%" + textSearch + "%");
+            params.add("%" + textSearch + "%");
         }
         if (provinceId != null) { // loc theo tinh thanh
             sql += " AND pr.id = ? ";
@@ -220,7 +227,7 @@ public class ProductDAO extends DBContext {
         }
 
         String sqlFinalPrice = "(p.base_price - (p.base_price * (p.discount_percentage / 100.0)))"; // giá cuối sau giảm giá
-        if(priceFrom != null && priceTo != null) {
+        if (priceFrom != null && priceTo != null) {
             sql += " AND " + sqlFinalPrice + " BETWEEN ? AND ? ";
             params.add(priceFrom);
             params.add(priceTo);
@@ -230,14 +237,14 @@ public class ProductDAO extends DBContext {
             sql += " AND sold_data.total_sold IS NOT NULL AND sold_data.total_sold > 0 \n";
         }
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)){
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             // đưa dữ liệu vào ?
-            for(int i = 0 ; i < params.size(); i++) {
+            for (int i = 0; i < params.size(); i++) {
                 stmt.setObject(i + 1, params.get(i));
             }
             //
-            try(ResultSet rs = stmt.executeQuery()) {
-                if(rs.next()) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
                     return rs.getInt(1);
                 }
             }
@@ -259,6 +266,7 @@ public class ProductDAO extends DBContext {
         product.setShopId(rs.getInt("shop_id"));
         product.setProvinceName(rs.getString("province_name"));
         product.setProductName(rs.getString("product_name"));
+        product.setGender(Gender.valueOf(rs.getString("gender")));
         product.setBasePrice(rs.getBigDecimal("base_price"));
         product.setDiscountPercentage(rs.getInt("discount_percentage"));
         product.setThumbnailUrl(rs.getString("thumbnail_url"));
@@ -304,13 +312,14 @@ public class ProductDAO extends DBContext {
             ) sold_data ON p.product_id = sold_data.product_id
             WHERE p.product_id = ?;
             """;
+
     public ProductDetailResponse getProductDetailByProductId(Integer productId) {
         String sql = GET_PRODUCT_DETAIL_BY_PRODUCTID;
         ProductDetailResponse response = null;
-        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, productId);
-            try(ResultSet rs = stmt.executeQuery()) {
-                if(rs.next()) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
                     response = new ProductDetailResponse();
                     response.setProductId(rs.getInt("product_id"));
                     response.setProductName(rs.getString("product_name"));
@@ -338,7 +347,7 @@ public class ProductDAO extends DBContext {
                     response.setFinalPrice(p.getDiscountedPrice());
                 }
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return response;
@@ -348,54 +357,60 @@ public class ProductDAO extends DBContext {
      * HoaNK - Lấy ra list size theo productId
      */
     private final String GET_SIZE_BY_PRODUCTID = """
-            SELECT DISTINCT s.size_id, s.size_name\s
+            SELECT DISTINCT s.size_id, s.size_name
                     FROM product_variants pv
                     JOIN sizes s ON pv.size_id = s.size_id
                     WHERE pv.product_id = ?
             """;
+
     private List<SizeResponse> getSizesByProductId(Integer productId) {
         String sql = GET_SIZE_BY_PRODUCTID;
         List<SizeResponse> sizes = new ArrayList<>();
-        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, productId);
-            try(ResultSet rs = stmt.executeQuery()) {
-               while(rs.next()) {
-                   SizeResponse response = new SizeResponse();
-                   response.setSizeId(rs.getInt("size_id"));
-                   response.setSizeName(rs.getString("size_name"));
-               }
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    SizeResponse response = new SizeResponse();
+                    response.setSizeId(rs.getInt("size_id"));
+                    response.setSizeName(rs.getString("size_name"));
+                    sizes.add(response);
+                }
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return sizes;
     }
+
     /**
      * HoaNK - Lấy ra list color theo productId
      */
     private final String GET_COLOR_BY_PRODUCTID = """
-            SELECT DISTINCT s.color_id, s.color_name\s
+            SELECT DISTINCT c.color_id, c.color_name
                     FROM product_variants pv
                     JOIN colors c ON pv.color_id = c.color_id
                     WHERE pv.product_id = ?
             """;
+
     private List<ColorResponse> getColorsByProductId(Integer productId) {
         String sql = GET_COLOR_BY_PRODUCTID;
         List<ColorResponse> colors = new ArrayList<>();
-        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, productId);
-            try(ResultSet rs = stmt.executeQuery()) {
-                while(rs.next()) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
                     ColorResponse response = new ColorResponse();
                     response.setColorId(rs.getInt("color_id"));
                     response.setColorName(rs.getString("color_name"));
+                    colors.add(response);
                 }
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return colors;
     }
+
     /**
      * HoaNK - Lấy ra list image details theo productId
      */
@@ -404,20 +419,22 @@ public class ProductDAO extends DBContext {
                     FROM product_images 
                     WHERE product_id = ? ORDER BY is_primary DESC
     """;
+
     private List<ImageResponse> getImagesByProductId(Integer productId) {
         String sql = GET_IMAGES_BY_PRODUCTID;
         List<ImageResponse> images = new ArrayList<>();
-        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, productId);
-            try(ResultSet rs = stmt.executeQuery()) {
-                while(rs.next()) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
                     ImageResponse response = new ImageResponse();
                     response.setImageId(rs.getInt("image_id"));
                     response.setImageUrl(rs.getString("image_url"));
                     response.setIsPrimary(rs.getBoolean("is_primary"));
+                    images.add(response);
                 }
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return images;
@@ -426,7 +443,8 @@ public class ProductDAO extends DBContext {
     public List<ProductResponse> getShopBestSellingProducts(int shopId, int limit) {
         List<ProductResponse> products = new ArrayList<>();
         String sql = """
-            SELECT TOP (?) 
+            
+                SELECT TOP (?) 
                 p.product_id, 
                 s.shop_name, 
                 s.shop_id, 
@@ -470,5 +488,60 @@ public class ProductDAO extends DBContext {
         }
         return products;
     }
+
+    /**
+     * HoaNK - Lấy ra so lượng biến thể còn trong kho
+     */
+    public final String GET_VARIANT_STOCK = """
+        SELECT pv.stock_quantity FROM product_variants pv
+        WHERE (pv.product_id = ? AND pv.color_id = ? AND size_id = ?)
+    """;
+    public int getVariantStock(int productId, int size_id, int color_id) {
+        String sql = GET_VARIANT_STOCK;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            stmt.setInt(2, color_id);
+            stmt.setInt(3, size_id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+            return 0;
+    }
+
+    /**
+     * HoaNK - Lấy ra 4 sản phẩm có giá , giới tính gần với sản phẩm chi tiết nhất
+     */
+    public List<ProductResponse> getTop4ProductRelated(String gender, int productId,BigDecimal price) {
+        List<ProductResponse> products = new ArrayList<>();
+
+        String sql = BASE_PRODUCT_QUERY
+                + " AND p.gender = ? AND p.product_id != ? "
+                + GROUP_PRODUCT
+                + " ORDER BY ABS(p.base_price - ?) ASC "
+                + PAGINATION_PRODUCT; // 2 ? cần truyền
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1,gender);
+            stmt.setInt(2, productId);
+            stmt.setBigDecimal(3, price);
+            stmt.setInt(4, 0);
+            stmt.setInt(5,4);
+            try(ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    products.add(buildProductResponse(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return products;
+    }
+
+
 }
 

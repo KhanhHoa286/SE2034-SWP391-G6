@@ -20,9 +20,6 @@ import java.util.regex.Pattern;
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 
-    private final UserDAO userDao = new UserDAO();
-    private final EmailVerificationDAO otpDao = new EmailVerificationDAO();
-
     private boolean isValidEmail(String email) {
         return email != null
                 && Pattern.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", email);
@@ -40,6 +37,8 @@ public class LoginServlet extends HttpServlet {
     }
 
     private void sendOtp(String email) throws Exception {
+        EmailVerificationDAO otpDao = new EmailVerificationDAO();
+
         String otp = OtpUtils.generateOtp();
 
         otpDao.createOtp(email, otp, LocalDateTime.now().plusMinutes(1));
@@ -68,6 +67,12 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+
+        /*
+         * Không để UserDAO là biến global/final ở đầu Servlet.
+         * Tạo mới trong từng request để tránh giữ connection null.
+         */
+        UserDAO userDao = new UserDAO();
 
         String email = request.getParameter("email");
         String password = request.getParameter("password");
@@ -112,13 +117,9 @@ public class LoginServlet extends HttpServlet {
                 sendOtp(email);
 
                 String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-
-                response.sendRedirect(
-                        request.getContextPath()
-                                + "/public/auth/verify-otp.jsp?email="
-                                + encodedEmail
-                );
+                response.sendRedirect(request.getContextPath() + "/public/auth/verify-otp.jsp?email=" + encodedEmail);
                 return;
+
             } catch (Exception e) {
                 e.printStackTrace();
 
@@ -143,24 +144,33 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
+        Integer roleId = userDao.getRoleIdByUserId(user.getUserId());
+
+        if (roleId == null || roleId <= 0) {
+            forwardLogin(request, response,
+                    "Tài khoản chưa được gán quyền. Vui lòng liên hệ quản trị viên.",
+                    email);
+            return;
+        }
+
         HttpSession session = request.getSession();
         session.setAttribute("user", user);
         session.setAttribute("userId", user.getUserId());
-        session.setAttribute("roleId", user.getRoleId());
+        session.setAttribute("roleId", roleId);
         session.setAttribute("fullName", user.getFirstName() + " " + user.getLastName());
 
         String contextPath = request.getContextPath();
 
-        if (user.getRoleId() == 1) {
+        if (roleId == 1) {
             response.sendRedirect(contextPath + "/admin/dashboard/view-system-overview.jsp");
-        } else if (user.getRoleId() == 2) {
-            response.sendRedirect(contextPath + "/public/home/view-home.jsp");
-        } else if (user.getRoleId() == 3) {
+        } else if (roleId == 2) {
+            response.sendRedirect(contextPath + "/home");
+        } else if (roleId == 3) {
             response.sendRedirect(contextPath + "/seller/dashboard/view-seller-dashboard.jsp");
-        } else if (user.getRoleId() == 4) {
+        } else if (roleId == 4) {
             response.sendRedirect(contextPath + "/logistics/delivery/list-deliveries.jsp");
         } else {
-            response.sendRedirect(contextPath + "/public/home/view-home.jsp");
+            response.sendRedirect(contextPath + "/home");
         }
     }
 }

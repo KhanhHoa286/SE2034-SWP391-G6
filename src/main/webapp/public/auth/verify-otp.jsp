@@ -18,7 +18,10 @@
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
-    .otp-input:focus { outline: none; border-bottom-color: black; }
+    .otp-input:focus {
+      outline: none;
+      border-bottom-color: black;
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-black font-body-md">
@@ -29,7 +32,9 @@
 
 <main class="min-h-screen flex flex-col md:flex-row">
   <section class="hidden md:block md:w-1/2">
-    <img class="w-full h-screen object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8R4J4y0xhU_uMOtNxaIlkCrRNBAyAFrP8qotJJgFgRKwwkpi2N_iwfi4VA5wRKkkbKTkLOABi0LG9zKIuUEuEF2mnBAeS1QtHrCMJ56rilCCLWoh3JFG5JNA6J6Tx3q4Q-GdPRSeQctnZQzLWiwukBdiDJXqVuNJSyiaXxDzO02XGAEmMXR6AiMEUb7Qb-FPiWgq95tCszaa99axFFCvk62M2ID8wNnozUGNZWnwcxH4H4oGzE_0BwTy3ZJGyiFiYgMqk3pTRObs" alt="Banner">
+    <img class="w-full h-screen object-cover"
+         src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8R4J4y0xhU_uMOtNxaIlkCrRNBAyAFrP8qotJJgFgRKwwkpi2N_iwfi4VA5wRKkkbKTkLOABi0LG9zKIuUEuEF2mnBAeS1QtHrCMJ56rilCCLWoh3JFG5JNA6J6Tx3q4Q-GdPRSeQctnZQzLWiwukBdiDJXqVuNJSyiaXxDzO02XGAEmMXR6AiMEUb7Qb-FPiWgq95tCszaa99axFFCvk62M2ID8wNnozUGNZWnwcxH4H4oGzE_0BwTy3ZJGyiFiYgMqk3pTRObs"
+         alt="Banner">
   </section>
 
   <section class="w-full md:w-1/2 flex items-center justify-center p-6 md:p-16">
@@ -68,11 +73,12 @@
 
         <div class="flex justify-between items-center mt-2">
           <span id="timer" class="text-gray-600">01:00</span>
+
+          <!-- Nút gửi lại mã luôn bấm được, kể cả khi timer chưa hết -->
           <button type="submit"
                   form="resend-form"
                   id="resend-btn"
-                  disabled
-                  class="text-gray-400 cursor-not-allowed">
+                  class="text-black hover:underline">
             Gửi lại mã
           </button>
         </div>
@@ -123,9 +129,12 @@
     });
   });
 
+  /*
+   * Timer chỉ để hiển thị thời gian còn lại.
+   * Không khóa nút gửi lại mã.
+   */
   let timeLeft = 60;
   const timerEl = document.getElementById('timer');
-  const resendBtn = document.getElementById('resend-btn');
 
   const countdown = setInterval(() => {
     const minute = Math.floor(timeLeft / 60);
@@ -137,10 +146,6 @@
     if (timeLeft <= 0) {
       clearInterval(countdown);
       timerEl.innerText = "00:00";
-
-      resendBtn.disabled = false;
-      resendBtn.classList.remove('text-gray-400', 'cursor-not-allowed');
-      resendBtn.classList.add('text-black', 'hover:underline');
       return;
     }
 

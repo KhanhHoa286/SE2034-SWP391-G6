@@ -8,6 +8,6 @@ import lombok.*;
 @Getter
 @Builder
 public class SizeResponse {
-    private int sizeId;
+    private Integer sizeId;
     private String sizeName;
 }

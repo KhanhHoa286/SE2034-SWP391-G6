@@ -7,8 +7,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import vn.edu.fpt.dao.ProductDAO;
 import vn.edu.fpt.dto.response.ProductDetailResponse;
+import vn.edu.fpt.dto.response.ProductResponse;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * HoaNK - HE195013
@@ -20,15 +23,24 @@ public class ProductDetailServlet extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // lấy đường dẫn trang trước đó để gán vào nút quay lại
+        String referrer = request.getHeader("referer");
+        String defaultBackUrl = request.getContextPath() + "/product-list"; // mặc định nếu ko có trang rước th về trang productlisst
+        if (referrer == null || referrer.contains(".jsp") || !referrer.contains(request.getServerName())) {
+            referrer = defaultBackUrl;
+        }
         // hứng tham số
         String pid_raw = request.getParameter("pid");
+        String gender = request.getParameter("gender");
+        String price_raw = request.getParameter("final_price");
+        //
         Integer pid = null;
+        BigDecimal price = null;
         try{
             // parse pid
-            if (pid_raw != null || !pid_raw.trim().isEmpty()) {
-              pid =  Integer.parseInt(pid_raw);
-            }
-
+           pid =  pid_raw != null || !pid_raw.trim().isEmpty() ? Integer.parseInt(pid_raw) : null;
+            // parse price
+           price =  price_raw != null && !price_raw.trim().isEmpty() ? new BigDecimal(price_raw.trim()) : null;
         }catch (Exception e) {
             e.printStackTrace();
         }
@@ -44,8 +56,12 @@ public class ProductDetailServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/product-list");
             return;
         }
+        // lấy ra top 4 sản phẩm liên quan sản phẩm gốc
+        List<ProductResponse> productRelatedList = productDAO.getTop4ProductRelated(gender, pid, price);
         //
+        request.setAttribute("backUrl", referrer);
         request.setAttribute("productDetail", productDetailResponse);
+        request.setAttribute("productResponseList", productRelatedList);
         request.getRequestDispatcher("/public/product/view-product.jsp").forward(request,response);
     }
 

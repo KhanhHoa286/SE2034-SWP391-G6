@@ -100,7 +100,7 @@
 
 .product-info__supplier {
     font-size: 0.85rem;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
 }
 
 .product-info__supplier strong {
@@ -261,11 +261,18 @@
 
 .product-info__supplier {
     font-size: 0.85rem;
-    margin-bottom: 30px;
+    /*margin-bottom: 30px;*/
     display: flex;
     align-items: center; /* Căn giữa nội dung theo chiều dọc */
 }
 
+/*#stock-display {*/
+/*    padding: 10px 0;*/
+/*}*/
+
+.color{
+    margin-top: 10px;
+}
 .supplier-label {
     margin-right: 8px; /* Tạo khoảng cách với link tên shop */
 }
@@ -281,4 +288,54 @@
     height: 24px;
     border-radius: 50%; /* Bo tròn thành hình tròn */
     object-fit: cover; /* Đảm bảo hình không bị méo */
+}
+
+/* 1. KHUNG BỌC NGOÀI: Khay chứa toàn bộ các ảnh nhỏ */
+.product-gallery__thumbs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 12px;
+    padding-bottom: 8px;
+    scroll-behavior: smooth;
+}
+
+/* 2. TỪNG Ô KHUNG ẢNH NHỎ */
+.product-gallery__thumb {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+/* 3. THẺ ẢNH BÊN TRONG */
+.product-gallery__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.2s;
+}
+
+.product-gallery__thumb:hover img {
+    opacity: 0.8;
+}
+
+/*Khóa nút*/
+.moda-btn:disabled {
+    background-color: #e4e6eb !important;
+    border-color: #e4e6eb !important;
+    color: #8a8d91 !important;
+    opacity: 0.6;
+    cursor: not-allowed !important;
+    pointer-events: unset !important;
+}
+
+/* Chặn luôn hiệu ứng đổi màu khi di chuột qua nút đã bị khóa */
+.moda-btn:disabled:hover {
+    background-color: #e4e6eb !important;
+    color: #8a8d91 !important;
+    box-shadow: none !important;
 }

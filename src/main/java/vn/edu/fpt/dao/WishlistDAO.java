@@ -14,8 +14,8 @@ public class WishlistDAO extends DBContext {
     /**
      * HoaNK - Đếm số lượng sản phẩm trong wishlisst
      */
-    private final String COUNT_PRODUCT_WISHLIST = "SELECT COUNT(*) FROM wishlist WHERE user_id = ?";
-    public int getNumberOfProductCart(Integer userId) {
+    private final String COUNT_PRODUCT_WISHLIST = "SELECT COUNT(*) FROM wishlists WHERE user_id = ?";
+    public int getNumberOfProductWishlist(Integer userId) {
         String sql = COUNT_PRODUCT_WISHLIST;
         try(PreparedStatement stmt = connection.prepareStatement(sql);
         ) {

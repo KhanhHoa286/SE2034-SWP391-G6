@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<fmt:setLocale value="vi_VN" />
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -23,15 +24,15 @@
 
 <main class="container">
 
-    <!-- Breadcrumb -->
+    <!-- Quay lại trang trước đó  -->
     <div class="breadcrumb">
-        <a href="list-products.jsp" class="text-dark text-decoration-none"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
+        <a href="${backUrl}" class="text-dark text-decoration-none"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
     </div>
 
     <!-- Product Detail Area -->
     <div class="row mt-4">
 
-        <!-- Left: Image Gallery -->
+        <!-- Ảnh chính phụ -->
         <div class="product-gallery col-lg-6 mb-4">
             <div class="product-gallery__main">
                 <c:forEach items="${productDetail.urlImageDetails}" var="image">
@@ -50,9 +51,8 @@
             </div>
         </div>
 
-        <!-- Right: Product Info -->
+        <!-- THÔNG tin product -->
         <div class="product-info col-lg-6">
-<%--            <div class="product-info__brand">ARCHIVE COLLECTION</div>--%>
             <h1 class="product-info__title">${productDetail.productName}</h1>
 
             <!-- Product Stats -->
@@ -62,65 +62,85 @@
                     <span style="color: #f5c518; margin-right: 8px; font-size: 12px;">
               <i class="fa-solid fa-star"></i>
             </span>
-                    <span style="color: #666;">(${productDetail.totalReview})</span>
+                    <span style="color: #666;">(${productDetail.totalReview} Đánh giá)</span>
                 </a>
                 <span style="color: #ccc; margin: 0 10px;">|</span>
-                <span style="color: #666;">${productDetail.totalSold}</span>
+                <span style="color: #666;">${productDetail.totalSold} Đã bán</span>
             </div>
 
             <div class="product-info__price-wrap">
                 <span class="product-info__price"><fmt:formatNumber value="${productDetail.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
                 <span class="product-info__price-old"><fmt:formatNumber value="${productDetail.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
-                <span class="product-info__badge">${productDetail.discountPercentage}</span>
+                <span class="product-info__badge">${productDetail.discountPercentage}%</span>
             </div>
 
             <div class="product-info__supplier">
                 <span class="supplier-label">Cung cấp bởi:</span>
-                <a href="view-shop.jsp" class="supplier-link text-dark text-decoration-none"><img src="" alt="Shop Avatar" class="supplier-avatar"><strong>MODA ARCHIVE</strong></a>
+                <a href="view-shop.jsp" class="supplier-link text-dark text-decoration-none"><img src="${productDetail.logoUrl}" alt="Logo shop + ${productDetail.shopName}" class="supplier-avatar"><strong>${productDetail.shopName}</strong></a>
             </div>
 
-            <!-- Color -->
-            <div class="product-attr">
-                <div class="product-attr__title">MÀU SẮC: <span style="font-weight:400; color:var(--text-muted); margin-left:5px;">ĐEN</span></div>
+            <%--Hiển thị số lượng--%>
+            <div class="product-stock-status mt-2">
+                <span id="stock-display" class="text-muted"></span>
+            </div>
+            <!-- Hien thi danh sach mau sac cua san pham do -->
+            <div class="product-attr color">
+                <div class="product-attr__title">MÀU SẮC:</div>
                 <div class="size-options">
-                    <button class="size-btn active">Đen</button>
-                    <button class="size-btn">Đỏ</button>
-                    <button class="size-btn">Xám</button>
+                    <c:forEach items="${productDetail.colors}" var="color" varStatus="loop">
+                        <button type="button"
+                                class="attr-btn size-btn color-list ${loop.first ? 'active' : ''}"
+                                data-color-id="${color.colorId}"
+                                onclick="selectColor(this)">
+                                ${color.colorName}
+                        </button>
+                    </c:forEach>
                 </div>
             </div>
 
-            <!-- Size -->
+            <!-- Hien thi kich co cua san pham -->
             <div class="product-attr">
                 <div class="product-attr__title">
                     KÍCH THƯỚC
-                    <a href="#">BẢNG SIZE</a>
+                    <a href="#"></a>
                 </div>
                 <div class="size-options">
-                    <button class="size-btn">XS</button>
-                    <button class="size-btn active">S</button>
-                    <button class="size-btn">M</button>
-                    <button class="size-btn">L</button>
-                    <button class="size-btn" style="color:#ccc; border-color:#eee; cursor:not-allowed;">XL</button>
+                    <c:forEach items="${productDetail.sizes}" var="size" varStatus="loop">
+                        <button type="button"
+                                class="attr-btn size-btn size-list ${loop.first ? 'active' : ''}"
+                                data-size-id="${size.sizeId}"
+                                onclick="selectSize(this)">
+                                ${size.sizeName}
+                        </button>
+                    </c:forEach>
                 </div>
             </div>
 
+            <%--Chọn số lượng, màu, cỡ, id sản phẩm--%>
+    <form action="${request.contextPath}/add-to-cart" method="POST" class="add-to-cart-form">
+        <input type="hidden" name="productId" value="${productDetail.productId}">
+
+        <input type="hidden" id="hidden-color-id" name="colorId" value="${productDetail.colors[0].colorId}">
+        <input type="hidden" id="hidden-size-id" name="sizeId" value="${productDetail.sizes[0].sizeId}">
+        <input type="hidden" id="hidden-product-id" name="productId" value="${productDetail.productId}">
+
+        <div class="quantity-input mb-3">
+            <label>Số lượng:</label>
+            <input type="number" name="quantity" value="1" min="1" class="form-control" style="width: 80px;">
+        </div>
+
             <!-- Actions -->
             <div class="product-actions">
-                <button class="moda-btn moda-btn-primary">THÊM VÀO GIỎ HÀNG</button>
-                <button class="moda-btn moda-btn-outline">MUA NGAY</button>
+                <button class="moda-btn moda-btn-primary" type="submit" id="add-to-cart">THÊM VÀO GIỎ HÀNG</button>
+                <button class="moda-btn moda-btn-outline" type="submit" id="add-order">MUA NGAY</button>
             </div>
+    </form>
 
             <!-- Description -->
             <div class="product-desc">
                 <h3 class="product-desc__title">MÔ TẢ SẢN PHẨM</h3>
                 <div class="product-desc__content">
-                    <p>Thiết kế áo khoác dạ Wool cao cấp từ bộ sưu tập Archive. Sản phẩm được chế tác với phom dáng kiến trúc, đường cắt tinh xảo mang lại vẻ ngoài lịch lãm và tối giản. Chất liệu 100% Wool Merino đảm bảo giữ ấm tuyệt đối trong khi vẫn giữ được sự nhẹ nhàng, thanh thoát.</p>
-                    <ul>
-                        <li>100% Merino Wool cao cấp</li>
-                        <li>Lót lụa satin mềm mại</li>
-                        <li>Khuy cài ẩn tinh tế</li>
-                        <li>Sản xuất tại Việt Nam</li>
-                    </ul>
+                    <p>${productDetail.description}</p>
                 </div>
             </div>
 
@@ -136,81 +156,101 @@
 
         <div class="row g-4">
             <!-- Product 1 -->
+            <c:forEach items="${productResponseList}" var="product">
             <article class="product-card col-6 col-md-4 col-lg-3">
-                <a href="view-product.jsp" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
-                    <span class="product-card__badge">-10%</span>
-                    <img src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=600&auto=format&fit=crop" alt="Quần Tây" class="product-card__img">
+                <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
+                    <span class="product-card__badge">${product.discountPercentage}%</span>
+                    <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
                 </div></a>
                 <div class="product-card__info">
-                    <div class="product-card__brand"><span>MODA STUDIO</span> <span class="location"><i class="fa-solid fa-location-dot"></i> Hà Nội</span></div>
-                    <a href="view-product.jsp" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">QUẦN TÂY PHOM SUÔNG ĐEN</h3></a>
+                    <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i>${product.provinceName}</span></div>
+                    <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
                     <div class="product-card__price">
-                        <span class="product-card__price-current">3.200.000 đ</span>
-                        <span class="product-card__price-old">3.550.000 đ</span>
-                        <span class="product-card__quantity">Số lượng: 20</span>
+                        <span class="product-card__price-current"><fmt:formatNumber value="${productDetail.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                        <span class="product-card__price-old"><fmt:formatNumber value="${productDetail.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                        <span class="product-card__quantity">Số lượng: ${product.totalStock}</span>
                     </div>
                 </div>
             </article>
-
-            <!-- Product 2 -->
-            <article class="product-card col-6 col-md-4 col-lg-3">
-                <a href="view-product.jsp" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
-                    <span class="product-card__badge">-15%</span>
-                    <img src="https://images.unsplash.com/photo-1617137968427-85924c800a22?q=80&w=600&auto=format&fit=crop" alt="Sơ Mi" class="product-card__img">
-                </div></a>
-                <div class="product-card__info">
-                    <div class="product-card__brand"><span>MODA STUDIO</span> <span class="location"><i class="fa-solid fa-location-dot"></i> Hà Nội</span></div>
-                    <a href="view-product.jsp" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">SƠ MI TRẮNG POPLIN CAO CẤP</h3></a>
-                    <div class="product-card__price">
-                        <span class="product-card__price-current">2.100.000 đ</span>
-                        <span class="product-card__price-old">2.470.000 đ</span>
-                        <span class="product-card__quantity">Số lượng: 45</span>
-                    </div>
-                </div>
-            </article>
-
-            <!-- Product 3 -->
-            <article class="product-card col-6 col-md-4 col-lg-3">
-                <a href="view-product.jsp" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
-                    <span class="product-card__badge">-20%</span>
-                    <img src="https://images.unsplash.com/photo-1550614000-4b95d466f272?q=80&w=600&auto=format&fit=crop" alt="Áo Len" class="product-card__img">
-                </div></a>
-                <div class="product-card__info">
-                    <div class="product-card__brand"><span>MODA ARCHIVE</span> <span class="location"><i class="fa-solid fa-location-dot"></i> Hồ Chí Minh</span></div>
-                    <a href="view-product.jsp" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">ÁO LEN CASHMERE CỔ LỌ</h3></a>
-                    <div class="product-card__price">
-                        <span class="product-card__price-current">5.800.000 đ</span>
-                        <span class="product-card__price-old">7.250.000 đ</span>
-                        <span class="product-card__quantity">Số lượng: 12</span>
-                    </div>
-                </div>
-            </article>
-
-            <!-- Product 4 -->
-            <article class="product-card col-6 col-md-4 col-lg-3">
-                <a href="view-product.jsp" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
-                    <span class="product-card__badge">-5%</span>
-                    <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=600&auto=format&fit=crop" alt="Túi Da" class="product-card__img">
-                </div></a>
-                <div class="product-card__info">
-                    <div class="product-card__brand"><span>MODA ACCESSORIES</span> <span class="location"><i class="fa-solid fa-location-dot"></i> Đà Nẵng</span></div>
-                    <a href="view-product.jsp" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">TÚI DA CẦM TAY STRUCTURE</h3></a>
-                    <div class="product-card__price">
-                        <span class="product-card__price-current">8.400.000 đ</span>
-                        <span class="product-card__price-old">8.840.000 đ</span>
-                        <span class="product-card__quantity">Số lượng: 8</span>
-                    </div>
-                </div>
-            </article>
+            </c:forEach>
         </div>
     </section>
-
 </main>
 
 <jsp:include page="/public/footer.jsp" />
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script><script>
+    // thay đổi ảnh
+    function changeImage(element) {
+        // 1. Lấy cái ảnh to nhất ra
+        let mainImage = document.getElementById("zoom-image");
+        // 2. Thay đổi đường dẫn src của ảnh to bằng đường dẫn của ảnh phụ vừa click
+        mainImage.src = element.src;
+        // 3. (Tùy chọn UX) Xóa class 'active' ở tất cả ảnh phụ cũ và nạp vào ảnh phụ mới click
+        let thumbnails = document.querySelectorAll(".thumb-img");
+        thumbnails.forEach(thumb => thumb.classList.remove("active"));
+
+        element.classList.add("active");
+    }
+    // hàm chọn màu sắc
+    function selectColor(button) {
+        // 1. Gỡ bỏ class active của tất cả các nút màu cũ và gán cho nút vừa bấm
+        document.querySelectorAll('.color-list').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        const colorId = button.getAttribute('data-color-id');
+        document.getElementById('hidden-color-id').value = colorId;
+
+        getVariantStock();
+    }
+    // hàm chọn kích cơ
+    function selectSize(button) {
+        document.querySelectorAll('.size-list').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        const sizeId = button.getAttribute('data-size-id');
+        document.getElementById('hidden-size-id').value = sizeId;
+
+        getVariantStock();
+    }
+
+    // ajax cho việc lấy tồn kho khi chọn size và color
+    function getVariantStock() {
+        // lâấy ra 3 tham số để gửi đi
+        const productId = ${productDetail.productId};
+        const sizeId = document.getElementById("hidden-size-id").value;
+        const colorId = document.getElementById("hidden-color-id").value;
+        // lấy 2 nút ấn và thẻ thẻ hiện thị số lượng
+        const stockDisplay = document.getElementById("stock-display");
+        const addToCart = document.getElementById("add-to-cart");
+        const addOrder = document.getElementById("add-order");
+        // bắn dữ liệu đi
+        axios.get("${pageContext.request.contextPath}/get-variant-stock", {
+            params: {
+                product_id: productId,
+                size_id: sizeId,
+                color_id: colorId
+            }
+        }).then(response => {
+            if(parseInt(response.data) > 0) {
+                stockDisplay.innerHTML = 'Còn lại: <strong class="text-success">' + response.data + '</strong> sản phẩm có sẵn';
+                            addToCart.disabled = false;
+                            addOrder.disabled = false; // nếu còn thif cho thao tác
+            }else{
+                stockDisplay.innerHTML = `<strong class="text-danger">Tạm hết hàng</strong> cho phân loại này`;
+                            addToCart.disabled = true;
+                            addOrder.disabled = true; // nếu hết hàng thì khóa 2 nút
+            }
+        })
+            .catch(error=> {
+                console.error("Lỗi lấy kho:", error);
+                stockDisplay.innerText = "Không thể lấy thông tin tồn kho";
+            })
+    }
+    getVariantStock();
+</script>
 </body>
 </html>
 

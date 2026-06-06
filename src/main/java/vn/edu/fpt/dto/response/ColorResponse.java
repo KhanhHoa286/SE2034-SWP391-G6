@@ -8,6 +8,6 @@ import lombok.*;
 @Getter
 @Builder
 public class ColorResponse {
-    private int colorId;
+    private Integer colorId;
     private String colorName;
 }

@@ -32,11 +32,11 @@ public class HeaderFilter implements Filter {
             int numberProductCart = 0;
             int numberProductWishlist = 0;
         // đã đăng nhập thì load số lượng lên
-        if(session.getAttribute("account") != null) {
-            Integer userId = extractUserId(session.getAttribute("account"));
+        if(session.getAttribute("user") != null) {
+            Integer userId = extractUserId(session.getAttribute("user"));
             if (userId != null) {
                 numberProductCart = cartDAO.getNumberOfProductCart(userId);
-                numberProductWishlist = wishlistDAO.getNumberOfProductCart(userId);
+                numberProductWishlist = wishlistDAO.getNumberOfProductWishlist(userId);
             }
         }
 

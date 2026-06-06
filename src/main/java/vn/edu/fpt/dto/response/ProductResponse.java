@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import vn.edu.fpt.enums.Gender;
 
 import java.math.BigDecimal;
 
@@ -33,4 +34,6 @@ public class ProductResponse {
     private Integer totalStock;
 
     private Integer totalSold;
+
+    private Gender gender;
 }
