@@ -19,18 +19,12 @@ import vn.edu.fpt.dto.response.ProductResponse;
 import vn.edu.fpt.model.Category;
 import vn.edu.fpt.model.ProductReview;
 import vn.edu.fpt.model.Province;
+import vn.edu.fpt.util.ParamUtil;
 
 /**
  * HoaNK - HE195013
  * Date: 31/05/2026
- * Description: Method_01-private. Load lên danh sách sản phẩm (lọc theo nam, nữ, phụ kiện, sale off) của navbar
- *              -> Retrun List<ProductResponse>
- *              Method_02-private. Load lên danh sách sản phẩm cho phần XEM TẤT CẢ của trang home
- *              -> Return List<ProductResponse>
- *              Method_03-private. Load lên danh sách category
- *              -> List<Category>
- *              Method_04-private. Load lên danh sách tỉnh thành
- *              -> List<Province>
+ * Description: Load lên danh sách tỉnh, category, lọc sản phẩm, gửi trả trạng thái về bên jsp
  */
 @WebServlet(urlPatterns={"/product-list"})
 public class ProductListServlet extends HttpServlet {
@@ -42,55 +36,52 @@ public class ProductListServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        //
-        // bắt request để kiểm tra
+            throws ServletException, IOException {
+
+        // hứng dữ liệu
         String type = request.getParameter("type");
         String sortBy = request.getParameter("sort_by");
         String textSearch = request.getParameter("text_search");
-        String categoryId_raw = request.getParameter("cid");
-        String page_raw = request.getParameter("page");
-        String priceFrom_raw = request.getParameter("price_from");
-        String priceTo_raw = request.getParameter("price_to");
-        String provinceId_raw = request.getParameter("province_id");
-        // parse dữ liệu
-        Integer cid = null; Integer provinceId = null;
-        BigDecimal priceFrom = null; BigDecimal priceTo = null;
-        int page = 1;
-        try {
-            cid = categoryId_raw != null && !categoryId_raw.trim().isEmpty() ? Integer.parseInt(categoryId_raw) : null;
-            provinceId = provinceId_raw != null && !provinceId_raw.trim().isEmpty() ? Integer.parseInt(provinceId_raw) : null;
+        //
+        Integer cid = ParamUtil.getInteger(request, "cid");
+        Integer provinceId = ParamUtil.getInteger(request, "province_id");
 
-            page = page_raw != null && !page_raw.trim().isEmpty() ? Integer.parseInt(page_raw) : 1;
-            priceFrom = priceFrom_raw != null && !priceFrom_raw.trim().isEmpty() ? new BigDecimal(priceFrom_raw.trim()) : null;
-            priceTo = priceTo_raw != null && !priceTo_raw.trim().isEmpty() ? new BigDecimal(priceTo_raw.trim()) : null;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        // đếm số lượng sản phẩm
+        // mặc định là 1 nếu bị null
+        Integer pageObj = ParamUtil.getInteger(request, "page");
+        int page = (pageObj != null && pageObj > 0) ? pageObj : 1;
+
+        //ép kiểu sang BigDecimal cho bộ lọc giá
+        BigDecimal priceFrom = ParamUtil.getBigDecimal(request, "price_from");
+        BigDecimal priceTo = ParamUtil.getBigDecimal(request, "price_to");
+
+        //tính toán phân trang
         int numberOfProduct = productDAO.getTotalProductFilter(type, cid, textSearch, provinceId, sortBy, priceFrom, priceTo);
         int totalPages = (int) Math.ceil((double) numberOfProduct / PAGE_SIZE);
-        // danh sách sản phẩm sau khi search
-        List<ProductResponse> listProductFilter = productDAO.getAllProductByFilter(type,cid,textSearch,provinceId,sortBy,page,PAGE_SIZE,priceFrom,priceTo);
-        // gửi sang thông tin của trang
+
+        // list danh sách filter
+        List<ProductResponse> listProductFilter = productDAO.getAllProductByFilter(
+                type, cid, textSearch, provinceId, sortBy, page, PAGE_SIZE, priceFrom, priceTo
+        );
+
+        //đẩy ngược dữ liệu về lại trang JSP
         request.setAttribute("type", type);
-        request.setAttribute("categoryId", cid);
+        request.setAttribute("categoryId", cid); // Đồng bộ lại biến cid chuẩn bài
         request.setAttribute("sortBy", sortBy);
         request.setAttribute("textSearch", textSearch);
         request.setAttribute("priceFrom", priceFrom);
         request.setAttribute("priceTo", priceTo);
         request.setAttribute("provinceId", provinceId);
         request.setAttribute("page", page);
-        //
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("listProductFilter", listProductFilter);
-        // lấy danh sách category, province
+
+        //load danh sách tĩnh dùng chung cho thanh Sidebar
         request.setAttribute("categoryList", getCategoryList());
         request.setAttribute("provinceList", getProvinceList());
-        //
-        request.getRequestDispatcher("/public/product/list-products.jsp").forward(request,response);
-    }
 
+        //sang trang hiển thị
+        request.getRequestDispatcher("/public/product/list-products.jsp").forward(request, response);
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
