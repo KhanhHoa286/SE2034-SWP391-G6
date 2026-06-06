@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import vn.edu.fpt.dao.AddressDAO;
 import vn.edu.fpt.dao.CategoryDAO;
 import vn.edu.fpt.dao.ProductDAO;
+import vn.edu.fpt.dao.ProvinceDAO;
 import vn.edu.fpt.dto.response.ProductResponse;
 import vn.edu.fpt.model.Category;
 import vn.edu.fpt.model.ProductReview;
@@ -36,7 +37,7 @@ public class ProductListServlet extends HttpServlet {
 
     private final ProductDAO productDAO = new ProductDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
-    private final AddressDAO addressDAO = new AddressDAO();
+    private final ProvinceDAO provinceDAO = new ProvinceDAO();
     private static final int PAGE_SIZE = 8;
 
     @Override
@@ -104,7 +105,7 @@ public class ProductListServlet extends HttpServlet {
 
     // lay danh sach tinh thanh
     private List<Province> getProvinceList() {
-        return addressDAO.getAllProvince();
+        return provinceDAO.getAllProvinces();
     }
 
 }

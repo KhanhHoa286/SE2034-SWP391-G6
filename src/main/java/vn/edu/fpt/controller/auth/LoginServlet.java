@@ -164,13 +164,13 @@ public class LoginServlet extends HttpServlet {
         if (roleId == 1) {
             response.sendRedirect(contextPath + "/admin/dashboard/view-system-overview.jsp");
         } else if (roleId == 2) {
-            response.sendRedirect(contextPath + "/public/home/view-home.jsp");
+            response.sendRedirect(contextPath + "/home");
         } else if (roleId == 3) {
             response.sendRedirect(contextPath + "/seller/dashboard/view-seller-dashboard.jsp");
         } else if (roleId == 4) {
             response.sendRedirect(contextPath + "/logistics/delivery/list-deliveries.jsp");
         } else {
-            response.sendRedirect(contextPath + "/public/home/view-home.jsp");
+            response.sendRedirect(contextPath + "/home");
         }
     }
 }
