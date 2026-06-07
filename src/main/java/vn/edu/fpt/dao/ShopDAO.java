@@ -1,6 +1,7 @@
 package vn.edu.fpt.dao;
 
 import vn.edu.fpt.common.DBContext;
+import vn.edu.fpt.dto.response.ShopResponse;
 import vn.edu.fpt.enums.ApprovalStatus;
 import vn.edu.fpt.enums.ShopStatus;
 import vn.edu.fpt.model.Shop;
@@ -200,5 +201,31 @@ public class ShopDAO extends DBContext {
             e.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * HoaNK - Lấy shop bởi shopid
+     */
+    private final String GET_SHOP_BY_ID = """
+            SELECT * FROM shops WHERE shop_id = ?;
+            """;
+    public ShopResponse getShopById(int shopId) {
+        String sql = GET_SHOP_BY_ID;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, shopId);
+            try(ResultSet rs = stmt.executeQuery()) {
+                if(rs.next()) {
+                    ShopResponse response = new ShopResponse();
+                    response.setShopId(rs.getInt("shop_id"));
+                    response.setShopName(rs.getString("shop_name"));
+                    response.setLogoUrl(rs.getString("logo_url"));
+                    response.setFullAddress(rs.getString("street_address"));
+                    return response;
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

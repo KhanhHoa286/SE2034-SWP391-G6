@@ -107,7 +107,7 @@
                                     <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
                                 </div>
                             </a>
-                            <button class="product-card__favorite" type="button" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
+                            <button class="product-card__favorite ${product.liked == true ? 'active' : ''}" type="button" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
                             <div class="product-card__info">
                                 <div class="product-card__brand">
                                     <span>${product.shopName}</span>
@@ -164,7 +164,7 @@
 <jsp:include page="/public/footer.jsp" />
 
 <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
-<script src="${pageContext.request.contextPath}/assets/js/wishlist.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/customer/wishlist.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
