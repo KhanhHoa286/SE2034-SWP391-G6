@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
 /**
  * HoaNK - Load du lieu cart va wishlist len header cho tat cả cac trang co header
  */
-@WebFilter(urlPatterns = {"/home", "/product-list", "/product-detail"})
+@WebFilter(urlPatterns = {"/home", "/product-list", "/product-detail" , "/shop"})
 public class HeaderFilter implements Filter {
     private final CartDAO cartDAO = new CartDAO();
     private final WishlistDAO wishlistDAO = new WishlistDAO();

@@ -1,5 +1,7 @@
 package vn.edu.fpt.dao;
 import vn.edu.fpt.common.DBContext;
+import vn.edu.fpt.dto.response.ProductResponse;
+import vn.edu.fpt.model.User;
 
 import java.sql.Statement;
 import java.sql.PreparedStatement;
@@ -34,10 +36,13 @@ public class WishlistDAO extends DBContext {
     /**
      * HoaNK - Thay đổi trạng thái của thêm xóa sản phẩm yeu thich
      */
+    private final String CHECK_WISHLIST = "SELECT 1 FROM wishlists WHERE user_id = ? AND product_id = ?;";
+    private final String INSERT_WISHLIST = "INSERT INTO wishlists (user_id, product_id) VALUES (?, ?);";
+    private final String DELETE_WISHLIST = "DELETE FROM wishlists WHERE user_id = ? AND product_id = ?;";
         public String toggleWishlist(int userId, int productId) {
-            String checkSql = "SELECT 1 FROM wishlists WHERE user_id = ? AND product_id = ?";
-            String insertSql = "INSERT INTO wishlists (user_id, product_id) VALUES (?, ?)";
-            String deleteSql = "DELETE FROM wishlists WHERE user_id = ? AND product_id = ?";
+            String checkSql = CHECK_WISHLIST;
+            String insertSql = INSERT_WISHLIST;
+            String deleteSql = DELETE_WISHLIST;
 
             //Kiểm tra xem người dùng đã thích sản phẩm này chưa
             try (PreparedStatement psCheck = connection.prepareStatement(checkSql)) {
@@ -67,4 +72,42 @@ public class WishlistDAO extends DBContext {
             }
             return "ERROR";
         }
+
+    /**
+     * HoaNK - Kiểm tra sản phẩm yêu thích của sản phẩm của mỗi customer
+     */
+    private final String GET_PRODUCTID_WISHLIST =  "SELECT product_id FROM wishlists WHERE user_id = ?;";
+    private List<Integer> getProductIdWishList(int userId) {
+        List<Integer> listProductId = new ArrayList<>();
+        String sql = GET_PRODUCTID_WISHLIST;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while(rs.next()) {
+                    listProductId.add(rs.getInt("product_id"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return listProductId;
+    }
+
+    /**
+     * HoaNK - Hàm gán giá trị wishlist cho từng sản phẩm
+      */
+    public void setLikedForProduct(List<ProductResponse> responses, User user) {
+        // nếu danh sách rỗng, và chưa đăng nhập thì thôi ko làm gì cả
+        if(responses == null || responses.isEmpty() || user == null) {
+            return;
+        }
+        // nếu đã đăng nhập
+        int userId = user.getUserId();
+        List<Integer> listProductId = this.getProductIdWishList(userId);
+        for (ProductResponse p : responses) {
+            if (listProductId.contains(p.getProductId())) {
+                p.setLiked(true);
+            }
+        }
+    }
 }

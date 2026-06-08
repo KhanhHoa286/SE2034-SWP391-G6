@@ -45,7 +45,7 @@
                     <i data-lucide="badge-percent"></i>
                     <span>Khuyến mãi</span>
                 </a>
-                <a href="${pageContext.request.contextPath}/seller/shop/view-shop.jsp">
+                <a href="${pageContext.request.contextPath}/public/shop/view-shop.jsp">
                     <i data-lucide="store"></i>
                     <span>Hồ sơ shop</span>
                 </a>

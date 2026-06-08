@@ -22,6 +22,35 @@
 <jsp:include page="/public/header.jsp" />
 
 <main class="container">
+    <c:set var="currentListUrl" value="${requestScope['jakarta.servlet.forward.request_uri']}" />
+    <c:set var="currentQuery" value="${requestScope['jakarta.servlet.forward.query_string']}" />
+
+    <c:if test="${empty currentListUrl}">
+        <c:set var="currentListUrl" value="${pageContext.request.requestURI}" />
+        <c:set var="currentQuery" value="${pageContext.request.queryString}" />
+    </c:if>
+
+    <c:if test="${not empty currentQuery}">
+        <c:set var="currentListUrl" value="${currentListUrl}?${currentQuery}" />
+    </c:if>
+
+    <div class="breadcrumb" style="margin-top: 5%">
+        <c:choose>
+            <c:when test="${not empty param.returnUrl}">
+                <%-- Nếu có param chỉ đường từ Trang chủ sang -> Quay xe về đúng Trang chủ --%>
+                <a href="${param.returnUrl}" class="text-dark text-decoration-none">
+                    <i class="fa-solid fa-chevron-left"></i> QUAY LẠI
+                </a>
+            </c:when>
+            <c:otherwise>
+                <%-- Lưới bảo hiểm: Nếu khách bấm trực tiếp trên Header -> Mặc định quay về trang chủ --%>
+                <a href="${pageContext.request.contextPath}/home" class="text-dark text-decoration-none">
+                    <i class="fa-solid fa-chevron-left"></i> QUAY LẠI
+                </a>
+            </c:otherwise>
+        </c:choose>
+    </div>
+
     <form action="product-list" method="get">
         <%--Gửi dữ liệu search về bên contrller--%>
         <input type="hidden" name="type" value="${type}">
@@ -98,23 +127,27 @@
                     </c:if>
 
                     <c:forEach items="${listProductFilter}" var="product">
+                        <c:url var="goToDetailUrl" value="product-detail">
+                            <c:param name="pid" value="${product.productId}" />
+                            <c:param name="gender" value="${product.gender}" />
+                            <c:param name="final_price" value="${product.finalPrice}" />
+                            <c:param name="returnUrl" value="${currentListUrl}" />
+                        </c:url>
                         <article class="product-card col-6 col-md-4 col-lg-3">
-                            <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;">
-                                <div class="product-card__img-wrapper">
+                            <a href="${goToDetailUrl}" style="color:inherit; text-decoration:none;">                                <div class="product-card__img-wrapper">
                                     <c:if test="${product.discountPercentage > 0}">
                                         <span class="product-card__badge">-${product.discountPercentage}%</span>
                                     </c:if>
                                     <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
                                 </div>
                             </a>
-                            <button class="product-card__favorite" type="button" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
+                            <button class="product-card__favorite ${product.liked == true ? 'active' : ''}" type="button" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
                             <div class="product-card__info">
                                 <div class="product-card__brand">
                                     <span>${product.shopName}</span>
                                     <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span>
                                 </div>
-                                <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;">
-                                    <h3 class="product-card__title">${product.productName}</h3>
+                                <a href="${goToDetailUrl}" style="color:inherit; text-decoration:none;">                                    <h3 class="product-card__title">${product.productName}</h3>
                                 </a>
                                 <div class="product-card__price">
                                     <c:if test="${product.discountPercentage > 0}">
@@ -164,7 +197,7 @@
 <jsp:include page="/public/footer.jsp" />
 
 <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
-<script src="${pageContext.request.contextPath}/assets/js/wishlist.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/customer/wishlist.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

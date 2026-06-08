@@ -34,7 +34,7 @@ public class ProductDAO extends DBContext {
                   WHERE so.status = 'DELIVERED'
                   GROUP BY od.product_id
              ) sold_data ON p.product_id = sold_data.product_id
-    WHERE p.is_active = 1 AND p.is_deleted = 0
+    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED'
 """;
 
     private static final String GROUP_PRODUCT = """
@@ -102,10 +102,16 @@ public class ProductDAO extends DBContext {
     /**
      * HoaNK - Hàm lấy product theo giới tính, cate, province, giá, tìm kiếm, xem tất cả .. ở trang product list
      */
-    public List<ProductResponse> getAllProductByFilter(String type, Integer cid, String textSearch, Integer provinceId, String sortBy, Integer page, Integer pageSize, BigDecimal priceFrom, BigDecimal priceTo) {
+    public List<ProductResponse> getAllProductByFilter(Integer shopId, String type, Integer cid, String textSearch, Integer provinceId, String sortBy, Integer page, Integer pageSize, BigDecimal priceFrom, BigDecimal priceTo) {
         List<ProductResponse> products = new ArrayList<>();
         List<Object> params = new ArrayList<>();
         String sql = BASE_PRODUCT_QUERY;
+
+        if(shopId != null) { // lọc shop
+            sql += " AND s.shop_id = ? ";
+            params.add(shopId);
+        }
+
         if (type != null && !type.trim().isEmpty()) { // loc theo gioi tinh
             if ("UNISEX".equalsIgnoreCase(type.trim())) {
                 sql += " AND p.gender = ? ";
@@ -193,13 +199,18 @@ public class ProductDAO extends DBContext {
                   WHERE so.status = 'DELIVERED'
                   GROUP BY od.product_id
              ) sold_data ON p.product_id = sold_data.product_id
-    WHERE p.is_active = 1 AND p.is_deleted = 0
+    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED'
 """;
 
-    public int getTotalProductFilter(String type, Integer cid, String textSearch, Integer provinceId, String sortBy, BigDecimal priceFrom, BigDecimal priceTo) {
+    public int getTotalProductFilter(Integer shopId, String type, Integer cid, String textSearch, Integer provinceId, String sortBy, BigDecimal priceFrom, BigDecimal priceTo) {
         List<ProductResponse> products = new ArrayList<>();
         List<Object> params = new ArrayList<>();
         String sql = BASE_COUNT_PRODUCT;
+
+        if(shopId != null) {
+            sql += " AND s.shop_id = ? ";
+            params.add(shopId);
+        }
 
         if (type != null && !type.trim().isEmpty()) { // loc theo gioi tinh
             if ("UNISEX".equalsIgnoreCase(type.trim())) {
@@ -310,7 +321,7 @@ public class ProductDAO extends DBContext {
                 WHERE so.status = 'DELIVERED'
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
-            WHERE p.product_id = ?;
+            WHERE p.product_id = ? AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED';
             """;
 
     public ProductDetailResponse getProductDetailByProductId(Integer productId) {
