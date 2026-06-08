@@ -34,7 +34,7 @@ public class ProductDAO extends DBContext {
                   WHERE so.status = 'DELIVERED'
                   GROUP BY od.product_id
              ) sold_data ON p.product_id = sold_data.product_id
-    WHERE p.is_active = 1 AND p.is_deleted = 0
+    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED'
 """;
 
     private static final String GROUP_PRODUCT = """
@@ -199,7 +199,7 @@ public class ProductDAO extends DBContext {
                   WHERE so.status = 'DELIVERED'
                   GROUP BY od.product_id
              ) sold_data ON p.product_id = sold_data.product_id
-    WHERE p.is_active = 1 AND p.is_deleted = 0
+    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED'
 """;
 
     public int getTotalProductFilter(Integer shopId, String type, Integer cid, String textSearch, Integer provinceId, String sortBy, BigDecimal priceFrom, BigDecimal priceTo) {
@@ -321,7 +321,7 @@ public class ProductDAO extends DBContext {
                 WHERE so.status = 'DELIVERED'
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
-            WHERE p.product_id = ?;
+            WHERE p.product_id = ? AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED';
             """;
 
     public ProductDetailResponse getProductDetailByProductId(Integer productId) {

@@ -185,7 +185,7 @@ public class ShopDAO extends DBContext {
     private final String CHECK_PRODUCT_SELLER = """
             SELECT 1 FROM products p
             JOIN shops s ON p.shop_id = s.shop_id
-            WHERE p.product_id = ? AND s.owner_id = ?;
+            WHERE p.product_id = ? AND s.owner_id = ? AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED';
             """;
     public boolean checkProductSeller(int pid, int ownerId) {
         String sql = CHECK_PRODUCT_SELLER;
@@ -207,7 +207,7 @@ public class ShopDAO extends DBContext {
      * HoaNK - Lấy shop bởi shopid
      */
     private final String GET_SHOP_BY_ID = """
-            SELECT * FROM shops WHERE shop_id = ?;
+            SELECT * FROM shops WHERE shop_id = ? AND status = 'ACTIVE' AND approval_status = 'APPROVED';
             """;
     public ShopResponse getShopById(int shopId) {
         String sql = GET_SHOP_BY_ID;
@@ -220,6 +220,7 @@ public class ShopDAO extends DBContext {
                     response.setShopName(rs.getString("shop_name"));
                     response.setLogoUrl(rs.getString("logo_url"));
                     response.setFullAddress(rs.getString("street_address"));
+                    response.setDescription(rs.getString("description"));
                     return response;
                 }
             }

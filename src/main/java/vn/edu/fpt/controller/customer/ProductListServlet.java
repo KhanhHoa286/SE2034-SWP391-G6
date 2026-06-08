@@ -2,6 +2,7 @@ package vn.edu.fpt.controller.customer;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.LinkedList;
 import java.util.List;
 
 import jakarta.servlet.ServletException;
@@ -36,7 +37,7 @@ public class ProductListServlet extends HttpServlet {
         // dữ liệu trang product list
         loadFilterProducts(request);
         loadFilterData(request);
-
+        //
         //
         request.getRequestDispatcher("/public/product/list-products.jsp").forward(request, response);
     }

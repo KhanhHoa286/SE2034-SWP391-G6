@@ -12,4 +12,5 @@ public class ShopResponse {
     private String shopName;
     private String logoUrl;
     private String fullAddress;
+    private String description;
 }

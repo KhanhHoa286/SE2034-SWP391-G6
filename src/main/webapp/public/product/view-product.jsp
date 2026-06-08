@@ -23,10 +23,20 @@
 <jsp:include page="/public/header.jsp" />
 
 <main class="container">
-
-    <!-- Quay lại trang trước đó  -->
     <div class="breadcrumb">
-        <a href="javascript:history.back()" class="text-dark text-decoration-none"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
+        <c:choose>
+            <c:when test="${not empty param.returnUrl}">
+                <%-- Nếu tồn tại param returnUrl từ trang trước truyền sang -> Dùng luôn để load mới trang --%>
+                <a href="${param.returnUrl}" class="text-dark text-decoration-none">
+                    <i class="fa-solid fa-chevron-left"></i> QUAY LẠI
+                </a>
+            </c:when>
+            <c:otherwise>
+                <a href="${pageContext.request.contextPath}/product-list" class="text-dark text-decoration-none">
+                    <i class="fa-solid fa-chevron-left"></i> QUAY LẠI
+                </a>
+            </c:otherwise>
+        </c:choose>
     </div>
 
     <!-- Product Detail Area -->
@@ -74,9 +84,31 @@
                 <span class="product-info__badge">${productDetail.discountPercentage}%</span>
             </div>
 
+<%--            <div class="product-info__supplier">--%>
+<%--                <span class="supplier-label">Cung cấp bởi:</span>--%>
+<%--                <a href="${pageContext.request.contextPath}/shop?shop_id=${productDetail.shopId}" class="supplier-link text-dark text-decoration-none"><img src="${productDetail.logoUrl}" alt="Logo shop ${productDetail.shopName}" class="supplier-avatar"><strong>${productDetail.shopName}</strong></a>--%>
+<%--            </div>--%>
+            <%-- Bước 1: Đóng gói URL hiện tại của sản phẩm đang xem --%>
+            <c:url var="currentProductUrl" value="product-detail">
+                <c:param name="pid" value="${productDetail.productId}" />
+                <c:param name="gender" value="${param.gender}" />
+                <c:param name="final_price" value="${productDetail.finalPrice}" />
+                <c:param name="returnUrl" value="${param.returnUrl}" />
+            </c:url>
+
+            <%-- Bước 2: Ném cái URL an toàn ở trên sang cho trang Shop giữ hộ --%>
+            <c:url var="goToShopUrl" value="shop">
+                <c:param name="shop_id" value="${productDetail.shopId}" />
+                <c:param name="returnUrl" value="${currentProductUrl}" />
+            </c:url>
+
+            <%-- Bước 3: Hiển thị giao diện và đổi href thành biến goToShopUrl --%>
             <div class="product-info__supplier">
                 <span class="supplier-label">Cung cấp bởi:</span>
-                <a href="${pageContext.request.contextPath}/shop?shop_id=${productDetail.shopId}" class="supplier-link text-dark text-decoration-none"><img src="${productDetail.logoUrl}" alt="Logo shop ${productDetail.shopName}" class="supplier-avatar"><strong>${productDetail.shopName}</strong></a>
+                <a href="${goToShopUrl}" class="supplier-link text-dark text-decoration-none">
+                    <img src="${productDetail.logoUrl}" alt="Logo shop ${productDetail.shopName}" class="supplier-avatar">
+                    <strong>${productDetail.shopName}</strong>
+                </a>
             </div>
 
             <%--Hiển thị số lượng--%>
@@ -158,22 +190,44 @@
         <div class="row g-4">
             <!-- Product 1 -->
             <c:forEach items="${productResponseList}" var="product">
-            <article class="product-card col-6 col-md-4 col-lg-3">
-                <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
-                    <span class="product-card__badge">${product.discountPercentage}%</span>
-                    <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
-                </div></a>
-                <button class="product-card__favorite ${product.liked == true ? 'active' : ''}" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
-                <div class="product-card__info">
-                    <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i>${product.provinceName}</span></div>
-                    <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
-                    <div class="product-card__price">
-                        <span class="product-card__price-current"><fmt:formatNumber value="${productDetail.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
-                        <span class="product-card__price-old"><fmt:formatNumber value="${productDetail.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
-                        <span class="product-card__quantity">Số lượng: ${product.totalStock}</span>
+
+                <c:url var="goToRelatedUrl" value="product-detail">
+                    <c:param name="pid" value="${product.productId}" />
+                    <c:param name="gender" value="${product.gender}" />
+                    <c:param name="final_price" value="${product.finalPrice}" />
+                    <%-- Điều hướng nút quay lại chỉ thẳng vào servlet product-detail kèm data chuẩn --%>
+                    <c:param name="returnUrl" value="product-detail?pid=${productDetail.productId}&gender=${param.gender}&final_price=${productDetail.finalPrice}&returnUrl=${param.returnUrl}" />
+                </c:url>
+
+                <article class="product-card col-6 col-md-4 col-lg-3">
+                    <a href="${goToRelatedUrl}" style="color:inherit; text-decoration:none;">
+                        <div class="product-card__img-wrapper">
+                            <span class="product-card__badge">${product.discountPercentage}%</span>
+                            <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
+                        </div>
+                    </a>
+
+                    <button class="product-card__favorite ${product.liked == true ? 'active' : ''}" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+
+                    <div class="product-card__info">
+                        <div class="product-card__brand">
+                            <span>${product.shopName}</span>
+                            <span class="location"><i class="fa-solid fa-location-dot"></i>${product.provinceName}</span>
+                        </div>
+
+                        <a href="${goToRelatedUrl}" style="color:inherit; text-decoration:none;">
+                            <h3 class="product-card__title">${product.productName}</h3>
+                        </a>
+
+                        <div class="product-card__price">
+                            <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                            <span class="product-card__price-old"><fmt:formatNumber value="${product.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                            <span class="product-card__quantity">Số lượng: ${product.totalStock}</span>
+                        </div>
                     </div>
-                </div>
-            </article>
+                </article>
             </c:forEach>
         </div>
     </section>

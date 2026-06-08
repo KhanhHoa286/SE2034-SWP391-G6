@@ -24,6 +24,17 @@
 <jsp:include page="/public/header.jsp" />
 
 <main>
+    <c:set var="currentHomeUrl" value="${requestScope['jakarta.servlet.forward.request_uri']}" />
+
+    <%-- Nếu không qua forward (vào trực tiếp JSP) thì lấy requestURI gốc --%>
+    <c:if test="${empty currentHomeUrl}">
+        <c:set var="currentHomeUrl" value="${pageContext.request.requestURI}" />
+    </c:if>
+
+    <%-- Đắp thêm bộ lọc và phân trang nếu có --%>
+    <c:if test="${not empty pageContext.request.queryString}">
+        <c:set var="currentHomeUrl" value="${currentHomeUrl}?${pageContext.request.queryString}" />
+    </c:if>
     <!-- Hero Banner -->
     <section class="hero">
         <div class="container">
@@ -44,26 +55,41 @@
         <div class="row g-4">
             <!-- Product 1 -->
             <c:forEach var="product" begin="0" end="3" items="${topDiscountedProducts}">
-            <article class="product-card col-6 col-md-4 col-lg-3">
-                <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
-                    <c:if test="${product.discountPercentage != 0}">
-                    <span class="product-card__badge">${product.discountPercentage}%</span>
-                    </c:if>
-                    <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
-                </div></a>
-                <button class="product-card__favorite ${product.liked == true ? 'active' : ''}" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
-                <div class="product-card__info">
-                    <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
-                    <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
-                    <div class="product-card__price">
-                        <c:if test="${product.discountPercentage > 0}">
-                            <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
-                        </c:if>
-                        <span class="product-card__price-old"><fmt:formatNumber value="${product.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
-                        <span class="product-card__quantity">Số lượng: ${product.totalStock}</span>
+                <c:url var="goToDetailUrl" value="product-detail">
+                    <c:param name="pid" value="${product.productId}" />
+                    <c:param name="gender" value="${product.gender}" />
+                    <c:param name="final_price" value="${product.finalPrice}" />
+                    <c:param name="returnUrl" value="${currentHomeUrl}" />
+                </c:url>
+
+                <article class="product-card col-6 col-md-4 col-lg-3">
+                    <a href="${goToDetailUrl}" style="color:inherit; text-decoration:none;">
+                        <div class="product-card__img-wrapper">
+                            <c:if test="${product.discountPercentage != 0}">
+                                <span class="product-card__badge">${product.discountPercentage}%</span>
+                            </c:if>
+                            <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
+                        </div>
+                    </a>
+
+                    <button class="product-card__favorite ${product.liked == true ? 'active' : ''}" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
+
+                    <div class="product-card__info">
+                        <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
+
+                        <a href="${goToDetailUrl}" style="color:inherit; text-decoration:none;">
+                            <h3 class="product-card__title">${product.productName}</h3>
+                        </a>
+
+                        <div class="product-card__price">
+                            <c:if test="${product.discountPercentage > 0}">
+                                <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                            </c:if>
+                            <span class="product-card__price-old"><fmt:formatNumber value="${product.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                            <span class="product-card__quantity">Số lượng: ${product.totalStock}</span>
+                        </div>
                     </div>
-                </div>
-            </article>
+                </article>
             </c:forEach>
         </div>
     </section>
@@ -78,26 +104,41 @@
         <div class="row g-4">
             <!-- Product 1 -->
             <c:forEach var="product" begin="0" end="3" items="${latestProducts}">
-            <article class="product-card col-6 col-md-4 col-lg-3">
-                <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
-                    <c:if test="${product.discountPercentage != 0}">
-                        <span class="product-card__badge">${product.discountPercentage}%</span>
-                    </c:if>
-                    <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
-                </div></a>
-                <button class="product-card__favorite ${product.liked == true ? 'active' : ''}" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
-                <div class="product-card__info">
-                    <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
-                    <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
-                    <div class="product-card__price">
-                        <c:if test="${product.discountPercentage > 0}">
-                            <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
-                        </c:if>
-                        <span class="product-card__price-old"><fmt:formatNumber value="${product.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
-                        <span class="product-card__quantity">Số lượng: ${product.totalStock}</span>
+                <c:url var="goToDetailUrl" value="product-detail">
+                    <c:param name="pid" value="${product.productId}" />
+                    <c:param name="gender" value="${product.gender}" />
+                    <c:param name="final_price" value="${product.finalPrice}" />
+                    <c:param name="returnUrl" value="${currentHomeUrl}" />
+                </c:url>
+
+                <article class="product-card col-6 col-md-4 col-lg-3">
+                    <a href="${goToDetailUrl}" style="color:inherit; text-decoration:none;">
+                        <div class="product-card__img-wrapper">
+                            <c:if test="${product.discountPercentage != 0}">
+                                <span class="product-card__badge">${product.discountPercentage}%</span>
+                            </c:if>
+                            <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
+                        </div>
+                    </a>
+
+                    <button class="product-card__favorite ${product.liked == true ? 'active' : ''}" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
+
+                    <div class="product-card__info">
+                        <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
+
+                        <a href="${goToDetailUrl}" style="color:inherit; text-decoration:none;">
+                            <h3 class="product-card__title">${product.productName}</h3>
+                        </a>
+
+                        <div class="product-card__price">
+                            <c:if test="${product.discountPercentage > 0}">
+                                <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                            </c:if>
+                            <span class="product-card__price-old"><fmt:formatNumber value="${product.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                            <span class="product-card__quantity">Số lượng: ${product.totalStock}</span>
+                        </div>
                     </div>
-                </div>
-            </article>
+                </article>
             </c:forEach>
         </div>
     </section>
@@ -112,26 +153,41 @@
         <div class="row g-4">
             <!-- Product 1 -->
             <c:forEach var="product" begin="0" end="3" items="${bestSellingProducts}">
-            <article class="product-card col-6 col-md-4 col-lg-3">
-                <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><div class="product-card__img-wrapper">
-                    <c:if test="${product.discountPercentage != 0}">
-                        <span class="product-card__badge">${product.discountPercentage}%</span>
-                    </c:if>
-                    <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
-                </div></a>
-                <button class="product-card__favorite ${product.liked == true ? 'active' : ''}" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
-                <div class="product-card__info">
-                    <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
-                    <a href="product-detail?pid=${product.productId}&gender=${product.gender}&final_price=${product.finalPrice}" style="color:inherit; text-decoration:none;"><h3 class="product-card__title">${product.productName}</h3></a>
-                    <div class="product-card__price">
-                        <c:if test="${product.discountPercentage > 0}">
-                        <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
-                        </c:if>
-                        <span class="product-card__price-old"><fmt:formatNumber value="${product.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
-                        <span class="product-card__quantity">Số lượng: ${product.totalStock}</span>
+                <c:url var="goToDetailUrl" value="product-detail">
+                    <c:param name="pid" value="${product.productId}" />
+                    <c:param name="gender" value="${product.gender}" />
+                    <c:param name="final_price" value="${product.finalPrice}" />
+                    <c:param name="returnUrl" value="${currentHomeUrl}" />
+                </c:url>
+
+                <article class="product-card col-6 col-md-4 col-lg-3">
+                    <a href="${goToDetailUrl}" style="color:inherit; text-decoration:none;">
+                        <div class="product-card__img-wrapper">
+                            <c:if test="${product.discountPercentage != 0}">
+                                <span class="product-card__badge">${product.discountPercentage}%</span>
+                            </c:if>
+                            <img src="${product.thumbnailUrl}" alt="${product.productName}" class="product-card__img">
+                        </div>
+                    </a>
+
+                    <button class="product-card__favorite ${product.liked == true ? 'active' : ''}" id="wishlist-heart-${product.productId}" onclick="toggleWishlist(${product.productId}, '${pageContext.request.contextPath}')"><i class="fa-regular fa-heart"></i></button>
+
+                    <div class="product-card__info">
+                        <div class="product-card__brand"><span>${product.shopName}</span> <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.provinceName}</span></div>
+
+                        <a href="${goToDetailUrl}" style="color:inherit; text-decoration:none;">
+                            <h3 class="product-card__title">${product.productName}</h3>
+                        </a>
+
+                        <div class="product-card__price">
+                            <c:if test="${product.discountPercentage > 0}">
+                                <span class="product-card__price-current"><fmt:formatNumber value="${product.finalPrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                            </c:if>
+                            <span class="product-card__price-old"><fmt:formatNumber value="${product.basePrice.doubleValue()}" type="currency" maxFractionDigits="0"/></span>
+                            <span class="product-card__quantity">Số lượng: ${product.totalStock}</span>
+                        </div>
                     </div>
-                </div>
-            </article>
+                </article>
             </c:forEach>
         </div>
     </section>
