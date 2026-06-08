@@ -1,6 +1,7 @@
 package vn.edu.fpt.dao;
 
 import vn.edu.fpt.common.DBContext;
+import vn.edu.fpt.dto.response.ShopResponse;
 import vn.edu.fpt.enums.ApprovalStatus;
 import vn.edu.fpt.enums.ShopStatus;
 import vn.edu.fpt.model.Shop;
@@ -176,5 +177,56 @@ public class ShopDAO extends DBContext {
             e.printStackTrace();
         }
         return list;
+    }
+
+    /**
+     * HoaNK - Kiểm tra xem sản phẩm có thuộc shop người bán hay không
+     */
+    private final String CHECK_PRODUCT_SELLER = """
+            SELECT 1 FROM products p
+            JOIN shops s ON p.shop_id = s.shop_id
+            WHERE p.product_id = ? AND s.owner_id = ? AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED';
+            """;
+    public boolean checkProductSeller(int pid, int ownerId) {
+        String sql = CHECK_PRODUCT_SELLER;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, pid);
+            stmt.setInt(2,ownerId);
+            try(ResultSet rs = stmt.executeQuery()){
+                if(rs.next()) {
+                    return (rs.getInt(1) == 1);
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * HoaNK - Lấy shop bởi shopid
+     */
+    private final String GET_SHOP_BY_ID = """
+            SELECT * FROM shops WHERE shop_id = ? AND status = 'ACTIVE' AND approval_status = 'APPROVED';
+            """;
+    public ShopResponse getShopById(int shopId) {
+        String sql = GET_SHOP_BY_ID;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, shopId);
+            try(ResultSet rs = stmt.executeQuery()) {
+                if(rs.next()) {
+                    ShopResponse response = new ShopResponse();
+                    response.setShopId(rs.getInt("shop_id"));
+                    response.setShopName(rs.getString("shop_name"));
+                    response.setLogoUrl(rs.getString("logo_url"));
+                    response.setFullAddress(rs.getString("street_address"));
+                    response.setDescription(rs.getString("description"));
+                    return response;
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

@@ -28,6 +28,10 @@ public class User {
     private LocalDate dateOfBirth;
 
     private UserStatus status;
+
+    private String licensePlate;
+    private String idCartNumber;
+
     private LocalDateTime createdAt;
 
 }
