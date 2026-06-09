@@ -21,7 +21,7 @@
 </head>
 <body>
 
-<jsp:include page="/public/header.jsp" />
+<%--<jsp:include page="/public/header.jsp" />--%>
 
 <main class="container">
     <c:set var="currentShopUrl" value="${requestScope['jakarta.servlet.forward.request_uri']}" />
