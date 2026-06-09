@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.dao.ProductDAO;
+import vn.edu.fpt.dao.WishlistDAO;
 import vn.edu.fpt.dto.response.ProductResponse;
 import vn.edu.fpt.model.User;
 
@@ -24,6 +25,7 @@ import vn.edu.fpt.model.User;
 public class HomeServlet extends HttpServlet {
 
     private final ProductDAO productDAO = new ProductDAO();
+    private final WishlistDAO wishlistDAO = new WishlistDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -34,6 +36,13 @@ public class HomeServlet extends HttpServlet {
         List<ProductResponse> latestProducts = productDAO.getTopNewProducts();
         // Lấy danh sách sản phẩm bán chạy
         List<ProductResponse> bestSellingProducts = productDAO.getTopBestSellingProducts();
+        //
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        //
+        wishlistDAO.setLikedForProduct(topDiscountedProducts, user);
+        wishlistDAO.setLikedForProduct(latestProducts, user);
+        wishlistDAO.setLikedForProduct(bestSellingProducts, user);
         //
         request.setAttribute("topDiscountedProducts", topDiscountedProducts);
         request.setAttribute("latestProducts", latestProducts);
