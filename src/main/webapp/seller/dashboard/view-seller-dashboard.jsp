@@ -8,32 +8,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảng điều khiển người bán - Seller Center</title>
+    <title>Bảng điều khiển người bán - MODA</title>
 
     <!-- Nhúng file CSS dùng chung -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css">
 
     <!-- Tải Lucide Icons qua CDN để sử dụng icon hiện đại và sắc nét -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <style>
-        .trend-up {
-            color: #10b981 !important;
-        }
-        .trend-down {
-            color: #ef4444 !important;
-        }
-        .profile-section {
-            display: flex;
-            align-items: center;
-        }
-        .profile-name {
-            margin-right: 12px;
-            font-weight: 600;
-            color: #1f2937;
-            font-size: 14px;
-        }
-    </style>
 </head>
 
 <body>
@@ -334,14 +315,14 @@
         let pathD = "";
         points.forEach((p, idx) => {
             if (idx === 0) {
-                pathD += `M ${p.x},${p.y}`;
+                pathD += "M " + p.x + "," + p.y;
             } else {
                 const prev = points[idx - 1];
                 const cpX1 = prev.x + (p.x - prev.x) / 3;
                 const cpY1 = prev.y;
                 const cpX2 = prev.x + (p.x - prev.x) * 2 / 3;
                 const cpY2 = p.y;
-                pathD += ` C ${cpX1},${cpY1} ${cpX2},${cpY2} ${p.x},${p.y}`;
+                pathD += " C " + cpX1 + "," + cpY1 + " " + cpX2 + "," + cpY2 + " " + p.x + "," + p.y;
             }
         });
 
@@ -363,9 +344,10 @@
             circle.setAttribute("stroke-width", "2");
             circle.style.cursor = "pointer";
 
-            // Tooltip khi hover vào chấm tròn
+            // TOOLTIP KHI HOVER VÀO CHẤM TRÒN
             const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-            title.textContent = `${p.label}: ${new Intl.NumberFormat('vi-VN').format(p.revenue)}đ`;
+            // Sửa thành cộng chuỗi bằng dấu + để JSP không nhận nhầm thành thẻ EL
+            title.textContent = p.label + ": " + new Intl.NumberFormat('vi-VN').format(p.revenue) + "đ";
             circle.appendChild(title);
 
             svg.appendChild(circle);

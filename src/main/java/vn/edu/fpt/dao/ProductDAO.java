@@ -442,26 +442,31 @@ public class ProductDAO extends DBContext {
 
     public List<ProductResponse> getShopBestSellingProducts(int shopId, int limit) {
         List<ProductResponse> products = new ArrayList<>();
+
+        // Truy vấn đơn giản hóa: loại bỏ JOIN wards/provinces để tránh kết quả rỗng
+        // khi shop.ward_id không khớp với bảng wards
         String sql = """
-            
-                SELECT TOP (?) 
-                p.product_id, 
-                s.shop_name, 
-                s.shop_id, 
-                pr.name AS province_name,
-                p.product_name, 
-                p.base_price, 
+            SELECT TOP (?)
+                p.product_id,
+                s.shop_name,
+                s.shop_id,
+                '' AS province_name,
+                p.product_name,
+                p.gender,
+                p.base_price,
                 p.discount_percentage,
-                p.description, 
-                p.thumbnail_url, 
-                p.created_at, 
-                SUM(pa.stock_quantity) AS total_stock,
+                p.description,
+                p.thumbnail_url,
+                p.created_at,
+                ISNULL(stock_data.total_stock, 0) AS total_stock,
                 ISNULL(sold_data.total_sold, 0) AS total_sold
             FROM products p
             JOIN shops s ON p.shop_id = s.shop_id
-            JOIN wards w ON s.ward_id = w.id
-            JOIN provinces pr ON w.province_id = pr.id
-            JOIN product_variants pa ON p.product_id = pa.product_id
+            LEFT JOIN (
+                SELECT product_id, SUM(stock_quantity) AS total_stock
+                FROM product_variants
+                GROUP BY product_id
+            ) stock_data ON p.product_id = stock_data.product_id
             LEFT JOIN (
                 SELECT od.product_id, SUM(od.quantity) AS total_sold
                 FROM order_items od
@@ -469,12 +474,11 @@ public class ProductDAO extends DBContext {
                 WHERE so.status = 'DELIVERED'
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
-            WHERE p.is_active = 1 AND p.is_deleted = 0 AND p.shop_id = ?
-            GROUP BY p.product_id, s.shop_name, s.shop_id, pr.name,
-                     p.product_name, p.base_price, p.discount_percentage,
-                     p.description, p.thumbnail_url, p.created_at, sold_data.total_sold
-            ORDER BY total_sold DESC
+            WHERE p.shop_id = ? AND p.is_deleted = 0
+            ORDER BY ISNULL(sold_data.total_sold, 0) DESC
             """;
+
+        System.err.println("[DEBUG] getShopBestSellingProducts -> shopId=" + shopId + ", limit=" + limit);
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, limit);
@@ -483,7 +487,9 @@ public class ProductDAO extends DBContext {
             while (rs.next()) {
                 products.add(buildProductResponse(rs));
             }
+            System.err.println("[DEBUG] Bestsellers found: " + products.size());
         } catch (SQLException e) {
+            System.err.println("[DEBUG] Bestseller query error: " + e.getMessage());
             e.printStackTrace();
         }
         return products;
@@ -542,6 +548,19 @@ public class ProductDAO extends DBContext {
         return products;
     }
 
-
+    public int countActiveProductsByShopId(int shopId) {
+        String sql = "SELECT COUNT(*) FROM products WHERE shop_id = ? AND is_active = 1 AND is_deleted = 0";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, shopId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }
 

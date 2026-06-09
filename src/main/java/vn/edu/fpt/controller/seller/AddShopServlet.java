@@ -113,10 +113,11 @@ public class AddShopServlet extends HttpServlet {
                 errors.put("logo", "Vui lòng tải lên logo cửa hàng.");
             } else {
                 String contentType = logoPart.getContentType();
-                if (contentType == null || !contentType.startsWith("image/")) {
-                    errors.put("logo", "Chỉ được upload file hình ảnh.");
+                boolean isJpgOrPng = contentType != null && (contentType.equals("image/jpeg") || contentType.equals("image/png") || contentType.equals("image/jpg"));
+                if (!isJpgOrPng) {
+                    errors.put("logo", "Chỉ hỗ trợ định dạng JPG, PNG");
                 } else if (logoPart.getSize() > 2 * 1024 * 1024) {
-                    errors.put("logo", "Dung lượng ảnh quá lớn (tối đa 2MB).");
+                    errors.put("logo", "Kích thích file không được vượt quá 2MB");
                 }
             }
 
