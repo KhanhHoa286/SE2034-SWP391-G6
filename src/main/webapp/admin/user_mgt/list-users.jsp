@@ -268,7 +268,17 @@
                                                 </c:choose>
                                             </div>
                                             <div>
-                                                <span class="user-name"><c:out value="${u.fullName}"/></span>
+                                                <c:choose>
+                                                    <c:when test="${fn:contains(u.roleNames, 'CUSTOMER')}">
+                                                        <a href="${pageContext.request.contextPath}/admin/user_mgt/view-customer?id=${u.userId}"
+                                                           class="user-name" style="color:var(--sidebar-item-active);">
+                                                            <c:out value="${u.fullName}"/>
+                                                        </a>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="user-name"><c:out value="${u.fullName}"/></span>
+                                                    </c:otherwise>
+                                                </c:choose>
                                                 <span class="user-id">#<c:out value="${u.userId}"/></span>
                                             </div>
                                         </div>
