@@ -9,8 +9,6 @@ import vn.edu.fpt.enums.UserStatus;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 @WebServlet("/verify-otp")
 public class VerifyOtpServlet extends HttpServlet {
@@ -37,6 +35,29 @@ public class VerifyOtpServlet extends HttpServlet {
             return;
         }
 
+        userDao.deleteExpiredPendingRegistrations(15);
+
+        User user = userDao.getUserByEmail(email);
+
+        if (user == null) {
+            request.setAttribute("error", "Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại.");
+            request.setAttribute("email", email);
+            request.getRequestDispatcher("/public/auth/register.jsp").forward(request, response);
+            return;
+        }
+
+        if (user.getStatus() == UserStatus.ACTIVE) {
+            response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp?verified=true");
+            return;
+        }
+
+        if (user.getStatus() != UserStatus.PENDING) {
+            request.setAttribute("error", "Trạng thái tài khoản không hợp lệ để xác thực OTP.");
+            request.setAttribute("email", email);
+            request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+            return;
+        }
+
         boolean isValid = otpDao.verifyOtp(email, otpInput);
 
         if (!isValid) {
@@ -46,23 +67,18 @@ public class VerifyOtpServlet extends HttpServlet {
             return;
         }
 
-        User user = userDao.getUserByEmail(email);
+        boolean activated = userDao.activateUserAfterOtp(user.getUserId());
 
-        if (user == null) {
-            request.setAttribute("error", "Không tìm thấy tài khoản cần xác thực.");
+        if (!activated) {
+            request.setAttribute("error", "Không cập nhật được trạng thái tài khoản sau xác thực OTP.");
             request.setAttribute("email", email);
             request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
             return;
         }
 
-        userDao.updateUserStatus(user.getUserId(), UserStatus.ACTIVE);
-
-        String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-
         response.sendRedirect(
                 request.getContextPath()
-                        + "/public/auth/login.jsp?verified=true&email="
-                        + encodedEmail
+                        + "/public/auth/login.jsp?verified=true"
         );
     }
 }

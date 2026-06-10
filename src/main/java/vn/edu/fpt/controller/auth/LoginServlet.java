@@ -27,12 +27,10 @@ public class LoginServlet extends HttpServlet {
 
     private void forwardLogin(HttpServletRequest request,
                               HttpServletResponse response,
-                              String error,
-                              String email)
+                              String error)
             throws ServletException, IOException {
 
         request.setAttribute("error", error);
-        request.setAttribute("email", email);
         request.getRequestDispatcher("/public/auth/login.jsp").forward(request, response);
     }
 
@@ -68,11 +66,9 @@ public class LoginServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        /*
-         * Không để UserDAO là biến global/final ở đầu Servlet.
-         * Tạo mới trong từng request để tránh giữ connection null.
-         */
         UserDAO userDao = new UserDAO();
+
+        userDao.deleteExpiredPendingRegistrations(15);
 
         String email = request.getParameter("email");
         String password = request.getParameter("password");
@@ -81,34 +77,26 @@ public class LoginServlet extends HttpServlet {
         password = password == null ? "" : password;
 
         if (email.isEmpty() || password.trim().isEmpty()) {
-            forwardLogin(request, response,
-                    "Vui lòng nhập đầy đủ email và mật khẩu.",
-                    email);
+            forwardLogin(request, response, "Vui lòng nhập đầy đủ email và mật khẩu.");
             return;
         }
 
         if (!isValidEmail(email)) {
-            forwardLogin(request, response,
-                    "Email không hợp lệ. Vui lòng nhập đúng định dạng, ví dụ: example@gmail.com.",
-                    email);
+            forwardLogin(request, response, "Email không hợp lệ.");
             return;
         }
 
         User user = userDao.getUserByEmail(email);
 
         if (user == null) {
-            forwardLogin(request, response,
-                    "Email hoặc mật khẩu không đúng.",
-                    email);
+            forwardLogin(request, response, "Email hoặc mật khẩu không đúng.");
             return;
         }
 
         boolean passwordMatched = PasswordUtils.checkPassword(password, user.getPasswordHash());
 
         if (!passwordMatched) {
-            forwardLogin(request, response,
-                    "Email hoặc mật khẩu không đúng.",
-                    email);
+            forwardLogin(request, response, "Email hoặc mật khẩu không đúng.");
             return;
         }
 
@@ -117,30 +105,32 @@ public class LoginServlet extends HttpServlet {
                 sendOtp(email);
 
                 String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-                response.sendRedirect(request.getContextPath() + "/public/auth/verify-otp.jsp?email=" + encodedEmail);
+
+                response.sendRedirect(
+                        request.getContextPath()
+                                + "/public/auth/verify-otp.jsp?email=" + encodedEmail
+                                + "&pending=true"
+                );
                 return;
 
             } catch (Exception e) {
                 e.printStackTrace();
 
                 forwardLogin(request, response,
-                        "Tài khoản chưa xác thực OTP nhưng hệ thống chưa gửi lại được mã. Vui lòng kiểm tra thư rác hoặc thử lại sau.",
-                        email);
+                        "Tài khoản chưa xác thực OTP nhưng hệ thống chưa gửi lại được mã. Vui lòng thử lại sau.");
                 return;
             }
         }
 
         if (user.getStatus() == UserStatus.LOCKED) {
             forwardLogin(request, response,
-                    "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
-                    email);
+                    "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
             return;
         }
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             forwardLogin(request, response,
-                    "Trạng thái tài khoản không hợp lệ.",
-                    email);
+                    "Trạng thái tài khoản không hợp lệ.");
             return;
         }
 
@@ -148,9 +138,32 @@ public class LoginServlet extends HttpServlet {
 
         if (roleId == null || roleId <= 0) {
             forwardLogin(request, response,
-                    "Tài khoản chưa được gán quyền. Vui lòng liên hệ quản trị viên.",
-                    email);
+                    "Tài khoản chưa được gán quyền. Vui lòng liên hệ quản trị viên.");
             return;
+        }
+
+        String contextPath = request.getContextPath();
+
+        if (roleId == 4) {
+            String shipperApprovalStatus = user.getShipperApprovalStatus();
+
+            if (!"APPROVED".equalsIgnoreCase(shipperApprovalStatus)) {
+                if ("PENDING".equalsIgnoreCase(shipperApprovalStatus)) {
+                    forwardLogin(request, response,
+                            "Hồ sơ shipper của bạn đang chờ Admin duyệt. Bạn chưa thể đăng nhập vào hệ thống giao hàng.");
+                    return;
+                }
+
+                if ("REJECTED".equalsIgnoreCase(shipperApprovalStatus)) {
+                    forwardLogin(request, response,
+                            "Hồ sơ shipper của bạn đã bị Admin từ chối. Vui lòng liên hệ Admin để được hỗ trợ.");
+                    return;
+                }
+
+                forwardLogin(request, response,
+                        "Trạng thái hồ sơ shipper không hợp lệ. Vui lòng liên hệ Admin.");
+                return;
+            }
         }
 
         HttpSession session = request.getSession();
@@ -159,16 +172,18 @@ public class LoginServlet extends HttpServlet {
         session.setAttribute("roleId", roleId);
         session.setAttribute("fullName", user.getFirstName() + " " + user.getLastName());
 
-        String contextPath = request.getContextPath();
-
         if (roleId == 1) {
             response.sendRedirect(contextPath + "/admin/dashboard/view-system-overview.jsp");
+
         } else if (roleId == 2) {
             response.sendRedirect(contextPath + "/public/home/view-home.jsp");
+
         } else if (roleId == 3) {
             response.sendRedirect(contextPath + "/seller/dashboard/view-seller-dashboard.jsp");
+
         } else if (roleId == 4) {
             response.sendRedirect(contextPath + "/logistics/delivery/list-deliveries.jsp");
+
         } else {
             response.sendRedirect(contextPath + "/public/home/view-home.jsp");
         }

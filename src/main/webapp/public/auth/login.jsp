@@ -1,19 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    String emailValue = "";
-
-    if (request.getAttribute("email") != null) {
-        emailValue = String.valueOf(request.getAttribute("email"));
-    } else if (request.getParameter("email") != null) {
-        emailValue = request.getParameter("email");
-    }
-
-    emailValue = emailValue
-            .replace("&", "&amp;")
-            .replace("\"", "&quot;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;");
-
     String verified = request.getParameter("verified");
 %>
 <!DOCTYPE html>
@@ -61,7 +47,7 @@
 
             <% if ("true".equals(verified)) { %>
             <div class="message message-success">
-                Xác thực tài khoản thành công. Vui lòng nhập mật khẩu để đăng nhập.
+                Xác thực tài khoản thành công. Vui lòng tự nhập email và mật khẩu để đăng nhập.
             </div>
             <% } %>
 
@@ -71,7 +57,10 @@
             </div>
             <% } %>
 
-            <form action="<%= request.getContextPath() %>/login" method="post" id="loginForm">
+            <form action="<%= request.getContextPath() %>/login"
+                  method="post"
+                  id="loginForm"
+                  autocomplete="off">
 
                 <div class="form-group">
                     <label for="email">EMAIL</label>
@@ -80,27 +69,21 @@
                             id="email"
                             name="email"
                             required
-                            value="<%= emailValue %>"
+                            autocomplete="off"
                             placeholder="hello@example.com"
                     >
                 </div>
 
                 <div class="form-group">
                     <label for="password">MẬT KHẨU</label>
-
-                    <div class="password-wrap">
-                        <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                required
-                                placeholder="••••••••"
-                        >
-
-                        <button type="button" class="toggle-password" onclick="togglePassword()">
-                            Xem
-                        </button>
-                    </div>
+                    <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            required
+                            autocomplete="current-password"
+                            placeholder="••••••••"
+                    >
                 </div>
 
                 <div class="form-actions">
@@ -119,7 +102,7 @@
 
             <p class="register-text">
                 Chưa có tài khoản?
-                <a href="<%= request.getContextPath() %>/public/auth/register.jsp">Tạo tài khoản</a>
+                <a href="<%= request.getContextPath() %>/register">Tạo tài khoản</a>
             </p>
 
         </div>
@@ -190,18 +173,6 @@
         submitBtn.textContent = "ĐANG XỬ LÝ...";
         submitBtn.classList.add("is-loading");
     });
-
-    function togglePassword() {
-        const btn = document.querySelector(".toggle-password");
-
-        if (passwordInput.type === "password") {
-            passwordInput.type = "text";
-            btn.textContent = "Ẩn";
-        } else {
-            passwordInput.type = "password";
-            btn.textContent = "Xem";
-        }
-    }
 </script>
 
 </body>
