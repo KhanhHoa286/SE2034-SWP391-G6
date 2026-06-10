@@ -34,7 +34,7 @@ public class ProductDAO extends DBContext {
                   WHERE so.status = 'DELIVERED'
                   GROUP BY od.product_id
              ) sold_data ON p.product_id = sold_data.product_id
-    WHERE p.is_active = 1 AND p.is_deleted = 0
+    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED'
 """;
 
     private static final String GROUP_PRODUCT = """
@@ -102,10 +102,16 @@ public class ProductDAO extends DBContext {
     /**
      * HoaNK - Hàm lấy product theo giới tính, cate, province, giá, tìm kiếm, xem tất cả .. ở trang product list
      */
-    public List<ProductResponse> getAllProductByFilter(String type, Integer cid, String textSearch, Integer provinceId, String sortBy, Integer page, Integer pageSize, BigDecimal priceFrom, BigDecimal priceTo) {
+    public List<ProductResponse> getAllProductByFilter(Integer shopId, String type, Integer cid, String textSearch, Integer provinceId, String sortBy, Integer page, Integer pageSize, BigDecimal priceFrom, BigDecimal priceTo) {
         List<ProductResponse> products = new ArrayList<>();
         List<Object> params = new ArrayList<>();
         String sql = BASE_PRODUCT_QUERY;
+
+        if(shopId != null) { // lọc shop
+            sql += " AND s.shop_id = ? ";
+            params.add(shopId);
+        }
+
         if (type != null && !type.trim().isEmpty()) { // loc theo gioi tinh
             if ("UNISEX".equalsIgnoreCase(type.trim())) {
                 sql += " AND p.gender = ? ";
@@ -193,13 +199,18 @@ public class ProductDAO extends DBContext {
                   WHERE so.status = 'DELIVERED'
                   GROUP BY od.product_id
              ) sold_data ON p.product_id = sold_data.product_id
-    WHERE p.is_active = 1 AND p.is_deleted = 0
+    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED'
 """;
 
-    public int getTotalProductFilter(String type, Integer cid, String textSearch, Integer provinceId, String sortBy, BigDecimal priceFrom, BigDecimal priceTo) {
+    public int getTotalProductFilter(Integer shopId, String type, Integer cid, String textSearch, Integer provinceId, String sortBy, BigDecimal priceFrom, BigDecimal priceTo) {
         List<ProductResponse> products = new ArrayList<>();
         List<Object> params = new ArrayList<>();
         String sql = BASE_COUNT_PRODUCT;
+
+        if(shopId != null) {
+            sql += " AND s.shop_id = ? ";
+            params.add(shopId);
+        }
 
         if (type != null && !type.trim().isEmpty()) { // loc theo gioi tinh
             if ("UNISEX".equalsIgnoreCase(type.trim())) {
@@ -310,7 +321,7 @@ public class ProductDAO extends DBContext {
                 WHERE so.status = 'DELIVERED'
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
-            WHERE p.product_id = ?;
+            WHERE p.product_id = ? AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED';
             """;
 
     public ProductDetailResponse getProductDetailByProductId(Integer productId) {
@@ -442,26 +453,31 @@ public class ProductDAO extends DBContext {
 
     public List<ProductResponse> getShopBestSellingProducts(int shopId, int limit) {
         List<ProductResponse> products = new ArrayList<>();
+
+        // Truy vấn đơn giản hóa: loại bỏ JOIN wards/provinces để tránh kết quả rỗng
+        // khi shop.ward_id không khớp với bảng wards
         String sql = """
-            
-                SELECT TOP (?) 
-                p.product_id, 
-                s.shop_name, 
-                s.shop_id, 
-                pr.name AS province_name,
-                p.product_name, 
-                p.base_price, 
+            SELECT TOP (?)
+                p.product_id,
+                s.shop_name,
+                s.shop_id,
+                '' AS province_name,
+                p.product_name,
+                p.gender,
+                p.base_price,
                 p.discount_percentage,
-                p.description, 
-                p.thumbnail_url, 
-                p.created_at, 
-                SUM(pa.stock_quantity) AS total_stock,
+                p.description,
+                p.thumbnail_url,
+                p.created_at,
+                ISNULL(stock_data.total_stock, 0) AS total_stock,
                 ISNULL(sold_data.total_sold, 0) AS total_sold
             FROM products p
             JOIN shops s ON p.shop_id = s.shop_id
-            JOIN wards w ON s.ward_id = w.id
-            JOIN provinces pr ON w.province_id = pr.id
-            JOIN product_variants pa ON p.product_id = pa.product_id
+            LEFT JOIN (
+                SELECT product_id, SUM(stock_quantity) AS total_stock
+                FROM product_variants
+                GROUP BY product_id
+            ) stock_data ON p.product_id = stock_data.product_id
             LEFT JOIN (
                 SELECT od.product_id, SUM(od.quantity) AS total_sold
                 FROM order_items od
@@ -469,12 +485,11 @@ public class ProductDAO extends DBContext {
                 WHERE so.status = 'DELIVERED'
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
-            WHERE p.is_active = 1 AND p.is_deleted = 0 AND p.shop_id = ?
-            GROUP BY p.product_id, s.shop_name, s.shop_id, pr.name,
-                     p.product_name, p.base_price, p.discount_percentage,
-                     p.description, p.thumbnail_url, p.created_at, sold_data.total_sold
-            ORDER BY total_sold DESC
+            WHERE p.shop_id = ? AND p.is_deleted = 0
+            ORDER BY ISNULL(sold_data.total_sold, 0) DESC
             """;
+
+        System.err.println("[DEBUG] getShopBestSellingProducts -> shopId=" + shopId + ", limit=" + limit);
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, limit);
@@ -483,7 +498,9 @@ public class ProductDAO extends DBContext {
             while (rs.next()) {
                 products.add(buildProductResponse(rs));
             }
+            System.err.println("[DEBUG] Bestsellers found: " + products.size());
         } catch (SQLException e) {
+            System.err.println("[DEBUG] Bestseller query error: " + e.getMessage());
             e.printStackTrace();
         }
         return products;
@@ -542,6 +559,19 @@ public class ProductDAO extends DBContext {
         return products;
     }
 
-
+    public int countActiveProductsByShopId(int shopId) {
+        String sql = "SELECT COUNT(*) FROM products WHERE shop_id = ? AND is_active = 1 AND is_deleted = 0";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, shopId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }
 

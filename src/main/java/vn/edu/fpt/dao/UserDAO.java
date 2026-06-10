@@ -472,6 +472,21 @@ public class UserDAO extends DBContext {
             ps.setString(1, newStatus);
             ps.setInt(2, userId);
             return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean updateUserContact(int userId, String email, String phone) {
+        String sql = "UPDATE users SET email = ?, phone = ? WHERE user_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ps.setString(2, phone);
+            ps.setInt(3, userId);
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -1,0 +1,134 @@
+.vendor-banner {
+    padding: 40px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 40px;
+}
+
+.vendor-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.vendor-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: var(--bg-light);
+}
+
+.vendor-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.vendor-details h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.vendor-details p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.vendor-sort {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.vendor-sort span {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.vendor-sort select {
+    border: none;
+    background: transparent;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    font-family: var(--font-main);
+    border-bottom: 1px solid var(--primary-color);
+    padding-bottom: 2px;
+}
+
+/* Custom Footer for Vendor page as shown in design */
+.vendor-footer-wrapper {
+    background-color: var(--secondary-color);
+    border-top: 1px solid var(--border-color);
+    padding: 60px 0 30px;
+    margin-top: 60px;
+}
+
+.vendor-footer-inner {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 60px;
+}
+
+.vendor-footer-col h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 25px;
+}
+
+.vendor-footer-col p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    max-width: 300px;
+}
+
+.vendor-footer-col ul {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.vendor-footer-col a {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.vendor-footer-col a:hover {
+    color: var(--primary-color);
+}
+
+.vendor-footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 30px;
+    border-top: 1px solid var(--border-color);
+}
+
+.vendor-footer-copyright {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.vendor-footer-social {
+    display: flex;
+    gap: 15px;
+    font-size: 1.2rem;
+    color: var(--text-main);
+}
+
