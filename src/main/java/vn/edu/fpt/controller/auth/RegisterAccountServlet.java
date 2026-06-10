@@ -31,11 +31,14 @@ public class RegisterAccountServlet extends HttpServlet {
 
     private static final String ACCOUNT_TYPE_CUSTOMER = "CUSTOMER";
     private static final String ACCOUNT_TYPE_DELIVERY = "DELIVERY";
-    private static final String MSG_INFO_USED =
-            "Thông tin đăng ký đã được sử dụng. Vui lòng kiểm tra lại hoặc đăng nhập.";
 
-    private static final String MSG_PENDING =
-            "Yêu cầu đăng ký đang chờ xác thực. Vui lòng kiểm tra OTP hoặc thử lại sau.";
+    /*
+     * Thông báo tổng quát cho các trường unique trong DB:
+     * email, phone, id_card_number, license_plate.
+     * Không phân biệt PENDING hay ACTIVE để tránh lộ chi tiết tài khoản.
+     */
+    private static final String MSG_INFO_USED =
+            "Thông tin đăng ký đã được sử dụng hoặc đang chờ xác thực. Vui lòng kiểm tra lại.";
 
     private boolean isValidEmail(String email) {
         return email != null
@@ -122,6 +125,12 @@ public class RegisterAccountServlet extends HttpServlet {
         return contentType != null
                 && contentType.startsWith("image/")
                 && part.getSize() <= 5 * 1024 * 1024;
+    }
+
+    private void setNoCache(HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
     }
 
     private void prepareRegisterPage(HttpServletRequest request) {
@@ -231,12 +240,12 @@ public class RegisterAccountServlet extends HttpServlet {
                                   String error)
             throws ServletException, IOException {
 
+        request.getSession().setAttribute("pendingOtpEmail", email);
         request.setAttribute("email", email);
         request.setAttribute("error", error);
         request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
     }
 
-    @Override
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -244,6 +253,11 @@ public class RegisterAccountServlet extends HttpServlet {
         setNoCache(response);
 
         UserDAO userDao = new UserDAO();
+
+        /*
+         * PENDING chỉ giữ tối đa 15 phút.
+         * Quá 15 phút thì xóa để người dùng đăng ký lại từ đầu.
+         */
         userDao.deleteExpiredPendingRegistrations(15);
 
         HttpSession session = request.getSession(false);
@@ -252,10 +266,12 @@ public class RegisterAccountServlet extends HttpServlet {
             String pendingOtpEmail = (String) session.getAttribute("pendingOtpEmail");
 
             if (pendingOtpEmail != null && !pendingOtpEmail.trim().isEmpty()) {
-                User pendingUser = userDao.getUserByEmail(pendingOtpEmail.trim().toLowerCase());
+                pendingOtpEmail = pendingOtpEmail.trim().toLowerCase();
+
+                User pendingUser = userDao.getUserByEmail(pendingOtpEmail);
 
                 if (pendingUser != null && pendingUser.getStatus() == UserStatus.PENDING) {
-                    redirectToVerifyOtp(request, response, pendingOtpEmail.trim().toLowerCase());
+                    redirectToVerifyOtp(request, response, pendingOtpEmail);
                     return;
                 }
 
@@ -273,6 +289,7 @@ public class RegisterAccountServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        setNoCache(response);
 
         UserDAO userDao = new UserDAO();
 
@@ -553,16 +570,17 @@ public class RegisterAccountServlet extends HttpServlet {
             shipperWardId = null;
         }
 
+        /*
+         * Check trùng tất cả thuộc tính unique.
+         * Không phân biệt PENDING hay ACTIVE.
+         * Vì PENDING dưới 15 phút vẫn giữ chỗ trong DB.
+         * Nếu người dùng muốn sửa thông tin thì phải bấm link "Sửa thông tin đăng ký" ở màn OTP.
+         */
         User existingUserByEmail = userDao.getUserByEmail(email);
 
         if (existingUserByEmail != null) {
-            if (existingUserByEmail.getStatus() == UserStatus.PENDING) {
-                redirectToVerifyOtp(request, response, email);
-                return;
-            }
-
             forwardRegister(request, response,
-                    "Email đã tồn tại. Vui lòng dùng email khác hoặc đăng nhập.",
+                    MSG_INFO_USED,
                     accountType,
                     firstName, lastName, phone, dobStr, genderInput, "", password, confirmPassword,
                     idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
@@ -572,17 +590,8 @@ public class RegisterAccountServlet extends HttpServlet {
         User existingUserByPhone = userDao.getUserByPhone(phone);
 
         if (existingUserByPhone != null) {
-            if (existingUserByPhone.getStatus() == UserStatus.PENDING) {
-                forwardRegister(request, response,
-                        "Số điện thoại này đang nằm trong một yêu cầu đăng ký chưa xác thực. Vui lòng thử lại sau hoặc dùng số khác.",
-                        accountType,
-                        firstName, lastName, "", dobStr, genderInput, email, password, confirmPassword,
-                        idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
-
             forwardRegister(request, response,
-                    "Số điện thoại đã tồn tại. Vui lòng dùng số điện thoại khác.",
+                    MSG_INFO_USED,
                     accountType,
                     firstName, lastName, "", dobStr, genderInput, email, password, confirmPassword,
                     idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
@@ -593,17 +602,8 @@ public class RegisterAccountServlet extends HttpServlet {
             User existingUserByIdCard = userDao.getUserByIdCardNumber(idCardNumber);
 
             if (existingUserByIdCard != null) {
-                if (existingUserByIdCard.getStatus() == UserStatus.PENDING) {
-                    forwardRegister(request, response,
-                            "Số CCCD này đang nằm trong một yêu cầu đăng ký chưa xác thực. Vui lòng thử lại sau hoặc dùng số khác.",
-                            accountType,
-                            firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                            "", licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-                    return;
-                }
-
                 forwardRegister(request, response,
-                        "Số CCCD này đã được sử dụng cho tài khoản khác.",
+                        MSG_INFO_USED,
                         accountType,
                         firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
                         "", licensePlate, shipperProvinceIdStr, shipperWardIdStr);
@@ -613,17 +613,8 @@ public class RegisterAccountServlet extends HttpServlet {
             User existingUserByLicensePlate = userDao.getUserByLicensePlate(licensePlate);
 
             if (existingUserByLicensePlate != null) {
-                if (existingUserByLicensePlate.getStatus() == UserStatus.PENDING) {
-                    forwardRegister(request, response,
-                            "Biển số xe này đang nằm trong một yêu cầu đăng ký chưa xác thực. Vui lòng thử lại sau hoặc dùng biển số khác.",
-                            accountType,
-                            firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                            idCardNumber, "", shipperProvinceIdStr, shipperWardIdStr);
-                    return;
-                }
-
                 forwardRegister(request, response,
-                        "Biển số xe này đã được sử dụng cho tài khoản khác.",
+                        MSG_INFO_USED,
                         accountType,
                         firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
                         idCardNumber, "", shipperProvinceIdStr, shipperWardIdStr);
@@ -715,12 +706,6 @@ public class RegisterAccountServlet extends HttpServlet {
             return;
         }
 
-        String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-        response.sendRedirect(request.getContextPath() + "/public/auth/verify-otp.jsp?email=" + encodedEmail);
-    }
-    private void setNoCache(HttpServletResponse response) {
-        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        response.setHeader("Pragma", "no-cache");
-        response.setDateHeader("Expires", 0);
+        redirectToVerifyOtp(request, response, email);
     }
 }

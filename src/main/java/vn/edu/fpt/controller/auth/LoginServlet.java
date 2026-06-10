@@ -34,6 +34,12 @@ public class LoginServlet extends HttpServlet {
         request.getRequestDispatcher("/public/auth/login.jsp").forward(request, response);
     }
 
+    private void setNoCache(HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
+    }
+
     private void sendOtp(String email) throws Exception {
         EmailVerificationDAO otpDao = new EmailVerificationDAO();
 
@@ -57,6 +63,21 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        setNoCache(response);
+
+        /*
+         * Người dùng bấm "Quay lại đăng nhập" từ màn OTP.
+         * Lúc này phải xóa session pendingOtpEmail, nếu không sau khi đăng nhập tài khoản khác
+         * hoặc bấm vào /register, hệ thống vẫn kéo về màn OTP cũ.
+         */
+        if ("true".equalsIgnoreCase(request.getParameter("exitOtp"))) {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.removeAttribute("pendingOtpEmail");
+            }
+        }
+
         response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp");
     }
 
@@ -65,6 +86,16 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        setNoCache(response);
+
+        /*
+         * Khi người dùng chủ động submit form login, coi như họ đã rời luồng OTP hiện tại.
+         * Xóa pendingOtpEmail để tránh đăng nhập tài khoản khác xong vẫn bị kéo về OTP cũ.
+         */
+        HttpSession otpSession = request.getSession(false);
+        if (otpSession != null) {
+            otpSession.removeAttribute("pendingOtpEmail");
+        }
 
         UserDAO userDao = new UserDAO();
 
@@ -104,12 +135,13 @@ public class LoginServlet extends HttpServlet {
             try {
                 sendOtp(email);
 
+                request.getSession().setAttribute("pendingOtpEmail", email);
+
                 String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
 
                 response.sendRedirect(
                         request.getContextPath()
-                                + "/public/auth/verify-otp.jsp?email=" + encodedEmail
-                                + "&pending=true"
+                                + "/verify-otp?email=" + encodedEmail
                 );
                 return;
 

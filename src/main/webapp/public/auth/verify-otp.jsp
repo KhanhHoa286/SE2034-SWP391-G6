@@ -14,6 +14,11 @@
   Object messageObj = request.getAttribute("message");
   Object successObj = request.getAttribute("success");
 %>
+<%
+  response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  response.setHeader("Pragma", "no-cache");
+  response.setDateHeader("Expires", 0);
+%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -140,7 +145,7 @@
       </form>
 
       <div class="mt-4 text-center">
-        <a href="<%= request.getContextPath() %>/public/auth/login.jsp"
+        <a href="<%= request.getContextPath() %>/login?exitOtp=true"
            class="text-sm text-gray-500 hover:text-black hover:underline">
           Quay lại đăng nhập
         </a>
