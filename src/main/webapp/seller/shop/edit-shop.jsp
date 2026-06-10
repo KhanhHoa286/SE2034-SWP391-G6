@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ page import="java.util.Map, java.util.List" %>
 <%@ page import="vn.edu.fpt.model.Province" %>
 <%@ page import="vn.edu.fpt.model.Ward" %>
@@ -12,10 +12,10 @@
 
     <%-- CSS dùng chung cho toàn bộ seller center --%>
     <link rel="stylesheet" type="text/css"
-          href="${pageContext.request.contextPath}/assets/css/seller/seller.css">
+          href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260611c">
     <%-- CSS riêng cho trang edit-shop --%>
     <link rel="stylesheet" type="text/css"
-          href="${pageContext.request.contextPath}/assets/css/seller/edit-shop.css">
+          href="${pageContext.request.contextPath}/assets/css/seller/edit-shop.css?v=20260611c">
 
     <%-- Lucide Icons --%>
     <script src="https://unpkg.com/lucide@latest"></script>

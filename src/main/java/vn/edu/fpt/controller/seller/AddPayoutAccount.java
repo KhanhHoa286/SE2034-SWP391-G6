@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Properties;
 
 @WebServlet(urlPatterns = {"/seller/finance/add-payout-account"})
-public class Seller extends HttpServlet {
+public class AddPayoutAccount extends HttpServlet {
 
     private static final String PAYOUT_ACCOUNT_PAGE = "/seller/finance/add-payout-account.jsp";
     private static final String PENDING_PAYOUT_ACCOUNT_SESSION = "pendingPayoutAccountVerification";
@@ -203,7 +203,7 @@ public class Seller extends HttpServlet {
     }
 
     private void preparePage(HttpServletRequest request) {
-        request.setAttribute("activePage", "wallet");
+        request.setAttribute("activePage", "finance");
 
         Integer shopId = resolveSellerShopId(request);
         if (shopId == null) {
@@ -388,7 +388,12 @@ public class Seller extends HttpServlet {
             return null;
         }
 
-        Integer userId = extractUserId(session.getAttribute("account"));
+        Object account = session.getAttribute("account");
+        if (account == null) {
+            account = session.getAttribute("user");
+        }
+
+        Integer userId = extractUserId(account);
         if (userId == null) {
             return null;
         }
@@ -410,7 +415,11 @@ public class Seller extends HttpServlet {
 
     private String resolveSellerEmail(HttpServletRequest request, int shopId) {
         HttpSession session = request.getSession(false);
-        String email = extractEmail(session == null ? null : session.getAttribute("account"));
+        Object account = session == null ? null : session.getAttribute("account");
+        if (account == null && session != null) {
+            account = session.getAttribute("user");
+        }
+        String email = extractEmail(account);
         if (!email.isBlank()) {
             return email;
         }
