@@ -4,7 +4,7 @@ import vn.edu.fpt.common.DBContext;
 import vn.edu.fpt.enums.Gender;
 import vn.edu.fpt.enums.UserStatus;
 import vn.edu.fpt.model.User;
-
+import vn.edu.fpt.controller.admin.UserAdminDTO;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -770,6 +770,134 @@ public class UserDAO extends DBContext {
 
             return ps.executeUpdate() > 0;
 
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+// =========================================================================
+    // PHẦN BỔ SUNG: PHỤC VỤ TRANG QUẢN LÝ USER ADMIN (ĐỒNG BỘ 100% DB HIỆN TẠI)
+    // =========================================================================
+
+    public java.util.List<UserAdminDTO> getFilteredUsers(String search, String role, String status, int pageIndex, int pageSize) {
+        java.util.List<UserAdminDTO> list = new java.util.ArrayList<>();
+
+        // Câu lệnh SQL truy vấn động (Dùng cú pháp OFFSET FETCH của SQL Server tương ứng với TOP trong dự án của bạn)
+        // Ghép first_name và last_name thành fullName, gộp các role tương ứng của user lại
+        String sql = "SELECT u.user_id, u.avatar_url, (u.first_name + ' ' + u.last_name) AS full_name, "
+                + "u.email, u.status, u.created_at, "
+                + "(SELECT STRING_AGG(r.role_name, ', ') FROM user_roles ur JOIN roles r ON ur.role_id = r.role_id WHERE ur.user_id = u.user_id) AS role_names "
+                + "FROM users u "
+                + "WHERE (u.first_name LIKE ? OR u.last_name LIKE ? OR u.email LIKE ?) ";
+
+        if (!"all".equals(status)) {
+            sql += " AND u.status = ? ";
+        }
+        if (!"all".equals(role)) {
+            sql += " AND EXISTS (SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.role_id = r2.role_id WHERE ur2.user_id = u.user_id AND r2.role_name = ?) ";
+        }
+
+        // Thực hiện phân trang an toàn
+        sql += " ORDER BY u.user_id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            int paramIndex = 1;
+            String searchPattern = "%" + search + "%";
+            ps.setString(paramIndex++, searchPattern);
+            ps.setString(paramIndex++, searchPattern);
+            ps.setString(paramIndex++, searchPattern);
+
+            if (!"all".equals(status)) {
+                ps.setString(paramIndex++, status);
+            }
+            if (!"all".equals(role)) {
+                ps.setString(paramIndex++, role);
+            }
+
+            // Tính toán số hàng bỏ qua để phân trang
+            ps.setInt(paramIndex++, (pageIndex - 1) * pageSize);
+            ps.setInt(paramIndex++, pageSize);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    UserAdminDTO dto = new UserAdminDTO();
+                    dto.setUserId(rs.getInt("user_id"));
+                    dto.setAvatar(rs.getString("avatar_url"));
+                    dto.setFullName(rs.getString("full_name"));
+                    dto.setEmail(rs.getString("email"));
+                    dto.setStatus(rs.getString("status"));
+                    dto.setCreatedAt(rs.getTimestamp("created_at"));
+
+                    String roles = rs.getString("role_names");
+                    dto.setRoleNames(roles != null ? roles : "CUSTOMER");
+
+                    list.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int getTotalFilteredUsers(String search, String role, String status) {
+        String sql = "SELECT COUNT(*) FROM users u WHERE (u.first_name LIKE ? OR u.last_name LIKE ? OR u.email LIKE ?) ";
+
+        if (!"all".equals(status)) {
+            sql += " AND u.status = ? ";
+        }
+        if (!"all".equals(role)) {
+            sql += " AND EXISTS (SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.role_id = r2.role_id WHERE ur2.user_id = u.user_id AND r2.role_name = ?) ";
+        }
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            int paramIndex = 1;
+            String searchPattern = "%" + search + "%";
+            ps.setString(paramIndex++, searchPattern);
+            ps.setString(paramIndex++, searchPattern);
+            ps.setString(paramIndex++, searchPattern);
+
+            if (!"all".equals(status)) {
+                ps.setString(paramIndex++, status);
+            }
+            if (!"all".equals(role)) {
+                ps.setString(paramIndex++, role);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    // Hàm thực hiện cập nhật trạng thái người dùng khi ấn Block/Unblock từ giao diện admin
+    public boolean updateStatus(int userId, String newStatus) {
+        String sql = "UPDATE users SET status = ? WHERE user_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, newStatus);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean updateUserContact(int userId, String email, String phone) {
+        String sql = "UPDATE users SET email = ?, phone = ? WHERE user_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ps.setString(2, phone);
+            ps.setInt(3, userId);
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }

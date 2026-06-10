@@ -59,7 +59,7 @@ public class DashboardDAO extends DBContext {
         Map<String, Double> chartData = new LinkedHashMap<>();
         String sql = "SELECT s.shop_name AS shop_name, SUM(p.amount) AS total_amount "
                 + "FROM payout_requests p "
-                + "JOIN shops s ON p.shop_id = s.id "
+                + "JOIN shops s ON p.shop_id = s.shop_id "
                 + "WHERE p.status = 'APPROVED' "
                 + "GROUP BY s.shop_name "
                 + "ORDER BY total_amount DESC";

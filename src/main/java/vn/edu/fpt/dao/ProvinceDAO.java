@@ -19,7 +19,6 @@ public class ProvinceDAO extends DBContext {
                 FROM provinces
                 ORDER BY name
                 """;
-
         try {
 
             PreparedStatement ps =
@@ -39,7 +38,6 @@ public class ProvinceDAO extends DBContext {
 
                 list.add(p);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }

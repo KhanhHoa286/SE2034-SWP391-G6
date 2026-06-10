@@ -52,7 +52,7 @@
 
                 <!-- BREADCRUMBS -->
                 <nav class="breadcrumbs">
-                    <a href="<%= request.getContextPath() %>/sellerDashboard">Đăng ký người bán</a>
+                    <a href="#">Đăng ký người bán</a>
                     <span class="separator">›</span>
                     <span class="current-page">Thêm hồ sơ cửa hàng</span>
                 </nav>
@@ -319,7 +319,10 @@
     }
 
     function showFieldError(fieldId, message) {
-        const inputEl = document.getElementById(fieldId);
+        let inputEl = document.getElementById(fieldId);
+        if (fieldId === 'logo') {
+            inputEl = document.getElementById('logoInput');
+        }
         if (!inputEl) return;
 
         if (fieldId === 'logo') {
@@ -332,6 +335,15 @@
         const errorSpan = document.createElement('span');
         errorSpan.className = 'field-error';
         errorSpan.textContent = message;
+
+        if (fieldId === 'logo') {
+            const uploadInner = inputEl.closest('.upload-inner-flex');
+            const targetDiv = uploadInner ? uploadInner.querySelector('div:last-child') : null;
+            if (targetDiv) {
+                targetDiv.appendChild(errorSpan);
+                return;
+            }
+        }
 
         const formGroup = inputEl.closest('.form-group') || inputEl.closest('.form-group-upload');
         if (formGroup) {
@@ -354,12 +366,12 @@
         clearAllErrors();
 
         if (file.size > 2 * 1024 * 1024) {
-            showFieldError('logo', 'Ảnh vượt quá 2MB. Vui lòng chọn ảnh nhỏ hơn.');
+            showFieldError('logo', 'Kích thích file không được vượt quá 2MB');
             this.value = '';
             return;
         }
         if (!['image/jpeg', 'image/png'].includes(file.type)) {
-            showFieldError('logo', 'Chỉ chấp nhận ảnh JPG hoặc PNG.');
+            showFieldError('logo', 'Chỉ hỗ trợ định dạng JPG, PNG');
             this.value = '';
             return;
         }
@@ -398,18 +410,17 @@
             isValid = false;
         }
 
-        const shopEmail = document.getElementById('shopEmail').value.trim();
-        if (!shopEmail) {
-            showFieldError('shopEmail', 'Email không được để trống.');
-            isValid = false;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shopEmail)) {
-            showFieldError('shopEmail', 'Email không đúng định dạng.');
+        // shopEmail field is currently disabled/hidden — validation skipped
+
+        const provinceId = document.getElementById('provinceId').value;
+        if (!provinceId) {
+            showFieldError('provinceId', 'Vui lòng chọn Tỉnh/Thành Phố');
             isValid = false;
         }
 
         const wardId = document.getElementById('wardId').value;
         if (!wardId) {
-            showFieldError('wardId', 'Vui lòng chọn phường/xã.');
+            showFieldError('wardId', 'Vui lòng chọn Phường/Xã.');
             isValid = false;
         }
 
@@ -467,7 +478,7 @@
                 '<option value="">Đang tải...</option>';
 
             fetch(
-                '${pageContext.request.contextPath}/load-wards?provinceId='
+                '<%= request.getContextPath() %>/load-wards?provinceId='
                 + provinceId
             )
 

@@ -1,9 +1,13 @@
 package vn.edu.fpt.dao;
 
 import vn.edu.fpt.common.DBContext;
+import vn.edu.fpt.dto.response.ShopResponse;
 import vn.edu.fpt.enums.ApprovalStatus;
 import vn.edu.fpt.enums.ShopStatus;
 import vn.edu.fpt.model.Shop;
+import vn.edu.fpt.model.User;
+import vn.edu.fpt.model.Ward;
+import vn.edu.fpt.model.Province;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -155,6 +159,60 @@ public class ShopDAO extends DBContext {
         return null;
     }
 
+    public Shop getShopWithAddressAndOwnerByOwnerId(int ownerId) {
+        String sql = "SELECT s.*, w.name AS ward_name, w.province_id AS province_id, p.name AS province_name, " +
+                     "u.email AS owner_email, u.phone AS owner_phone " +
+                     "FROM shops s " +
+                     "LEFT JOIN wards w ON s.ward_id = w.id " +
+                     "LEFT JOIN provinces p ON w.province_id = p.id " +
+                     "LEFT JOIN users u ON s.owner_id = u.user_id " +
+                     "WHERE s.owner_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, ownerId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Province province = Province.builder()
+                        .id(rs.getInt("province_id"))
+                        .name(rs.getString("province_name"))
+                        .build();
+                
+                Ward ward = Ward.builder()
+                        .id(rs.getInt("ward_id"))
+                        .provinceId(rs.getInt("province_id"))
+                        .name(rs.getString("ward_name"))
+                        .province(province)
+                        .build();
+                
+                User owner = User.builder()
+                        .userId(rs.getInt("owner_id"))
+                        .email(rs.getString("owner_email"))
+                        .phone(rs.getString("owner_phone"))
+                        .build();
+                
+                java.sql.Timestamp ts = rs.getTimestamp("created_at");
+                java.time.LocalDateTime createdAt = (ts != null) ? ts.toLocalDateTime() : null;
+
+                return Shop.builder()
+                        .shopId(rs.getInt("shop_id"))
+                        .ownerId(rs.getInt("owner_id"))
+                        .owner(owner)
+                        .shopName(rs.getString("shop_name"))
+                        .logoUrl(rs.getString("logo_url"))
+                        .description(rs.getString("description"))
+                        .wardId(rs.getInt("ward_id"))
+                        .ward(ward)
+                        .streetAddress(rs.getString("street_address"))
+                        .averageRating(rs.getBigDecimal("average_rating"))
+                        .createdAt(createdAt)
+                        .build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public List<Shop> getAllShops() {
         String sql = "SELECT * FROM shops";
         List<Shop> list = new ArrayList<>();
@@ -176,5 +234,71 @@ public class ShopDAO extends DBContext {
             e.printStackTrace();
         }
         return list;
+    }
+
+    /**
+     * HoaNK - Kiểm tra xem sản phẩm có thuộc shop người bán hay không
+     */
+    private final String CHECK_PRODUCT_SELLER = """
+            SELECT 1 FROM products p
+            JOIN shops s ON p.shop_id = s.shop_id
+            WHERE p.product_id = ? AND s.owner_id = ? AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED';
+            """;
+    public boolean checkProductSeller(int pid, int ownerId) {
+        String sql = CHECK_PRODUCT_SELLER;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, pid);
+            stmt.setInt(2,ownerId);
+            try(ResultSet rs = stmt.executeQuery()){
+                if(rs.next()) {
+                    return (rs.getInt(1) == 1);
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateShop(Shop shop) {
+        String sql = "UPDATE shops SET shop_name = ?, logo_url = ?, description = ?, ward_id = ?, street_address = ? WHERE shop_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, shop.getShopName());
+            ps.setString(2, shop.getLogoUrl());
+            ps.setString(3, shop.getDescription());
+            ps.setInt(4, shop.getWardId());
+            ps.setString(5, shop.getStreetAddress());
+            ps.setInt(6, shop.getShopId());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    /**
+     * HoaNK - Lấy shop bởi shopid
+     */
+    private final String GET_SHOP_BY_ID = """
+            SELECT * FROM shops WHERE shop_id = ? AND status = 'ACTIVE' AND approval_status = 'APPROVED';
+            """;
+    public ShopResponse getShopById(int shopId) {
+        String sql = GET_SHOP_BY_ID;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, shopId);
+            try(ResultSet rs = stmt.executeQuery()) {
+                if(rs.next()) {
+                    ShopResponse response = new ShopResponse();
+                    response.setShopId(rs.getInt("shop_id"));
+                    response.setShopName(rs.getString("shop_name"));
+                    response.setLogoUrl(rs.getString("logo_url"));
+                    response.setFullAddress(rs.getString("street_address"));
+                    response.setDescription(rs.getString("description"));
+                    return response;
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
