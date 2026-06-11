@@ -1,6 +1,7 @@
 package vn.edu.fpt.dto.response;
 
 import lombok.*;
+import vn.edu.fpt.enums.Gender;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 public class ProductDetailResponse {
     private Integer productId;
     private String productName;
+    private Gender gender;
     private Double averageRating;
     private Integer totalReview;
     private Integer totalSold;

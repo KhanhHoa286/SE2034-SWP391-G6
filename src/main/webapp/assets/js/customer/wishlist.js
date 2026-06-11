@@ -9,9 +9,9 @@ function toggleWishlist(productId, contextPath) {
         }
     })
         .then(response => {
+            if(wishlistCount) {
                 let currentCount = parseInt(wishlistCount.innerText) || 0;
                 // nếu là inserted thì thêm active còn khác tức là deleted thì xóa
-                wishlistHeart.classList.toggle("active", response.data === "INSERTED");
                 if (response.data == 'INSERTED') {
                     wishlistCount.innerText = currentCount + 1; // nếu thêm mới + 1
                 } else if (response.data === "DELETED") {
@@ -20,6 +20,8 @@ function toggleWishlist(productId, contextPath) {
                     alert("Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích!");
                     window.location.href = contextPath + "/login";
                 }
+            }
+            wishlistHeart.classList.toggle("active", response.data === "INSERTED");
         })
         .catch(error => {
             console.error("Lỗi hệ thống khi toggle wishlist:", error);

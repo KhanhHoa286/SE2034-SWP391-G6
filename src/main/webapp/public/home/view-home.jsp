@@ -57,8 +57,6 @@
             <c:forEach var="product" begin="0" end="3" items="${topDiscountedProducts}">
                 <c:url var="goToDetailUrl" value="product-detail">
                     <c:param name="pid" value="${product.productId}" />
-                    <c:param name="gender" value="${product.gender}" />
-                    <c:param name="final_price" value="${product.finalPrice}" />
                     <c:param name="returnUrl" value="${currentHomeUrl}" />
                 </c:url>
 
@@ -106,8 +104,6 @@
             <c:forEach var="product" begin="0" end="3" items="${latestProducts}">
                 <c:url var="goToDetailUrl" value="product-detail">
                     <c:param name="pid" value="${product.productId}" />
-                    <c:param name="gender" value="${product.gender}" />
-                    <c:param name="final_price" value="${product.finalPrice}" />
                     <c:param name="returnUrl" value="${currentHomeUrl}" />
                 </c:url>
 

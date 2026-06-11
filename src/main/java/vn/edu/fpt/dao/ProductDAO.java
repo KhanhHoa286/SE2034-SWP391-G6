@@ -1,11 +1,15 @@
 package vn.edu.fpt.dao;
 import vn.edu.fpt.common.DBContext;
+import vn.edu.fpt.dto.request.ProductFilterRequest;
 import vn.edu.fpt.dto.response.ProductDetailResponse;
 import vn.edu.fpt.dto.response.ProductResponse;
 import vn.edu.fpt.dto.response.SizeResponse;
 import vn.edu.fpt.dto.response.ColorResponse;
 import vn.edu.fpt.dto.response.ImageResponse;
 import vn.edu.fpt.enums.Gender;
+import vn.edu.fpt.enums.ShopApplicationStatus;
+import vn.edu.fpt.enums.ShopStatus;
+import vn.edu.fpt.enums.SubOrderStatus;
 import vn.edu.fpt.model.Product;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
@@ -102,67 +106,67 @@ public class ProductDAO extends DBContext {
     /**
      * HoaNK - Hàm lấy product theo giới tính, cate, province, giá, tìm kiếm, xem tất cả .. ở trang product list
      */
-    public List<ProductResponse> getAllProductByFilter(Integer shopId, String type, Integer cid, String textSearch, Integer provinceId, String sortBy, Integer page, Integer pageSize, BigDecimal priceFrom, BigDecimal priceTo) {
+    public List<ProductResponse> getAllProductByFilter(ProductFilterRequest productFilterRequest) {
         List<ProductResponse> products = new ArrayList<>();
         List<Object> params = new ArrayList<>();
         String sql = BASE_PRODUCT_QUERY;
 
-        if(shopId != null) { // lọc shop
+        if( productFilterRequest.getShopId() != null) { // lọc shop
             sql += " AND s.shop_id = ? ";
-            params.add(shopId);
+            params.add(productFilterRequest.getShopId());
         }
 
-        if (type != null && !type.trim().isEmpty()) { // loc theo gioi tinh
-            if ("UNISEX".equalsIgnoreCase(type.trim())) {
+        if (productFilterRequest.getType() != null && !productFilterRequest.getType().trim().isEmpty()) { // loc theo gioi tinh
+            if (Gender.UNISEX.name().equalsIgnoreCase(productFilterRequest.getType().trim())) {
                 sql += " AND p.gender = ? ";
-                params.add(type);
+                params.add(productFilterRequest.getType());
             } else {
                 sql += " AND (p.gender = ? OR p.gender = 'UNISEX') ";
-                params.add(type);
+                params.add(productFilterRequest.getType());
             }
         }
-        if (cid != null) { // loc theo category
+        if (productFilterRequest.getCid() != null) { // loc theo category
             sql += " AND p.category_id IN (SELECT category_id FROM categories where category_id = ? OR parent_id = ?)";
-            params.add(cid);
-            params.add(cid);
+            params.add(productFilterRequest.getCid());
+            params.add(productFilterRequest.getCid());
         }
-        if (textSearch != null && !textSearch.trim().isEmpty()) { // loc theo search
+        if (productFilterRequest.getTextSearch() != null && !productFilterRequest.getTextSearch().trim().isEmpty()) { // loc theo search
             sql += " AND (p.product_name LIKE ? OR p.description LIKE ? OR s.shop_name LIKE ?)";
-            params.add("%" + textSearch + "%");
-            params.add("%" + textSearch + "%");
-            params.add("%" + textSearch + "%");
+            params.add("%" + productFilterRequest.getTextSearch() + "%");
+            params.add("%" + productFilterRequest.getTextSearch() + "%");
+            params.add("%" + productFilterRequest.getTextSearch() + "%");
         }
-        if (provinceId != null) { // loc theo tinh thanh
+        if (productFilterRequest.getProvinceId() != null) { // loc theo tinh thanh
             sql += " AND pr.id = ? ";
-            params.add(provinceId);
+            params.add(productFilterRequest.getProvinceId());
         }
 
         String sqlFinalPrice = "(p.base_price - (p.base_price * (p.discount_percentage / 100.0)))"; // giá cuối sau giảm giá
-        if (priceFrom != null && priceTo != null) {
+        if (productFilterRequest.getPriceFrom() != null && productFilterRequest.getPriceTo() != null) {
             sql += " AND " + sqlFinalPrice + " BETWEEN ? AND ? ";
-            params.add(priceFrom);
-            params.add(priceTo);
+            params.add(productFilterRequest.getPriceFrom());
+            params.add(productFilterRequest.getPriceTo());
         }
 
         sql += GROUP_PRODUCT;
 
         // lọc theo view all hoặc giá tăng dần giảm dần
-        if ("discount".equals(sortBy)) { // uus dai nhieu nhat
+        if ("discount".equals(productFilterRequest.getSortBy())) { // uus dai nhieu nhat
             sql += " ORDER BY p.discount_percentage DESC ";
-        } else if ("best_seller".equals(sortBy)) { // ban chay nhat
+        } else if ("best_seller".equals(productFilterRequest.getSortBy())) { // ban chay nhat
             sql += " ORDER BY total_sold DESC ";
-        } else if ("high_price".equals(sortBy)) {
+        } else if ("high_price".equals(productFilterRequest.getSortBy())) {
             sql += " ORDER BY " + sqlFinalPrice + " DESC";
-        } else if ("low_price".equals(sortBy)) {
+        } else if ("low_price".equals(productFilterRequest.getSortBy())) {
             sql += " ORDER BY " + sqlFinalPrice + " ASC";
         } else { // mặc định sẽ sắp xếp theo mới nhất để còn phục vụ cho phân trang nếu ko có order nào đc chọn
             sql += " ORDER BY p.created_at DESC ";
         }
 
         // phân trang (bắt buộc có order)
-        int offset = (page - 1) * pageSize;
+        int offset = (productFilterRequest.getPage() - 1) * productFilterRequest.getPageSize();
         params.add(offset);
-        params.add(pageSize); // 1 trang 8 sản phẩm
+        params.add(productFilterRequest.getPageSize()); // 1 trang 8 sản phẩm
         sql += PAGINATION_PRODUCT;
         //
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -202,49 +206,49 @@ public class ProductDAO extends DBContext {
     WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED'
 """;
 
-    public int getTotalProductFilter(Integer shopId, String type, Integer cid, String textSearch, Integer provinceId, String sortBy, BigDecimal priceFrom, BigDecimal priceTo) {
+    public int getTotalProductFilter(ProductFilterRequest productFilterRequest) {
         List<ProductResponse> products = new ArrayList<>();
         List<Object> params = new ArrayList<>();
         String sql = BASE_COUNT_PRODUCT;
 
-        if(shopId != null) {
+        if(productFilterRequest.getShopId() != null) {
             sql += " AND s.shop_id = ? ";
-            params.add(shopId);
+            params.add(productFilterRequest.getShopId());
         }
 
-        if (type != null && !type.trim().isEmpty()) { // loc theo gioi tinh
-            if ("UNISEX".equalsIgnoreCase(type.trim())) {
+        if (productFilterRequest.getType() != null && !productFilterRequest.getType().trim().isEmpty()) { // loc theo gioi tinh
+            if (Gender.UNISEX.name().equalsIgnoreCase(productFilterRequest.getType().trim())) {
                 sql += " AND p.gender = ? ";
-                params.add(type);
+                params.add(productFilterRequest.getType());
             } else {
                 sql += " AND (p.gender = ? OR p.gender = 'UNISEX') ";
-                params.add(type);
+                params.add(productFilterRequest.getType());
             }
         }
-        if (cid != null) { // loc theo category
+        if (productFilterRequest.getCid() != null) { // loc theo category
             sql += " AND p.category_id IN (SELECT category_id FROM categories where category_id = ? OR parent_id = ?)";
-            params.add(cid);
-            params.add(cid);
+            params.add(productFilterRequest.getCid());
+            params.add(productFilterRequest.getCid());
         }
-        if (textSearch != null && !textSearch.trim().isEmpty()) { // loc theo search
+        if (productFilterRequest.getTextSearch() != null && !productFilterRequest.getTextSearch().trim().isEmpty()) { // loc theo search
             sql += " AND (p.product_name LIKE ? OR p.description LIKE ? OR s.shop_name LIKE ?)";
-            params.add("%" + textSearch + "%");
-            params.add("%" + textSearch + "%");
-            params.add("%" + textSearch + "%");
+            params.add("%" + productFilterRequest.getTextSearch() + "%");
+            params.add("%" + productFilterRequest.getTextSearch() + "%");
+            params.add("%" + productFilterRequest.getTextSearch() + "%");
         }
-        if (provinceId != null) { // loc theo tinh thanh
+        if (productFilterRequest.getProvinceId() != null) { // loc theo tinh thanh
             sql += " AND pr.id = ? ";
-            params.add(provinceId);
+            params.add(productFilterRequest.getProvinceId());
         }
 
         String sqlFinalPrice = "(p.base_price - (p.base_price * (p.discount_percentage / 100.0)))"; // giá cuối sau giảm giá
-        if (priceFrom != null && priceTo != null) {
+        if (productFilterRequest.getPriceFrom() != null && productFilterRequest.getPriceTo() != null) {
             sql += " AND " + sqlFinalPrice + " BETWEEN ? AND ? ";
-            params.add(priceFrom);
-            params.add(priceTo);
+            params.add(productFilterRequest.getPriceFrom());
+            params.add(productFilterRequest.getPriceTo());
         }
 
-        if ("bestSeller".equals(sortBy)) {
+        if ("bestSeller".equals(productFilterRequest.getSortBy())) {
             sql += " AND sold_data.total_sold IS NOT NULL AND sold_data.total_sold > 0 \n";
         }
 
@@ -303,7 +307,7 @@ public class ProductDAO extends DBContext {
      * HoaNK - Lay ra thong tin chi tiet san pham tu product_id
      */
     private final String GET_PRODUCT_DETAIL_BY_PRODUCTID = """
-            SELECT p.product_id,p.product_name,p.base_price,p.discount_percentage,p.description,s.shop_id,s.shop_name,s.logo_url,ISNULL(review_data.avg_rating, 0.0) AS average_rating,ISNULL(review_data.total_reviews, 0) AS total_reviews, ISNULL(sold_data.total_sold, 0) AS total_sold
+            SELECT p.product_id,p.product_name,p.gender,p.base_price,p.discount_percentage,p.description,s.shop_id,s.shop_name,s.logo_url,ISNULL(review_data.avg_rating, 0.0) AS average_rating,ISNULL(review_data.total_reviews, 0) AS total_reviews, ISNULL(sold_data.total_sold, 0) AS total_sold
             FROM products p
             JOIN shops s ON p.shop_id = s.shop_id
             LEFT JOIN ( -- tính trung bình sao đánh gia và đếm số đánh giá
@@ -318,17 +322,21 @@ public class ProductDAO extends DBContext {
                        SUM(od.quantity) AS total_sold
                 FROM order_items od
                 JOIN sub_orders so ON od.sub_order_id = so.sub_order_id
-                WHERE so.status = 'DELIVERED'
+                WHERE so.status = ?
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
-            WHERE p.product_id = ? AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED';
+            WHERE p.product_id = ? AND s.status = ? AND s.approval_status = ?;
             """;
 
     public ProductDetailResponse getProductDetailByProductId(Integer productId) {
         String sql = GET_PRODUCT_DETAIL_BY_PRODUCTID;
         ProductDetailResponse response = null;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, productId);
+            stmt.setString(1, SubOrderStatus.DELIVERED.name());
+            stmt.setInt(2, productId);
+            stmt.setString(3, ShopStatus.ACTIVE.name());
+            stmt.setString(4, ShopApplicationStatus.APPROVED.name());
+            //
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     response = new ProductDetailResponse();
@@ -340,7 +348,7 @@ public class ProductDAO extends DBContext {
                     response.setShopId(rs.getInt("shop_id"));
                     response.setShopName(rs.getString("shop_name"));
                     response.setLogoUrl(rs.getString("logo_url"));
-
+                    response.setGender(Gender.valueOf(rs.getString("gender")));
                     // trung binh danh gai, tong review, va tong don hang da ban
                     response.setAverageRating(rs.getDouble("average_rating"));
                     response.setTotalReview(rs.getInt("total_reviews"));
