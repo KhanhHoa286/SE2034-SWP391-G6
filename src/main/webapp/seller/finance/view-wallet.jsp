@@ -46,7 +46,7 @@
             <article class="metric-card card shadow-sm">
                 <span>Doanh thu</span>
                 <strong><fmt:formatNumber value="${revenue}" type="number" maxFractionDigits="0"/>&#273;</strong>
-                <small>&#273;&#227; giao sau chi&#7871;t kh&#7845;u</small>
+                <small>T&#7915; c&#225;c &#273;&#417;n &#273;&#227; giao th&#224;nh c&#244;ng</small>
             </article>
             <article class="metric-card card shadow-sm">
                 <span>&#272;&#417;n h&#224;ng</span>

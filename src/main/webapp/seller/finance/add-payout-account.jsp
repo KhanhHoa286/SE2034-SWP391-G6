@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260611d">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/add-payout-account.css?v=20260611d">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/add-payout-account.css?v=20260611e">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -45,44 +45,14 @@
             <section class="payout-card card shadow-sm">
                 <h2>Th&#244;ng tin t&#224;i kho&#7843;n</h2>
 
-                <c:if test="${otpRequired}">
-                    <div class="otp-verification-card">
-                        <div>
-                            <h3>X&#225;c th&#7921;c Gmail</h3>
-                            <p>M&#227; x&#225;c th&#7921;c &#273;&#227; &#273;&#432;&#7907;c g&#7917;i t&#7899;i <strong>${verifiedEmail}</strong>. M&#227; c&#243; hi&#7879;u l&#7921;c trong 10 ph&#250;t.</p>
-                        </div>
-                        <form class="otp-form"
-                              action="${pageContext.request.contextPath}/seller/finance/add-payout-account"
-                              method="POST"
-                              novalidate>
-                            <input type="hidden" name="action" value="verifyOtp">
-                            <div class="form-group">
-                                <label for="otpCode">M&#227; x&#225;c th&#7921;c</label>
-                                <input type="text"
-                                       id="otpCode"
-                                       name="otpCode"
-                                       class="form-control otp-input ${not empty errors.otpCode ? 'input-error' : ''}"
-                                       placeholder="Nh&#7853;p m&#227; 6 s&#7889;"
-                                       maxlength="6"
-                                       inputmode="numeric"
-                                       autocomplete="one-time-code"
-                                       required>
-                                <c:if test="${not empty errors.otpCode}">
-                                    <span class="field-error">${errors.otpCode}</span>
-                                </c:if>
-                            </div>
-                            <button type="submit" class="verify-button btn btn-dark">
-                                X&#225;c th&#7921;c v&#224; l&#432;u t&#224;i kho&#7843;n
-                            </button>
-                        </form>
-                    </div>
-                </c:if>
-
                 <form id="payoutAccountForm"
                       action="${pageContext.request.contextPath}/seller/finance/add-payout-account"
                       method="POST"
                       novalidate>
-                    <input type="hidden" name="action" value="requestOtp">
+                    <input type="hidden"
+                           id="submitAction"
+                           name="action"
+                           value="${otpRequired ? 'verifyOtp' : 'requestOtp'}">
                     <div class="form-group">
                         <label for="bankName">T&#234;n ng&#226;n h&#224;ng</label>
                         <div class="bank-combobox ${not empty errors.bankName ? 'input-error' : ''}">
@@ -174,6 +144,34 @@
                         </c:if>
                     </div>
 
+                    <c:if test="${otpRequired}">
+                        <div class="form-group otp-inline-group">
+                            <label for="otpCode">M&#227; x&#225;c th&#7921;c</label>
+                            <p class="otp-helper">
+                                M&#227; x&#225;c th&#7921;c &#273;&#227; &#273;&#432;&#7907;c g&#7917;i t&#7899;i <strong>${verifiedEmail}</strong>. M&#227; c&#243; hi&#7879;u l&#7921;c trong 10 ph&#250;t.
+                            </p>
+                            <div class="otp-control-row">
+                                <input type="text"
+                                       id="otpCode"
+                                       name="otpCode"
+                                       class="form-control otp-input ${not empty errors.otpCode ? 'input-error' : ''}"
+                                       placeholder="Nh&#7853;p m&#227; 6 s&#7889;"
+                                       maxlength="6"
+                                       inputmode="numeric"
+                                       autocomplete="one-time-code">
+                                <button type="submit"
+                                        data-action="requestOtp"
+                                        class="resend-otp-button btn"
+                                        id="resendOtpButton">
+                                    G&#7917;i l&#7841;i m&#227;
+                                </button>
+                            </div>
+                            <c:if test="${not empty errors.otpCode}">
+                                <span class="field-error">${errors.otpCode}</span>
+                            </c:if>
+                        </div>
+                    </c:if>
+
                     <div class="form-group">
                         <input type="hidden"
                                id="isDefault"
@@ -195,19 +193,25 @@
                         <div class="inline-error">${errors.system}</div>
                     </c:if>
 
-                    <button type="submit" class="save-button btn btn-dark" id="saveButton">
-                        G&#7917;i m&#227; x&#225;c th&#7921;c
+                    <button type="submit"
+                            data-action="${otpRequired ? 'verifyOtp' : 'requestOtp'}"
+                            class="save-button btn btn-dark"
+                            id="saveButton">
+                        <c:choose>
+                            <c:when test="${otpRequired}">X&#225;c th&#7921;c v&#224; l&#432;u t&#224;i kho&#7843;n</c:when>
+                            <c:otherwise>G&#7917;i m&#227; x&#225;c th&#7921;c</c:otherwise>
+                        </c:choose>
                     </button>
                 </form>
             </section>
 
             <aside class="business-card card shadow-sm">
-                <h2>Quy t&#7855;c nghi&#7879;p v&#7909;</h2>
+                <h2>L&#432;u &#253; khi th&#7921;c hi&#7879;n</h2>
                 <ul>
-                    <li>Ch&#7881; l&#432;u bank_name, account_number, account_holder_name, is_default &#273;&#7875; tr&#225;nh ph&#225;t sinh d&#7919; li&#7879;u kh&#244;ng c&#7847;n thi&#7871;t.</li>
-                    <li>C&#225;c tr&#432;&#7901;ng b&#7855;t bu&#7897;c ph&#7843;i &#273;&#432;&#7907;c ki&#7875;m tra tr&#432;&#7899;c khi g&#7917;i.</li>
-                    <li>Ng&#432;&#7901;i b&#225;n ph&#7843;i x&#225;c th&#7921;c m&#227; OTP Gmail tr&#432;&#7899;c khi l&#432;u t&#224;i kho&#7843;n nh&#7853;n ti&#7873;n.</li>
-                    <li>C&#7853;p nh&#7853;t th&#224;nh c&#244;ng s&#7869; &#273;&#432;&#7907;c ghi nh&#7853;n trong c&#417; s&#7903; d&#7919; li&#7879;u.</li>
+                    <li>T&#224;i kho&#7843;n ng&#226;n h&#224;ng n&#224;y s&#7869; &#273;&#432;&#7907;c d&#249;ng &#273;&#7875; nh&#7853;n ti&#7873;n r&#250;t t&#7915; v&#237; ng&#432;&#7901;i b&#225;n.</li>
+                    <li>Vui l&#242;ng nh&#7853;p &#273;&#250;ng t&#234;n ch&#7911; t&#224;i kho&#7843;n theo th&#244;ng tin ng&#226;n h&#224;ng.</li>
+                    <li>M&#227; x&#225;c th&#7921;c Gmail c&#243; hi&#7879;u l&#7921;c trong 10 ph&#250;t.</li>
+                    <li>N&#7871;u &#273;&#225;nh d&#7845;u m&#7863;c &#273;&#7883;nh, t&#224;i kho&#7843;n n&#224;y s&#7869; &#273;&#432;&#7907;c ch&#7885;n s&#7861;n khi t&#7841;o y&#234;u c&#7847;u r&#250;t ti&#7873;n.</li>
                 </ul>
             </aside>
         </div>
@@ -232,7 +236,9 @@
     const isDefault = document.getElementById('isDefault');
     const isDefaultCheck = document.getElementById('isDefaultCheck');
     const saveButton = document.getElementById('saveButton');
+    const resendOtpButton = document.getElementById('resendOtpButton');
     const otpCode = document.getElementById('otpCode');
+    const submitActionInput = document.getElementById('submitAction');
 
     function openBankDropdown() {
         bankDropdown.classList.add('is-open');
@@ -332,6 +338,10 @@
     form.addEventListener('submit', function (event) {
         clearClientErrors();
         let valid = true;
+        const submitAction = event.submitter && event.submitter.dataset.action
+            ? event.submitter.dataset.action
+            : submitActionInput.value;
+        submitActionInput.value = submitAction;
 
         if (!bankName.value) {
             showClientError(bankSearch, 'Vui l\u00f2ng ch\u1ecdn ng\u00e2n h\u00e0ng trong danh s\u00e1ch.');
@@ -348,13 +358,28 @@
             valid = false;
         }
 
+        if (submitAction === 'verifyOtp' && otpCode && !/^\d{6}$/.test(otpCode.value.trim())) {
+            showClientError(otpCode, 'Vui l\u00f2ng nh\u1eadp m\u00e3 x\u00e1c th\u1ef1c g\u1ed3m 6 ch\u1eef s\u1ed1.');
+            valid = false;
+        }
+
         if (!valid) {
             event.preventDefault();
             return;
         }
 
-        saveButton.disabled = true;
-        saveButton.textContent = '\u0110ang g\u1eedi m\u00e3...';
+        if (event.submitter) {
+            event.submitter.disabled = true;
+            event.submitter.textContent = submitAction === 'verifyOtp'
+                ? '\u0110ang x\u00e1c th\u1ef1c...'
+                : '\u0110ang g\u1eedi m\u00e3...';
+        }
+        if (event.submitter !== saveButton) {
+            saveButton.disabled = true;
+        }
+        if (resendOtpButton && event.submitter !== resendOtpButton) {
+            resendOtpButton.disabled = true;
+        }
     });
 
     <c:if test="${not empty popupMessage}">

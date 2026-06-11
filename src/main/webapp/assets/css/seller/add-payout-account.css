@@ -543,6 +543,51 @@ select.form-control {
     text-align: center;
 }
 
+.otp-inline-group {
+    margin-top: 2px;
+}
+
+.otp-helper {
+    margin: -2px 0 2px;
+    color: #3f4a59;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.otp-control-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 190px;
+    gap: 14px;
+    align-items: stretch;
+}
+
+.otp-control-row .otp-input {
+    min-height: 54px;
+}
+
+.resend-otp-button {
+    min-height: 54px;
+    padding: 0 18px;
+    border: 1px solid #07111f;
+    border-radius: 0;
+    background: #ffffff;
+    color: #07111f;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.resend-otp-button:hover {
+    background: #eef0f6;
+}
+
+.resend-otp-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
 .verify-button {
     min-height: 54px;
     border-radius: 0;
@@ -625,6 +670,10 @@ select.form-control {
     }
 
     .otp-form {
+        grid-template-columns: 1fr;
+    }
+
+    .otp-control-row {
         grid-template-columns: 1fr;
     }
 }
