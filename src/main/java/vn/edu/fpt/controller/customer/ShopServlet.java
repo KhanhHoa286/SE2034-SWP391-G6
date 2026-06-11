@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.dao.*;
+import vn.edu.fpt.dto.request.ProductFilterRequest;
 import vn.edu.fpt.dto.response.ProductResponse;
 import vn.edu.fpt.dto.response.ShopResponse;
 import vn.edu.fpt.model.User;
@@ -27,9 +28,7 @@ public class ShopServlet extends HttpServlet {
     private final ShopDAO shopDAO = new ShopDAO();
     private final ProductDAO productDAO = new ProductDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
-    private final ProvinceDAO provinceDAO = new ProvinceDAO();
     private final WishlistDAO wishlistDAO = new WishlistDAO();
-    private static final int PAGE_SIZE = 8;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -57,26 +56,15 @@ public class ShopServlet extends HttpServlet {
 
     // load lên danh sách sản  phẩm lọc
     private void loadShopProductsFilter(HttpServletRequest request, Integer shopId) {
-        // hứng param lọc
-        String gender = request.getParameter("gender");
-        String sortBy = request.getParameter("sort_by");
-        String textSearch = request.getParameter("text_search");
-        Integer cid = ParamUtil.getInteger(request, "cid");
-
-        Integer pageObj = ParamUtil.getInteger(request, "page");
-        int page = (pageObj != null && pageObj > 0) ? pageObj : 1;
-
-        BigDecimal priceFrom = ParamUtil.getBigDecimal(request, "price_from");
-        BigDecimal priceTo = ParamUtil.getBigDecimal(request, "price_to");
-
+        // lấy đống request gán vào đối tượng
+        ProductFilterRequest productFilterRequest = ProductFilterRequest.fromRequest(request);
+        productFilterRequest.setShopId(shopId);
         //tính toán phân trang
-        int numberOfProduct = productDAO.getTotalProductFilter(shopId, gender, cid, textSearch, null, sortBy, priceFrom, priceTo);
-        int totalPages = (int) Math.ceil((double) numberOfProduct / PAGE_SIZE);
+        int numberOfProduct = productDAO.getTotalProductFilter(productFilterRequest);
+        int totalPages = (int) Math.ceil((double) numberOfProduct / productFilterRequest.getPageSize());
 
         // danh sách sản phẩm sau khi lọc
-        List<ProductResponse> listProductFilter = productDAO.getAllProductByFilter(
-                shopId, gender, cid, textSearch, null, sortBy, page, PAGE_SIZE, priceFrom, priceTo
-        );
+        List<ProductResponse> listProductFilter = productDAO.getAllProductByFilter(productFilterRequest);
 
         // trạng thái trái tim yêu thích
         HttpSession session = request.getSession();
@@ -84,13 +72,7 @@ public class ShopServlet extends HttpServlet {
         wishlistDAO.setLikedForProduct(listProductFilter, user);
 
         //giữ trạng thái bộ lọc trên JSP
-        request.setAttribute("gender", gender);
-        request.setAttribute("categoryId", cid);
-        request.setAttribute("sortBy", sortBy);
-        request.setAttribute("textSearch", textSearch);
-        request.setAttribute("priceFrom", priceFrom);
-        request.setAttribute("priceTo", priceTo);
-        request.setAttribute("page", page);
+        request.setAttribute("filter", productFilterRequest);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("listProductFilter", listProductFilter);
     }

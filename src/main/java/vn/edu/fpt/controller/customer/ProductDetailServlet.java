@@ -33,8 +33,6 @@ public class ProductDetailServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // lấy tham số và chuyển đooir
         Integer pid = ParamUtil.getInteger(request, "pid");
-        BigDecimal price = ParamUtil.getBigDecimal(request, "final_price");
-        String gender = request.getParameter("gender");
 
         // kiểm tra id hợp lệ
         if (pid == null || pid <= 0) {
@@ -44,22 +42,23 @@ public class ProductDetailServlet extends HttpServlet {
 
         // lấy ra san chi tiet san pham tuong ứng voi id
         ProductDetailResponse productDetailResponse = productDAO.getProductDetailByProductId(pid);
+
         if (productDetailResponse == null) {
             response.sendRedirect(request.getContextPath() + "/product-list");
             return;
         }
 
         // load dữ liệu cho trang product details
-        loadProductDetailContext(request, pid, price, gender, productDetailResponse);
+        loadProductDetailContext(request, productDetailResponse);
 
         // Đẩy sang trang hiển thị
         request.getRequestDispatcher("/public/product/view-product.jsp").forward(request, response);
     }
 
     // nạp dữ liệu setattribute
-    private void loadProductDetailContext(HttpServletRequest request, Integer pid, BigDecimal price, String gender, ProductDetailResponse productDetailResponse) {
+    private void loadProductDetailContext(HttpServletRequest request, ProductDetailResponse productDetailResponse) {
         // lấy ra top 4 sản phẩm liên quan sản phẩm gốc
-        List<ProductResponse> productRelatedList = productDAO.getTop4ProductRelated(gender, pid, price);
+        List<ProductResponse> productRelatedList = productDAO.getTop4ProductRelated(productDetailResponse.getGender().toString(), productDetailResponse.getProductId(), productDetailResponse.getFinalPrice());
 
         // đắp dữ liệu để tô màu tim
         HttpSession session = request.getSession();
@@ -67,7 +66,7 @@ public class ProductDetailServlet extends HttpServlet {
         wishlistDAO.setLikedForProduct(productRelatedList, user);
 
         // check product của shop seller
-        boolean checkProductSeller = checkSeller(request, pid);
+        boolean checkProductSeller = checkSeller(request, productDetailResponse.getProductId());
         // gửi dữ liệu qua jsp
         request.setAttribute("productDetail", productDetailResponse);
         request.setAttribute("productResponseList", productRelatedList);
