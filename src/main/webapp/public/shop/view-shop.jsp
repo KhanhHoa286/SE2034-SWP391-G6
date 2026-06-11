@@ -90,15 +90,15 @@
                 <h3 class="sidebar__widget-title">Giới tính</h3>
                 <div class="mb-3">
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gender" id="genderNam" value="NAM" ${gender eq 'NAM' ? 'checked' : ''} onchange="this.form.submit()">
+                        <input class="form-check-input" type="radio" name="gender" id="genderNam" value="NAM" ${filter.type eq 'NAM' ? 'checked' : ''} onchange="this.form.submit()">
                         <label class="form-check-label" for="genderNam">Nam</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gender" id="genderNu" value="NU" ${gender eq 'NU' ? 'checked' : ''} onchange="this.form.submit()">
+                        <input class="form-check-input" type="radio" name="gender" id="genderNu" value="NU" ${filter.type eq 'NU' ? 'checked' : ''} onchange="this.form.submit()">
                         <label class="form-check-label" for="genderNu">Nữ</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gender" id="genderUnisex" value="UNISEX" ${gender eq 'UNISEX' ? 'checked' : ''} onchange="this.form.submit()">
+                        <input class="form-check-input" type="radio" name="gender" id="genderUnisex" value="UNISEX" ${filter.type eq 'UNISEX' ? 'checked' : ''} onchange="this.form.submit()">
                         <label class="form-check-label" for="genderUnisex">Unisex</label>
                     </div>
                 </div>
@@ -109,12 +109,12 @@
                   <select class="form-select mb-3" name="cid" onchange="this.form.submit()">
                       <option value="">Tất cả danh mục</option>
                       <c:forEach items="${categoryList}" var="parentCate">
-                          <option value="${parentCate.categoryId}" ${parentCate.categoryId eq categoryId ? 'selected' : ''} style="font-weight: bold;">
+                          <option value="${parentCate.categoryId}" ${parentCate.categoryId eq filter.cid ? 'selected' : ''} style="font-weight: bold;">
                                   ${parentCate.categoryName}
                           </option>
 
                           <c:forEach items="${parentCate.listChildCategory}" var="childCate">
-                              <option value="${childCate.categoryId}" ${childCate.categoryId eq categoryId ? 'selected' : ''}>
+                              <option value="${childCate.categoryId}" ${childCate.categoryId eq filter.cid ? 'selected' : ''}>
                                   &nbsp;&nbsp;— ${childCate.categoryName}
                               </option>
                           </c:forEach>
@@ -126,9 +126,9 @@
               <div class="sidebar__widget">
                   <h3 class="sidebar__widget-title">Mức giá</h3>
                   <div class="price-range-inputs">
-                      <input type="number" min="0" placeholder="Từ" class="price-input" name="price_from" value="${priceFrom}">
+                      <input type="number" min="0" placeholder="Từ" class="price-input" name="price_from" value="${filter.priceFrom}">
                       <span>-</span>
-                      <input type="number" min="0" placeholder="Đến" class="price-input" name="price_to" value="${priceTo}">
+                      <input type="number" min="0" placeholder="Đến" class="price-input" name="price_to" value="${filter.priceTo}">
                   </div>
                   <button class="apply-btn" type="submit">Áp dụng</button>
               </div>
@@ -146,8 +146,6 @@
                 <c:forEach items="${listProductFilter}" var="product">
                     <c:url var="goToDetailUrl" value="product-detail">
                         <c:param name="pid" value="${product.productId}" />
-                        <c:param name="gender" value="${product.gender}" />
-                        <c:param name="final_price" value="${product.finalPrice}" />
                         <c:param name="returnUrl" value="${currentShopUrl}" />
                     </c:url>
                 <article class="product-card col-6 col-md-4 col-lg-3">
@@ -182,25 +180,25 @@
 
             <!-- Pagination -->
             <%--Setup dữ liệu để gửi về bên controoler--%>
-            <c:set var="filterPayload" value="&shop_id=${shopInfo.shopId}&type=${type}&cid=${categoryId}&text_search=${textSearch}&province_id=${provinceId}&sort_by=${sortBy}&price_from=${priceFrom}&price_to=${priceTo}" />
+            <c:set var="filterPayload" value="&shop_id=${shopInfo.shopId}&type=${filter.type}&cid=${filter.cid}&text_search=${filter.textSearch}&province_id=${filter.provinceId}&sort_by=${filter.sortBy}&price_from=${filter.priceFrom}&price_to=${filter.priceTo}" />
 
             <%--Tính toán phân trang --%>
             <c:if test="${totalPages > 1}">
                 <div class="moda-pagination">
-                    <c:if test="${page > 1}">
-                        <a href="shop?page=${page - 1}${filterPayload}" class="moda-page-link">
+                    <c:if test="${filter.page > 1}">
+                        <a href="shop?page=${filter.page - 1}${filterPayload}" class="moda-page-link">
                             <i class="fa-solid fa-chevron-left"></i> &nbsp; TRƯỚC
                         </a>
                     </c:if>
 
                     <c:forEach begin="1" end="${totalPages}" var="i">
-                        <a href="shop?page=${i}${filterPayload}" class="moda-page-num ${i eq page ? 'active' : ''}">
+                        <a href="shop?page=${i}${filterPayload}" class="moda-page-num ${i eq filter.page ? 'active' : ''}">
                                 ${i}
                         </a>
                     </c:forEach>
 
-                    <c:if test="${page < totalPages}">
-                        <a href="shop?page=${page + 1}${filterPayload}" class="moda-page-link">
+                    <c:if test="${filter.page < totalPages}">
+                        <a href="shop?page=${filter.page + 1}${filterPayload}" class="moda-page-link">
                             SAU &nbsp; <i class="fa-solid fa-chevron-right"></i>
                         </a>
                     </c:if>
