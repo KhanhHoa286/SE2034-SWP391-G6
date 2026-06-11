@@ -6,6 +6,9 @@ import vn.edu.fpt.enums.ApprovalStatus;
 import vn.edu.fpt.enums.ShopApplicationStatus;
 import vn.edu.fpt.enums.ShopStatus;
 import vn.edu.fpt.model.Shop;
+import vn.edu.fpt.model.User;
+import vn.edu.fpt.model.Ward;
+import vn.edu.fpt.model.Province;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -157,6 +160,60 @@ public class ShopDAO extends DBContext {
         return null;
     }
 
+    public Shop getShopWithAddressAndOwnerByOwnerId(int ownerId) {
+        String sql = "SELECT s.*, w.name AS ward_name, w.province_id AS province_id, p.name AS province_name, " +
+                     "u.email AS owner_email, u.phone AS owner_phone " +
+                     "FROM shops s " +
+                     "LEFT JOIN wards w ON s.ward_id = w.id " +
+                     "LEFT JOIN provinces p ON w.province_id = p.id " +
+                     "LEFT JOIN users u ON s.owner_id = u.user_id " +
+                     "WHERE s.owner_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, ownerId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Province province = Province.builder()
+                        .id(rs.getInt("province_id"))
+                        .name(rs.getString("province_name"))
+                        .build();
+                
+                Ward ward = Ward.builder()
+                        .id(rs.getInt("ward_id"))
+                        .provinceId(rs.getInt("province_id"))
+                        .name(rs.getString("ward_name"))
+                        .province(province)
+                        .build();
+                
+                User owner = User.builder()
+                        .userId(rs.getInt("owner_id"))
+                        .email(rs.getString("owner_email"))
+                        .phone(rs.getString("owner_phone"))
+                        .build();
+                
+                java.sql.Timestamp ts = rs.getTimestamp("created_at");
+                java.time.LocalDateTime createdAt = (ts != null) ? ts.toLocalDateTime() : null;
+
+                return Shop.builder()
+                        .shopId(rs.getInt("shop_id"))
+                        .ownerId(rs.getInt("owner_id"))
+                        .owner(owner)
+                        .shopName(rs.getString("shop_name"))
+                        .logoUrl(rs.getString("logo_url"))
+                        .description(rs.getString("description"))
+                        .wardId(rs.getInt("ward_id"))
+                        .ward(ward)
+                        .streetAddress(rs.getString("street_address"))
+                        .averageRating(rs.getBigDecimal("average_rating"))
+                        .createdAt(createdAt)
+                        .build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public List<Shop> getAllShops() {
         String sql = "SELECT * FROM shops";
         List<Shop> list = new ArrayList<>();
@@ -206,6 +263,21 @@ public class ShopDAO extends DBContext {
         return false;
     }
 
+    public boolean updateShop(Shop shop) {
+        String sql = "UPDATE shops SET shop_name = ?, logo_url = ?, description = ?, ward_id = ?, street_address = ? WHERE shop_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, shop.getShopName());
+            ps.setString(2, shop.getLogoUrl());
+            ps.setString(3, shop.getDescription());
+            ps.setInt(4, shop.getWardId());
+            ps.setString(5, shop.getStreetAddress());
+            ps.setInt(6, shop.getShopId());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     /**
      * HoaNK - Lấy shop bởi shopid
      */
