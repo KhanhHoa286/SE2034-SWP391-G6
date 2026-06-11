@@ -225,7 +225,12 @@ public class WalletServlet extends HttpServlet {
             return null;
         }
 
-        Integer userId = extractUserId(session.getAttribute("account"));
+        Object account = session.getAttribute("account");
+        if (account == null) {
+            account = session.getAttribute("user");
+        }
+
+        Integer userId = extractUserId(account);
         if (userId == null) {
             return null;
         }

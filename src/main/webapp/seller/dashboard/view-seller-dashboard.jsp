@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -11,7 +11,7 @@
     <title>Bảng điều khiển người bán - MODA</title>
 
     <!-- Nhúng file CSS dùng chung -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260611c">
 
     <!-- Tải Lucide Icons qua CDN để sử dụng icon hiện đại và sắc nét -->
     <script src="https://unpkg.com/lucide@latest"></script>
