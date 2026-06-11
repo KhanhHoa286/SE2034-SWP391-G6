@@ -1,0 +1,26 @@
+.seller-page-shell {
+    display: flex;
+    min-height: 100vh;
+    background: var(--color-bg-app);
+}
+
+.seller-page-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.seller-page-content {
+    padding: 48px 44px;
+}
+
+.seller-page-content h1 {
+    margin-bottom: 8px;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.seller-page-content p {
+    color: var(--color-text-secondary);
+}
