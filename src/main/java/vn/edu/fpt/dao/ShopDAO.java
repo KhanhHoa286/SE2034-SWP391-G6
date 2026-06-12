@@ -3,6 +3,7 @@ package vn.edu.fpt.dao;
 import vn.edu.fpt.common.DBContext;
 import vn.edu.fpt.dto.response.ShopResponse;
 import vn.edu.fpt.enums.ApprovalStatus;
+import vn.edu.fpt.enums.ShopApplicationStatus;
 import vn.edu.fpt.enums.ShopStatus;
 import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
@@ -242,13 +243,15 @@ public class ShopDAO extends DBContext {
     private final String CHECK_PRODUCT_SELLER = """
             SELECT 1 FROM products p
             JOIN shops s ON p.shop_id = s.shop_id
-            WHERE p.product_id = ? AND s.owner_id = ? AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED';
+            WHERE p.product_id = ? AND s.owner_id = ? AND s.status = ? AND s.approval_status = ?;
             """;
     public boolean checkProductSeller(int pid, int ownerId) {
         String sql = CHECK_PRODUCT_SELLER;
         try(PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, pid);
             stmt.setInt(2,ownerId);
+            stmt.setString(3, ShopStatus.ACTIVE.name());
+            stmt.setString(4, ShopApplicationStatus.APPROVED.name());
             try(ResultSet rs = stmt.executeQuery()){
                 if(rs.next()) {
                     return (rs.getInt(1) == 1);
@@ -279,12 +282,14 @@ public class ShopDAO extends DBContext {
      * HoaNK - Lấy shop bởi shopid
      */
     private final String GET_SHOP_BY_ID = """
-            SELECT * FROM shops WHERE shop_id = ? AND status = 'ACTIVE' AND approval_status = 'APPROVED';
+            SELECT * FROM shops WHERE shop_id = ? AND status = ? AND approval_status = ?;
             """;
     public ShopResponse getShopById(int shopId) {
         String sql = GET_SHOP_BY_ID;
         try(PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, shopId);
+            stmt.setString(2, ShopStatus.ACTIVE.name());
+            stmt.setString(3, ShopApplicationStatus.APPROVED.name());
             try(ResultSet rs = stmt.executeQuery()) {
                 if(rs.next()) {
                     ShopResponse response = new ShopResponse();

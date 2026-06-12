@@ -9,6 +9,15 @@
   if (email == null) {
     email = "";
   }
+
+  Object errorObj = request.getAttribute("error");
+  Object messageObj = request.getAttribute("message");
+  Object successObj = request.getAttribute("success");
+%>
+<%
+  response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  response.setHeader("Pragma", "no-cache");
+  response.setDateHeader("Expires", 0);
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -17,14 +26,20 @@
   <title>Xác thực OTP | MODA</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
   <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
     .otp-input:focus {
       outline: none;
       border-bottom-color: black;
     }
   </style>
 </head>
-<body class="bg-gray-50 text-black font-body-md">
+
+<body class="bg-gray-50 text-black">
 
 <header class="w-full bg-white border-b border-gray-300 px-8 py-4 flex justify-between items-center">
   <div class="text-xl font-bold">MODA</div>
@@ -42,55 +57,99 @@
       <h2 class="text-3xl font-bold mb-4">Xác thực OTP</h2>
 
       <p class="text-gray-600 mb-4">
-        Nhập mã OTP 6 chữ số đã gửi đến Email đăng kí của bạn
+        Nhập mã OTP 6 chữ số đã gửi đến email đăng ký của bạn:
         <span class="font-semibold"><%= email %></span>
       </p>
 
-      <% if (request.getAttribute("error") != null) { %>
-      <div class="mb-4 text-red-600 text-sm font-medium">
-        <%= request.getAttribute("error") %>
+      <% if (errorObj != null) { %>
+      <div class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-600 text-sm font-medium">
+        <%= errorObj %>
       </div>
       <% } %>
 
-      <% if (request.getAttribute("message") != null) { %>
-      <div class="mb-4 text-green-600 text-sm font-medium">
-        <%= request.getAttribute("message") %>
+      <% if (messageObj != null) { %>
+      <div class="mb-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-green-600 text-sm font-medium">
+        <%= messageObj %>
       </div>
       <% } %>
 
-      <form id="otp-form" class="space-y-4" action="<%= request.getContextPath() %>/verify-otp" method="post">
+      <% if (successObj != null) { %>
+      <div class="mb-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-green-600 text-sm font-medium">
+        <%= successObj %>
+      </div>
+      <% } %>
+
+      <form id="otp-form"
+            class="space-y-4"
+            action="<%= request.getContextPath() %>/verify-otp"
+            method="post">
+
         <input type="hidden" name="email" value="<%= email %>"/>
         <input type="hidden" name="otp" id="otp"/>
 
         <div class="flex justify-between gap-2">
-          <input type="text" maxlength="1" inputmode="numeric" required class="otp-input w-full border-b border-gray-300 text-center py-2">
-          <input type="text" maxlength="1" inputmode="numeric" required class="otp-input w-full border-b border-gray-300 text-center py-2">
-          <input type="text" maxlength="1" inputmode="numeric" required class="otp-input w-full border-b border-gray-300 text-center py-2">
-          <input type="text" maxlength="1" inputmode="numeric" required class="otp-input w-full border-b border-gray-300 text-center py-2">
-          <input type="text" maxlength="1" inputmode="numeric" required class="otp-input w-full border-b border-gray-300 text-center py-2">
-          <input type="text" maxlength="1" inputmode="numeric" required class="otp-input w-full border-b border-gray-300 text-center py-2">
+          <input type="text" maxlength="1" inputmode="numeric" required
+                 class="otp-input w-full border-b border-gray-300 bg-transparent text-center py-2 text-lg">
+
+          <input type="text" maxlength="1" inputmode="numeric" required
+                 class="otp-input w-full border-b border-gray-300 bg-transparent text-center py-2 text-lg">
+
+          <input type="text" maxlength="1" inputmode="numeric" required
+                 class="otp-input w-full border-b border-gray-300 bg-transparent text-center py-2 text-lg">
+
+          <input type="text" maxlength="1" inputmode="numeric" required
+                 class="otp-input w-full border-b border-gray-300 bg-transparent text-center py-2 text-lg">
+
+          <input type="text" maxlength="1" inputmode="numeric" required
+                 class="otp-input w-full border-b border-gray-300 bg-transparent text-center py-2 text-lg">
+
+          <input type="text" maxlength="1" inputmode="numeric" required
+                 class="otp-input w-full border-b border-gray-300 bg-transparent text-center py-2 text-lg">
         </div>
 
         <div class="flex justify-between items-center mt-2">
-          <span id="timer" class="text-gray-600">01:00</span>
+          <span id="timer" class="text-gray-600 text-sm">01:00</span>
 
-          <!-- Nút gửi lại mã luôn bấm được, kể cả khi timer chưa hết -->
           <button type="submit"
                   form="resend-form"
                   id="resend-btn"
-                  class="text-black hover:underline">
+                  class="text-sm text-black hover:underline">
             Gửi lại mã
           </button>
         </div>
 
-        <button type="submit" class="w-full bg-black text-white py-3 font-semibold uppercase hover:bg-gray-800 transition">
+        <button type="submit"
+                class="w-full bg-black text-white py-3 font-semibold uppercase hover:bg-gray-800 transition">
           Xác nhận
         </button>
       </form>
 
-      <form id="resend-form" action="<%= request.getContextPath() %>/resend-otp" method="post">
+      <form id="resend-form"
+            action="<%= request.getContextPath() %>/resend-otp"
+            method="post">
         <input type="hidden" name="email" value="<%= email %>"/>
       </form>
+
+      <form id="cancel-pending-form"
+            action="<%= request.getContextPath() %>/cancel-pending-registration"
+            method="post"
+            class="mt-5 text-center">
+
+        <input type="hidden" name="email" value="<%= email %>"/>
+
+        <button type="submit"
+                class="text-sm text-gray-600 hover:text-black hover:underline"
+                onclick="return confirm('Bạn muốn hủy yêu cầu đăng ký hiện tại để nhập lại thông tin từ đầu?');">
+          Sửa thông tin đăng ký
+        </button>
+      </form>
+
+      <div class="mt-4 text-center">
+        <a href="<%= request.getContextPath() %>/login?exitOtp=true"
+           class="text-sm text-gray-500 hover:text-black hover:underline">
+          Quay lại đăng nhập
+        </a>
+      </div>
     </div>
   </section>
 </main>
@@ -124,13 +183,14 @@
         inputs.forEach((otpInput, i) => {
           otpInput.value = pasteData[i] || '';
         });
+
         inputs[5].focus();
       }
     });
   });
 
   /*
-   * Timer chỉ để hiển thị thời gian còn lại.
+   * Timer chỉ để hiển thị 1 phút của OTP hiện tại.
    * Không khóa nút gửi lại mã.
    */
   let timeLeft = 60;
@@ -157,7 +217,7 @@
 
     if (otpCode.length !== 6) {
       e.preventDefault();
-      alert("Vui lòng nhập đầy đủ 6 chữ số.");
+      alert("Vui lòng nhập đầy đủ 6 chữ số OTP.");
       return;
     }
 

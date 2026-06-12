@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.dao.*;
+import vn.edu.fpt.dto.request.ProductFilterRequest;
 import vn.edu.fpt.dto.response.ProductResponse;
 import vn.edu.fpt.model.User;
 import vn.edu.fpt.util.ParamUtil;
@@ -45,29 +46,15 @@ public class ProductListServlet extends HttpServlet {
     // load lên danh sách sản phẩm lọc
     private void loadFilterProducts(HttpServletRequest request) {
         // Hứng dữ liệu từ bộ lọc URL
-        String type = request.getParameter("type");
-        String sortBy = request.getParameter("sort_by");
-        String textSearch = request.getParameter("text_search");
-
-        Integer cid = ParamUtil.getInteger(request, "cid");
-        Integer provinceId = ParamUtil.getInteger(request, "province_id");
-
-        // Xử lý trang mặc định nếu bị null
-        Integer pageObj = ParamUtil.getInteger(request, "page");
-        int page = (pageObj != null && pageObj > 0) ? pageObj : 1;
-
-        // Ép kiểu phục vụ bộ lọc khoảng giá
-        BigDecimal priceFrom = ParamUtil.getBigDecimal(request, "price_from");
-        BigDecimal priceTo = ParamUtil.getBigDecimal(request, "price_to");
+        ProductFilterRequest productFilterRequest = ProductFilterRequest.fromRequest(request);
 
         // Tính toán phân trang
-        int numberOfProduct = productDAO.getTotalProductFilter(null, type, cid, textSearch, provinceId, sortBy, priceFrom, priceTo);
+        int numberOfProduct = productDAO.getTotalProductFilter(productFilterRequest);
         int totalPages = (int) Math.ceil((double) numberOfProduct / PAGE_SIZE);
 
         // Lấy danh sách sản phẩm thỏa mãn điều kiện lọc
-        List<ProductResponse> listProductFilter = productDAO.getAllProductByFilter(
-                null, type, cid, textSearch, provinceId, sortBy, page, PAGE_SIZE, priceFrom, priceTo
-        );
+        List<ProductResponse> listProductFilter = productDAO.getAllProductByFilter(productFilterRequest);
+
 
         // đắp trạng thái tim đỏ yêu thích
         HttpSession session = request.getSession();
@@ -75,14 +62,7 @@ public class ProductListServlet extends HttpServlet {
         wishlistDAO.setLikedForProduct(listProductFilter, user);
 
         // giữ trạng thái bộ lọc hiển thị
-        request.setAttribute("type", type);
-        request.setAttribute("categoryId", cid);
-        request.setAttribute("sortBy", sortBy);
-        request.setAttribute("textSearch", textSearch);
-        request.setAttribute("priceFrom", priceFrom);
-        request.setAttribute("priceTo", priceTo);
-        request.setAttribute("provinceId", provinceId);
-        request.setAttribute("page", page);
+        request.setAttribute("filter", productFilterRequest);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("listProductFilter", listProductFilter);
     }

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
@@ -6,96 +6,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Payout Request - MODA</title>
+    <title>Y&#234;u c&#7847;u r&#250;t ti&#7873;n - MODA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/add-payout-request.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260611d">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/add-payout-request.css?v=20260611d">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-<jsp:include page="/public/header.jsp"/>
 
 <div class="payout-request-shell">
-    <aside class="payout-sidebar">
-        <div class="sidebar-block">
-            <h2>Seller Center</h2>
-            <nav class="seller-nav">
-                <a href="${pageContext.request.contextPath}/seller/dashboard/view-seller-dashboard.jsp">
-                    <i data-lucide="layout-grid"></i>
-                    <span>Tổng quan</span>
-                </a>
-                <a class="active" href="${pageContext.request.contextPath}/seller/finance/view-wallet">
-                    <i data-lucide="wallet-cards"></i>
-                    <span>Ví tiền</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/seller/order/list-seller-orders.jsp">
-                    <i data-lucide="archive"></i>
-                    <span>Đơn hàng</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/seller/customer_mgt/list-customers.jsp">
-                    <i data-lucide="users"></i>
-                    <span>Khách hàng</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/seller/product/list-seller-products.jsp">
-                    <i data-lucide="clipboard-check"></i>
-                    <span>Sản phẩm</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/seller/voucher/list-seller-voucher.jsp">
-                    <i data-lucide="badge-percent"></i>
-                    <span>Khuyến mãi</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/public/shop/view-shop.jsp">
-                    <i data-lucide="store"></i>
-                    <span>Hồ sơ shop</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/seller/config/edit-shipping-settings.jsp">
-                    <i data-lucide="truck"></i>
-                    <span>Cấu hình giao hàng</span>
-                </a>
-            </nav>
-        </div>
-
-        <div class="sidebar-block account-block">
-            <p>Tài khoản của tôi</p>
-            <nav class="seller-nav">
-                <a href="${pageContext.request.contextPath}/home">
-                    <i data-lucide="shopping-bag"></i>
-                    <span>Về trang mua sắm</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/customer/order/list-orders.jsp">
-                    <i data-lucide="receipt-text"></i>
-                    <span>Đơn mua của tôi</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/customer/account/view-profile.jsp">
-                    <i data-lucide="circle-user-round"></i>
-                    <span>Hồ sơ cá nhân</span>
-                </a>
-            </nav>
-        </div>
-
-        <div class="sidebar-footer">
-            <a href="#">
-                <i data-lucide="circle-help"></i>
-                <span>Hỗ trợ</span>
-            </a>
-            <a href="#">
-                <i data-lucide="log-out"></i>
-                <span>Đăng xuất</span>
-            </a>
-        </div>
-    </aside>
+    <%
+        request.setAttribute("activePage", "finance");
+        request.setAttribute("sellerSidebarClass", "sidebar");
+    %>
+    <%@ include file="/seller/taskbar-seller.jsp" %>
 
     <main class="payout-main container-fluid">
         <nav class="payout-breadcrumb d-flex align-items-center">
-            <span>Seller Finance</span>
+            <span>T&#224;i ch&#237;nh ng&#432;&#7901;i b&#225;n</span>
             <span>/</span>
-            <strong>Add Payout Request</strong>
+            <strong>Y&#234;u c&#7847;u r&#250;t ti&#7873;n</strong>
         </nav>
 
         <header class="payout-heading">
-            <h1>Add Payout Request</h1>
-            <p>Seller enters the amount to withdraw from wallet to bank card.</p>
+            <h1>Y&#234;u c&#7847;u r&#250;t ti&#7873;n</h1>
+            <p>Nh&#7853;p s&#7889; ti&#7873;n mu&#7889;n r&#250;t t&#7915; v&#237; ng&#432;&#7901;i b&#225;n v&#7873; t&#224;i kho&#7843;n ng&#226;n h&#224;ng.</p>
         </header>
 
         <c:if test="${not empty popupMessage}">
@@ -107,20 +44,20 @@
 
         <section class="wallet-summary">
             <article class="card shadow-sm">
-                <span>Available Balance</span>
-                <strong><fmt:formatNumber value="${availableBalance}" type="number" maxFractionDigits="0"/>đ</strong>
-                <small>Số tiền có thể gửi yêu cầu rút</small>
+                <span>S&#7889; d&#432; kh&#7843; d&#7909;ng</span>
+                <strong><fmt:formatNumber value="${availableBalance}" type="number" maxFractionDigits="0"/>&#273;</strong>
+                <small>S&#7889; ti&#7873;n c&#243; th&#7875; g&#7917;i y&#234;u c&#7847;u r&#250;t</small>
             </article>
             <article class="card shadow-sm">
-                <span>Pending Balance</span>
-                <strong><fmt:formatNumber value="${pendingBalance}" type="number" maxFractionDigits="0"/>đ</strong>
-                <small>Số tiền đang chờ admin xử lý</small>
+                <span>S&#7889; d&#432; &#273;ang ch&#7901;</span>
+                <strong><fmt:formatNumber value="${pendingBalance}" type="number" maxFractionDigits="0"/>&#273;</strong>
+                <small>S&#7889; ti&#7873;n &#273;ang ch&#7901; qu&#7843;n tr&#7883; vi&#234;n x&#7917; l&#253;</small>
             </article>
         </section>
 
         <div class="payout-content-grid">
             <section class="payout-card card shadow-sm">
-                <h2>Input Information</h2>
+                <h2>Th&#244;ng tin y&#234;u c&#7847;u</h2>
 
                 <form id="payoutRequestForm"
                       action="${pageContext.request.contextPath}/seller/finance/add-payout-request"
@@ -129,7 +66,7 @@
                       data-min-amount="10000"
                       novalidate>
                     <div class="form-group">
-                        <label for="payoutAccountId">Payout Account</label>
+                        <label for="payoutAccountId">T&#224;i kho&#7843;n nh&#7853;n ti&#7873;n</label>
                         <select id="payoutAccountId"
                                 name="payoutAccountId"
                                 class="form-control form-select ${not empty errors.payoutAccountId ? 'input-error' : ''}"
@@ -142,12 +79,12 @@
                                                         ? (oldInput.payoutAccountId == account.accountId ? 'selected' : '')
                                                         : (account.isDefault ? 'selected' : '')}>
                                             ${account.bankName} - ${account.accountNumber} - ${account.accountHolderName}
-                                            <c:if test="${account.isDefault}"> (Mặc định)</c:if>
+                                            <c:if test="${account.isDefault}"> (M&#7863;c &#273;&#7883;nh)</c:if>
                                         </option>
                                     </c:forEach>
                                 </c:when>
                                 <c:otherwise>
-                                    <option value="">Chưa có tài khoản nhận tiền</option>
+                                    <option value="">Ch&#432;a c&#243; t&#224;i kho&#7843;n nh&#7853;n ti&#7873;n</option>
                                 </c:otherwise>
                             </c:choose>
                         </select>
@@ -157,17 +94,17 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="amount">Amount</label>
+                        <label for="amount">S&#7889; ti&#7873;n</label>
                         <div class="amount-field ${not empty errors.amount ? 'input-error' : ''}">
                             <input type="text"
                                    id="amount"
                                    name="amount"
                                    class="amount-input"
-                                   placeholder="Tối thiểu 10.000"
+                                   placeholder="T&#7889;i thi&#7875;u 10.000"
                                    inputmode="numeric"
                                    value="${oldInput.amount}"
                                    required>
-                            <span>đ</span>
+                            <span>&#273;</span>
                         </div>
                         <c:if test="${not empty errors.amount}">
                             <span class="field-error">${errors.amount}</span>
@@ -175,13 +112,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="withdrawalNote">Withdrawal Note</label>
+                        <label for="withdrawalNote">Ghi ch&#250; r&#250;t ti&#7873;n</label>
                         <textarea id="withdrawalNote"
                                   name="withdrawalNote"
                                   class="form-control textarea-control"
                                   rows="3"
                                   maxlength="255"
-                                  placeholder="Revenue withdrawal">${oldInput.withdrawalNote}</textarea>
+                                  placeholder="R&#250;t doanh thu">${oldInput.withdrawalNote}</textarea>
                     </div>
 
                     <div class="form-group confirm-group">
@@ -192,7 +129,7 @@
                                    value="true"
                                    ${param.confirm == 'true' ? 'checked' : ''}>
                             <span class="checkbox-box"></span>
-                            <span>Tôi xác nhận gửi yêu cầu rút tiền và đồng ý khóa số tiền này trong ví.</span>
+                            <span>T&#244;i x&#225;c nh&#7853;n g&#7917;i y&#234;u c&#7847;u r&#250;t ti&#7873;n v&#224; &#273;&#7891;ng &#253; kh&#243;a s&#7889; ti&#7873;n n&#224;y trong v&#237;.</span>
                         </label>
                         <c:if test="${not empty errors.confirm}">
                             <span class="field-error">${errors.confirm}</span>
@@ -207,32 +144,30 @@
                             class="submit-button btn btn-dark"
                             id="submitButton"
                             ${empty payoutAccounts ? 'disabled' : ''}>
-                        Submit Request
+                        G&#7917;i y&#234;u c&#7847;u
                     </button>
 
                     <c:if test="${empty payoutAccounts}">
                         <a class="link-action btn btn-outline-dark" href="${pageContext.request.contextPath}/seller/finance/add-payout-account">
-                            Add Bank Account
+                            Th&#234;m t&#224;i kho&#7843;n ng&#226;n h&#224;ng
                         </a>
                     </c:if>
                 </form>
             </section>
 
             <aside class="business-card card shadow-sm">
-                <h2>Business Rule</h2>
+                <h2>L&#432;u &#253; khi th&#7921;c hi&#7879;n</h2>
                 <ul>
-                    <li>Requested amount must not exceed available wallet balance.</li>
-                    <li>Minimum payout amount is 10.000đ.</li>
-                    <li>Selected payout account must belong to the current seller shop.</li>
-                    <li>Seller must confirm before the request can be submitted.</li>
-                    <li>After submission, money moves from available balance to pending balance.</li>
+                    <li>Ch&#7881; c&#243; th&#7875; r&#250;t s&#7889; ti&#7873;n nh&#7887; h&#417;n ho&#7863;c b&#7857;ng s&#7889; d&#432; kh&#7843; d&#7909;ng.</li>
+                    <li>S&#7889; ti&#7873;n r&#250;t t&#7889;i thi&#7875;u l&#224; 10.000&#273;.</li>
+                    <li>T&#224;i kho&#7843;n nh&#7853;n ti&#7873;n ph&#7843;i l&#224; t&#224;i kho&#7843;n &#273;&#227; l&#432;u c&#7911;a shop.</li>
+                    <li>Ki&#7875;m tra k&#7929; s&#7889; ti&#7873;n v&#224; t&#224;i kho&#7843;n nh&#7853;n tr&#432;&#7899;c khi g&#7917;i y&#234;u c&#7847;u.</li>
+                    <li>Sau khi g&#7917;i, kho&#7843;n ti&#7873;n n&#224;y s&#7869; chuy&#7875;n sang tr&#7841;ng th&#225;i &#273;ang ch&#7901; x&#7917; l&#253;.</li>
                 </ul>
             </aside>
         </div>
     </main>
 </div>
-
-<jsp:include page="/public/footer.jsp"/>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -285,23 +220,23 @@
         const requestedAmount = parseMoney(amount.value);
 
         if (!payoutAccount.value) {
-            showClientError(payoutAccount, 'Vui lòng chọn tài khoản nhận tiền.');
+            showClientError(payoutAccount, 'Vui l\u00f2ng ch\u1ecdn t\u00e0i kho\u1ea3n nh\u1eadn ti\u1ec1n.');
             valid = false;
         }
 
         if (requestedAmount <= 0) {
-            showClientError(amount.closest('.amount-field'), 'Vui lòng nhập số tiền rút lớn hơn 0.');
+            showClientError(amount.closest('.amount-field'), 'Vui l\u00f2ng nh\u1eadp s\u1ed1 ti\u1ec1n r\u00fat l\u1edbn h\u01a1n 0.');
             valid = false;
         } else if (requestedAmount < minPayoutAmount) {
-            showClientError(amount.closest('.amount-field'), 'Số tiền rút tối thiểu là 10.000đ.');
+            showClientError(amount.closest('.amount-field'), 'S\u1ed1 ti\u1ec1n r\u00fat t\u1ed1i thi\u1ec3u l\u00e0 10.000\u0111.');
             valid = false;
         } else if (requestedAmount > availableBalance) {
-            showClientError(amount.closest('.amount-field'), 'Số tiền rút không được lớn hơn số dư khả dụng.');
+            showClientError(amount.closest('.amount-field'), 'S\u1ed1 ti\u1ec1n r\u00fat kh\u00f4ng \u0111\u01b0\u1ee3c l\u1edbn h\u01a1n s\u1ed1 d\u01b0 kh\u1ea3 d\u1ee5ng.');
             valid = false;
         }
 
         if (!confirmBox.checked) {
-            showClientError(confirmBox.closest('.checkbox-control'), 'Bạn phải xác nhận trước khi gửi yêu cầu.');
+            showClientError(confirmBox.closest('.checkbox-control'), 'B\u1ea1n ph\u1ea3i x\u00e1c nh\u1eadn tr\u01b0\u1edbc khi g\u1eedi y\u00eau c\u1ea7u.');
             valid = false;
         }
 
@@ -312,7 +247,7 @@
 
         amount.value = String(requestedAmount);
         submitButton.disabled = true;
-        submitButton.textContent = 'Submitting...';
+        submitButton.textContent = '\u0110ang g\u1eedi...';
     });
 
     <c:if test="${not empty popupMessage}">

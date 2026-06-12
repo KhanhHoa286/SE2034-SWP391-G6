@@ -91,8 +91,6 @@
             <%-- Bước 1: Đóng gói URL hiện tại của sản phẩm đang xem --%>
             <c:url var="currentProductUrl" value="product-detail">
                 <c:param name="pid" value="${productDetail.productId}" />
-                <c:param name="gender" value="${param.gender}" />
-                <c:param name="final_price" value="${productDetail.finalPrice}" />
                 <c:param name="returnUrl" value="${param.returnUrl}" />
             </c:url>
 
@@ -193,10 +191,8 @@
 
                 <c:url var="goToRelatedUrl" value="product-detail">
                     <c:param name="pid" value="${product.productId}" />
-                    <c:param name="gender" value="${product.gender}" />
-                    <c:param name="final_price" value="${product.finalPrice}" />
                     <%-- Điều hướng nút quay lại chỉ thẳng vào servlet product-detail kèm data chuẩn --%>
-                    <c:param name="returnUrl" value="product-detail?pid=${productDetail.productId}&gender=${param.gender}&final_price=${productDetail.finalPrice}&returnUrl=${param.returnUrl}" />
+                    <c:param name="returnUrl" value="product-detail?pid=${productDetail.productId}&returnUrl=${param.returnUrl}" />
                 </c:url>
 
                 <article class="product-card col-6 col-md-4 col-lg-3">
