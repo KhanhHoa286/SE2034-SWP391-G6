@@ -17,6 +17,18 @@
     <link rel="stylesheet" type="text/css"
           href="${pageContext.request.contextPath}/assets/css/seller/edit-shop.css?v=20260611c">
 
+    <!-- Tránh cache trình duyệt cho tiêu đề trang -->
+    <style>
+        .page-title {
+            font-family: 'Outfit', Arial, sans-serif !important;
+            font-size: 36px !important;
+            font-weight: 700 !important;
+            color: #000000 !important;
+            line-height: 1.1 !important;
+            margin: 0 0 6px 0 !important;
+        }
+    </style>
+
     <%-- Lucide Icons --%>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -68,28 +80,12 @@
         <%-- ══ MAIN CONTENT ══ --%>
         <div class="content-container">
 
-            <%-- ── HEADER ── --%>
-            <header class="es-top-header">
-                <div>
-                    <div class="header-brand">SELLER CENTER</div>
-                    <div class="header-brand-sub">MANAGEMENT CONSOLE</div>
-                </div>
-                <div class="header-profile">
-                    <span class="header-shop-name">
-                        <%= currentShopName.isEmpty() ? "Cửa hàng của bạn" : currentShopName %>
-                    </span>
-                    <span class="header-lock-icon">
-                        <i data-lucide="lock"></i>
-                    </span>
-                </div>
-            </header>
-
             <%-- ── CONTENT ── --%>
             <main class="content-wrapper es-content-wrapper">
 
                 <%-- Page heading --%>
                 <div class="page-header">
-                    <h1 class="page-title">Chỉnh sửa hồ sơ</h1>
+                    <h1 class="page-title">Chỉnh Sửa Hồ Sơ</h1>
                     <p class="page-subtitle">Cập nhật thông tin thương hiệu và chi tiết liên lạc của cửa hàng bạn.</p>
                 </div>
 
