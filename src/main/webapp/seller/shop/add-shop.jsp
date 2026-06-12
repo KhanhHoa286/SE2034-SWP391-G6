@@ -40,13 +40,6 @@
 
         <div class="content-container">
 
-            <!-- HEADER -->
-            <header class="top-header">
-                <div class="profile-section">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
-                         alt="Seller Profile" class="profile-avatar" id="profileAvatar">
-                </div>
-            </header>
 
             <main class="content-wrapper">
 
