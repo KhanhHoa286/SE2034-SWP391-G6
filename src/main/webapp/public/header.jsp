@@ -32,9 +32,9 @@
                 <i class="fa-regular fa-heart header__icon"></i>
                 <span class="cart-count" id="wishlist-count">${numberProductWishlist}</span>
             </a>
-            <a href="${pageContext.request.contextPath}/cart-list" class="header__icon header__icon-cart" style="color: inherit; text-decoration: none;">
+            <a href="${pageContext.request.contextPath}/cart" class="header__icon header__icon-cart" style="color: inherit; text-decoration: none;">
                 <i class="fa-solid fa-bag-shopping"></i>
-                <span class="cart-count">${numberProductCart}</span>
+                <span class="cart-count" id="cart-count">${numberProductCart}</span>
             </a>
             <c:if test="${session.user != null}">
                 <a href="${pageContext.request.contextPath}/customer-dashboard" class="avatar-link">

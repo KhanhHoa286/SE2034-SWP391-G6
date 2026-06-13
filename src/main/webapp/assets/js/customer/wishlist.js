@@ -1,9 +1,14 @@
+/**
+ * HoaNK - HE195013
+ * Date:
+ * Description: Viết ajax hỗ trợ  thêm xóa sản phẩm yêu thích
+ */
 function toggleWishlist(productId, contextPath) {
     //lấy hình trái tim
     const wishlistHeart = document.getElementById("wishlist-heart-"+productId);
     const wishlistCount = document.getElementById("wishlist-count");
     // ajax
-    axios.post(contextPath + "/toggle-wishlist", null, {
+    axios.post(contextPath + "/api/customer/toggle-wishlist", null, {
         params: {
             product_id: productId
         }
