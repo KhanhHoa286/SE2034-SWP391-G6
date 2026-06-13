@@ -71,12 +71,15 @@
 
         /* Main Content & Topbar */
         .main-content { flex: 1; padding: 24px 32px; display: flex; flex-direction: column; gap: 24px; overflow-x: hidden; }
-        .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 8px; }
-        .topbar-search { flex: 1; max-width: 560px; position: relative; }
-        .topbar-search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); pointer-events: none; }
-        .topbar-search-input { width: 100%; padding: 12px 16px 12px 48px; border: 1px solid var(--border-color); border-radius: 10px; font-family: inherit; font-size: 14px; color: var(--text-primary); background-color: var(--bg-secondary); box-shadow: var(--shadow-sm); transition: all 0.2s ease; outline: none; }
-        .topbar-search-input::placeholder { color: var(--text-muted); }
-        .topbar-search-input:focus { border-color: var(--sidebar-item-active); box-shadow: 0 0 0 3px rgba(88, 80, 236, 0.1); }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* Căn tất cả thành phần bên trong về rìa bên phải */
+            gap: 16px;
+            padding-bottom: 8px;
+        }
+
         .topbar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
         .topbar-avatar-wrapper { flex-shrink: 0; }
         .topbar-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.2s ease; }
@@ -113,7 +116,17 @@
         .chart-container { position: relative; width: 100%; height: 380px; }
 
         @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) { .app-container { flex-direction: column; } .sidebar-wrapper { width: 100%; height: auto; } .sidebar { padding: 16px; } .sidebar-header { padding-bottom: 16px; } .main-content { padding: 16px; } .topbar { flex-direction: column; align-items: stretch; } .topbar-search { max-width: 100%; } .topbar-avatar-wrapper { display: flex; justify-content: flex-end; } .page-header { flex-direction: column; gap: 16px; } .date-picker-btn { width: 100%; justify-content: center; } }
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .sidebar-wrapper { width: 100%; height: auto; }
+            .sidebar { padding: 16px; }
+            .sidebar-header { padding-bottom: 16px; }
+            .main-content { padding: 16px; }
+            .topbar { justify-content: flex-end; } /* Đảm bảo avatar luôn ở bên phải trên Mobile */
+            .topbar-avatar-wrapper { display: flex; justify-content: flex-end; }
+            .page-header { flex-direction: column; gap: 16px; }
+            .date-picker-btn { width: 100%; justify-content: center; }
+        }
         @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } .stat-card { padding: 16px; } }
     </style>
 
@@ -123,7 +136,6 @@
 <body>
 
 <div class="app-container">
-    <!-- SIDEBAR CHUẨN ĐỒNG BỘ -->
     <aside class="sidebar-wrapper">
         <div class="sidebar">
             <div class="sidebar-nav-group">
@@ -167,14 +179,8 @@
         </div>
     </aside>
 
-    <!-- PHẦN NỘI DUNG CHÍNH -->
     <main class="main-content">
-        <!-- TOPBAR -->
         <div class="topbar">
-            <div class="topbar-search">
-                <i data-lucide="search" class="topbar-search-icon"></i>
-                <input type="text" class="topbar-search-input" placeholder="Tìm kiếm nhanh hệ thống...">
-            </div>
             <div class="topbar-actions">
                 <div class="topbar-avatar-wrapper">
                     <c:choose>
@@ -189,7 +195,6 @@
             </div>
         </div>
 
-        <!-- HEADER TIÊU ĐỀ -->
         <section class="page-header">
             <div class="header-info">
                 <h1>Tổng quan hệ thống</h1>
@@ -202,7 +207,6 @@
             </button>
         </section>
 
-        <!-- THẺ THỐNG KÊ (4 Ô SẾP HÀNG NGANG) -->
         <section class="stats-grid">
             <article class="stat-card">
                 <div class="stat-header">
@@ -277,7 +281,6 @@
             </article>
         </section>
 
-        <!-- BIỂU ĐỒ -->
         <section class="dashboard-body-row">
             <article class="content-card">
                 <div class="card-header-row">

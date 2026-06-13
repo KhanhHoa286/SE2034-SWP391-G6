@@ -57,12 +57,12 @@ public class DashboardDAO extends DBContext {
     // 5. Lấy biểu đồ doanh thu theo shop
     public Map<String, Double> getRevenueDataByShop() {
         Map<String, Double> chartData = new LinkedHashMap<>();
-        String sql = "SELECT s.shop_name AS shop_name, SUM(p.amount) AS total_amount "
-                + "FROM payout_requests p "
-                + "JOIN shops s ON p.shop_id = s.shop_id "
-                + "WHERE p.status = 'APPROVED' "
-                + "GROUP BY s.shop_name "
-                + "ORDER BY total_amount DESC";
+        String sql = "SELECT \n" +
+                "    s.shop_name, \n" +
+                "    COALESCE(SUM(so.total_amount), 0) AS revenue -- Nếu không có đơn hàng thì mặc định bằng 0\n" +
+                "FROM shops s\n" +
+                "LEFT JOIN sub_orders so ON s.shop_id = so.shop_id\n" +
+                "GROUP BY s.shop_name";
         try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 chartData.put(rs.getString("shop_name"), rs.getDouble("total_amount"));

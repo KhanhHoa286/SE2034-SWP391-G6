@@ -68,22 +68,30 @@
         .menu-icon { width: 20px; height: 20px; stroke-width: 2px; flex-shrink: 0; }
         .menu-text { white-space: nowrap; }
 
-        /* Main Content & Topbar */
+        /* Main Content & Topbar Styles */
         .main-content { flex: 1; padding: 24px 32px; display: flex; flex-direction: column; gap: 24px; overflow-x: hidden; }
-        .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 8px; }
-        .topbar-search { flex: 1; max-width: 560px; position: relative; }
-        .topbar-search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); pointer-events: none; }
-        .topbar-search-input { width: 100%; padding: 12px 16px 12px 48px; border: 1px solid var(--border-color); border-radius: 10px; font-family: inherit; font-size: 14px; color: var(--text-primary); background-color: var(--bg-secondary); box-shadow: var(--shadow-sm); transition: all 0.2s ease; outline: none; }
-        .topbar-search-input:focus { border-color: var(--sidebar-item-active); box-shadow: 0 0 0 3px rgba(88, 80, 236, 0.1); }
-        .topbar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 16px;
+            padding-bottom: 8px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
         .topbar-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); box-shadow: var(--shadow-sm); }
 
-        /* Page Header & Actions */
+        /* Page Header */
         .page-header { display: flex; justify-content: space-between; align-items: center; }
         .header-info h1 { font-size: 28px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; margin-bottom: 4px; }
         .header-info p { font-size: 14px; color: var(--text-muted); }
-        .btn-primary { display: inline-flex; align-items: center; gap: 8px; background-color: var(--sidebar-item-active); color: #ffffff; padding: 10px 18px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(88, 80, 236, 0.2); transition: all 0.2s ease; }
-        .btn-primary:hover { background-color: #4338ca; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(88, 80, 236, 0.3); }
 
         /* Filter Box */
         .filter-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); }
@@ -135,7 +143,7 @@
         .page-link.active { background-color: var(--sidebar-item-active); color: #ffffff; border-color: var(--sidebar-item-active); box-shadow: 0 2px 6px rgba(88, 80, 236, 0.2); }
 
         @media (max-width: 992px) { .filter-form { flex-direction: column; align-items: stretch; } .form-input, .form-select { min-width: 100%; } .btn-secondary { justify-content: center; } }
-        @media (max-width: 768px) { .app-container { flex-direction: column; } .sidebar-wrapper { width: 100%; height: auto; } .main-content { padding: 16px; } .page-header { flex-direction: column; align-items: flex-start; gap: 12px; } .btn-primary { width: 100%; justify-content: center; } }
+        @media (max-width: 768px) { .app-container { flex-direction: column; } .sidebar-wrapper { width: 100%; height: auto; } .main-content { padding: 16px; } .page-header { flex-direction: column; align-items: flex-start; gap: 12px; } .topbar { justify-content: flex-end; } }
     </style>
 
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -188,24 +196,17 @@
 
     <main class="main-content">
         <div class="topbar">
-            <div class="topbar-search">
-                <i data-lucide="search" class="topbar-search-icon"></i>
-                <input type="text" class="topbar-search-input" placeholder="Tìm kiếm nhanh hệ thống...">
-            </div>
             <div class="topbar-actions">
                 <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg" alt="Avatar" class="topbar-avatar" />
             </div>
         </div>
 
+        <!-- Khối tiêu đề trang (Đã xóa button Thêm người dùng mới) -->
         <section class="page-header">
             <div class="header-info">
                 <h1>Danh sách người dùng</h1>
                 <p>Quản lý và giám sát toàn bộ người dùng trong hệ thống.</p>
             </div>
-            <button class="btn-primary">
-                <i data-lucide="user-plus" style="width:18px;height:18px;"></i>
-                <span>Thêm người dùng mới</span>
-            </button>
         </section>
 
         <section class="filter-card">
@@ -259,7 +260,6 @@
                                     <td>
                                         <div class="user-cell">
                                             <div class="avatar-circle" style="background-color: ${fn:contains(u.roleNames, 'ADMIN') ? '#5850ec' : (fn:contains(u.roleNames, 'SELLER') ? '#8b5cf6' : '#10b981')}">
-                                                <%-- Tránh NullPointerException / OutOfBound khi cắt chuỗi bằng c:choose an toàn --%>
                                                 <c:choose>
                                                     <c:when test="${not empty u.fullName}">
                                                         <c:out value="${fn:substring(u.fullName, 0, 1)}"/>
@@ -312,7 +312,6 @@
                             </c:forEach>
                         </c:when>
                         <c:otherwise>
-                            <%-- Hiển thị dữ liệu mẫu dự phòng chuẩn đét nếu DB chưa kết nối được --%>
                             <tr>
                                 <td><div class="user-cell"><div class="avatar-circle" style="background-color:#5850ec">A</div><div><span class="user-name">Admin System</span><span class="user-id">#1</span></div></div></td>
                                 <td>admin@moda.com</td>
