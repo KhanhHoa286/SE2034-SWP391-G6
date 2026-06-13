@@ -298,7 +298,7 @@ a {
 }
 
 .page-title {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Outfit', Arial, sans-serif;
     font-size: 32px;
     font-weight: 700;
     color: var(--color-text-primary);
