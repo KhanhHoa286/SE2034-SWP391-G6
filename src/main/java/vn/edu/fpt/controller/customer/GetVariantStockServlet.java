@@ -15,7 +15,7 @@ import java.io.IOException;
  * Date: 04/06/2026
  * Description: Nhả về cho js số lượng biến thể còn trong kho
  */
-@WebServlet("/get-variant-stock")
+@WebServlet("/api/get-variant-stock")
 public class GetVariantStockServlet extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     @Override

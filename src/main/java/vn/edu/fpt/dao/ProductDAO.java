@@ -517,7 +517,7 @@ public class ProductDAO extends DBContext {
     /**
      * HoaNK - Lấy ra so lượng biến thể còn trong kho
      */
-    public final String GET_VARIANT_STOCK = """
+    private final String GET_VARIANT_STOCK = """
         SELECT pv.stock_quantity FROM product_variants pv
         WHERE (pv.product_id = ? AND pv.color_id = ? AND size_id = ?)
     """;
@@ -577,6 +577,30 @@ public class ProductDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * HoaNK - Lấy ra id product variant từ product id, size id và color id
+     */
+    private final String GET_VARIANT_ID = """
+            SELECT variant_id FROM product_variants
+        WHERE product_id = ? AND color_id = ? AND size_id = ?
+    """;
+    public int getVariantById(int pid, int sizeId, int colorId) {
+        String sql = GET_VARIANT_ID;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, pid);
+            stmt.setInt(2, colorId);
+            stmt.setInt(3, sizeId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("variant_id");
+                }
+            }
+        }catch (Exception e) {
             e.printStackTrace();
         }
         return 0;

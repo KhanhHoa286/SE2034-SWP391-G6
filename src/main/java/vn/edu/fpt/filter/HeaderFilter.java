@@ -6,15 +6,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.dao.CartDAO;
 import vn.edu.fpt.dao.WishlistDAO;
+import vn.edu.fpt.dto.request.CartRequest;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * HoaNK - Load du lieu cart va wishlist len header cho tat cả cac trang co header
  */
-@WebFilter(urlPatterns = {"/home", "/product-list", "/product-detail" , "/shop"})
+@WebFilter(urlPatterns = {"/home", "/product-list", "/product-detail" , "/shop", "/customer/cart"})
 public class HeaderFilter implements Filter {
     private final CartDAO cartDAO = new CartDAO();
     private final WishlistDAO wishlistDAO = new WishlistDAO();
@@ -37,6 +39,11 @@ public class HeaderFilter implements Filter {
             if (userId != null) {
                 numberProductCart = cartDAO.getNumberOfProductCart(userId);
                 numberProductWishlist = wishlistDAO.getNumberOfProductWishlist(userId);
+            }
+        }else{
+            List<CartRequest> cartRequestList = (List<CartRequest>) session.getAttribute("cart");
+            if(cartRequestList != null) {
+                numberProductCart = cartRequestList.size();
             }
         }
 
