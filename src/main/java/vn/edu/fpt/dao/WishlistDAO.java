@@ -36,42 +36,39 @@ public class WishlistDAO extends DBContext {
     /**
      * HoaNK - Thay đổi trạng thái của thêm xóa sản phẩm yeu thich
      */
-    private final String CHECK_WISHLIST = "SELECT 1 FROM wishlists WHERE user_id = ? AND product_id = ?;";
-    private final String INSERT_WISHLIST = "INSERT INTO wishlists (user_id, product_id) VALUES (?, ?);";
-    private final String DELETE_WISHLIST = "DELETE FROM wishlists WHERE user_id = ? AND product_id = ?;";
-        public String toggleWishlist(int userId, int productId) {
-            String checkSql = CHECK_WISHLIST;
-            String insertSql = INSERT_WISHLIST;
-            String deleteSql = DELETE_WISHLIST;
+    private final String TOGGLE_WISHLIST_QUERY = """
+                                    DECLARE @uid INT = ?;
+                                        DECLARE @pid INT = ?;
+                                        IF EXISTS (SELECT 1 FROM wishlists WHERE user_id = @uid AND product_id = @pid)
+                                        BEGIN
+                                            DELETE FROM wishlists WHERE user_id = @uid AND product_id = @pid;
+                                            SELECT 'DELETED' AS result;
+                                        END
+                                        ELSE
+                                        BEGIN
+                                            INSERT INTO wishlists (user_id, product_id) VALUES (@uid, @pid);
+                                            SELECT 'INSERTED' AS result;
+                                        END   
+""";
+    public String toggleWishlist(int userId, int productId) {
+        // Khai báo biến trong SQL để chỉ cần truyền đúng 2 tham số đầu vào
+        String sql = TOGGLE_WISHLIST_QUERY;
+        // Vì câu SQL này có trả về kết quả ('DELETED' hoặc 'INSERTED') nên ta dùng executeQuery()
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            // Chỉ cần nạp đúng 2 tham số gọn gàng
+            ps.setInt(1, userId);
+            ps.setInt(2, productId);
 
-            //Kiểm tra xem người dùng đã thích sản phẩm này chưa
-            try (PreparedStatement psCheck = connection.prepareStatement(checkSql)) {
-                psCheck.setInt(1, userId);
-                psCheck.setInt(2, productId);
-                try (ResultSet rs = psCheck.executeQuery()) {
-                    if (rs.next()) {
-                        // ĐÃ THÍCH RỒI -> Tiến hành XÓA (Delete)
-                        try (PreparedStatement psDelete = connection.prepareStatement(deleteSql)) {
-                            psDelete.setInt(1, userId);
-                            psDelete.setInt(2, productId);
-                            psDelete.executeUpdate();
-                            return "DELETED";
-                        }
-                    } else {
-                        // CHƯA THÍCH -> Tiến hành THÊM (Insert)
-                        try (PreparedStatement psInsert = connection.prepareStatement(insertSql)) {
-                            psInsert.setInt(1, userId);
-                            psInsert.setInt(2, productId);
-                            psInsert.executeUpdate();
-                            return "INSERTED";
-                        }
-                    }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("result"); // Trả về "DELETED" hoặc "INSERTED" từ DB
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
-            return "ERROR";
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return "ERROR";
+    }
 
     /**
      * HoaNK - Kiểm tra sản phẩm yêu thích của sản phẩm của mỗi customer
