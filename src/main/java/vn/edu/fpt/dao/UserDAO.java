@@ -1,10 +1,11 @@
 package vn.edu.fpt.dao;
 
 import vn.edu.fpt.common.DBContext;
+import vn.edu.fpt.controller.admin.UserAdminDTO;
 import vn.edu.fpt.enums.Gender;
 import vn.edu.fpt.enums.UserStatus;
 import vn.edu.fpt.model.User;
-import vn.edu.fpt.controller.admin.UserAdminDTO;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -47,63 +48,7 @@ public class UserDAO extends DBContext {
         return false;
     }
 
-    public boolean isIdCardNumberUsedByOther(String idCardNumber, Integer excludedUserId) {
-        if (idCardNumber == null || idCardNumber.trim().isEmpty()) {
-            return false;
-        }
 
-        String sql = "SELECT 1 FROM users WHERE id_card_number = ?";
-
-        if (excludedUserId != null) {
-            sql += " AND user_id <> ?";
-        }
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, idCardNumber.trim());
-
-            if (excludedUserId != null) {
-                ps.setInt(2, excludedUserId);
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    public boolean isLicensePlateUsedByOther(String licensePlate, Integer excludedUserId) {
-        if (licensePlate == null || licensePlate.trim().isEmpty()) {
-            return false;
-        }
-
-        String sql = "SELECT 1 FROM users WHERE license_plate = ?";
-
-        if (excludedUserId != null) {
-            sql += " AND user_id <> ?";
-        }
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, licensePlate.trim().toUpperCase());
-
-            if (excludedUserId != null) {
-                ps.setInt(2, excludedUserId);
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
 
     public boolean isProvinceExist(int provinceId) {
         String sql = "SELECT 1 FROM provinces WHERE id = ?";
@@ -250,51 +195,7 @@ public class UserDAO extends DBContext {
         return false;
     }
 
-    public User getUserByIdCardNumber(String idCardNumber) {
-        if (idCardNumber == null || idCardNumber.trim().isEmpty()) {
-            return null;
-        }
 
-        String sql = "SELECT TOP 1 * FROM users WHERE id_card_number = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, idCardNumber.trim());
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapUser(rs);
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    public User getUserByLicensePlate(String licensePlate) {
-        if (licensePlate == null || licensePlate.trim().isEmpty()) {
-            return null;
-        }
-
-        String sql = "SELECT TOP 1 * FROM users WHERE license_plate = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, licensePlate.trim().toUpperCase());
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapUser(rs);
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
 
     public int insertUser(User user) {
         String sql = "INSERT INTO users "
@@ -335,50 +236,9 @@ public class UserDAO extends DBContext {
     }
 
     public int insertUserWithRole(User user, int roleId) {
-        return insertUserWithRole(
-                user,
-                roleId,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
-    }
-
-    public int insertUserWithRole(User user,
-                                  int roleId,
-                                  String licensePlate,
-                                  String idCardNumber,
-                                  Integer shipperProvinceId,
-                                  Integer shipperWardId) {
-        return insertUserWithRole(
-                user,
-                roleId,
-                licensePlate,
-                idCardNumber,
-                shipperProvinceId,
-                shipperWardId,
-                null,
-                null
-        );
-    }
-
-    public int insertUserWithRole(User user,
-                                  int roleId,
-                                  String licensePlate,
-                                  String idCardNumber,
-                                  Integer shipperProvinceId,
-                                  Integer shipperWardId,
-                                  String driverLicenseFrontUrl,
-                                  String driverLicenseBackUrl) {
-
         String insertUserSql = "INSERT INTO users "
-                + "(first_name, last_name, email, phone, password_hash, gender, date_of_birth, status, "
-                + "license_plate, id_card_number, shipper_province_id, shipper_ward_id, "
-                + "driver_license_front_url, driver_license_back_url, shipper_approval_status, created_at) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)";
+                + "(first_name, last_name, email, phone, password_hash, gender, date_of_birth, status, created_at) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         String insertRoleSql = "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)";
 
@@ -395,17 +255,7 @@ public class UserDAO extends DBContext {
             int userId = 0;
 
             try (PreparedStatement ps = connection.prepareStatement(insertUserSql, Statement.RETURN_GENERATED_KEYS)) {
-                setFullUserInsertParameters(
-                        ps,
-                        user,
-                        licensePlate,
-                        idCardNumber,
-                        shipperProvinceId,
-                        shipperWardId,
-                        driverLicenseFrontUrl,
-                        driverLicenseBackUrl
-                );
-
+                setBasicUserInsertParameters(ps, user);
                 ps.executeUpdate();
 
                 try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -454,14 +304,74 @@ public class UserDAO extends DBContext {
     }
 
     /*
-     * Giữ lại để tránh vỡ project nếu code cũ còn gọi.
-     * Theo logic mới KHÔNG dùng hàm này để sửa đè user PENDING khi đăng ký lại.
-     * Muốn sửa thông tin đăng ký thì xóa PENDING cũ rồi đăng ký lại từ đầu.
+     * Overload cũ, giữ lại để tránh lỗi compile.
+     * Logic mới bỏ shipper nên các tham số shipper bị bỏ qua.
      */
-    public boolean updatePendingUserBeforeResendOtp(int userId, User user) {
-        return updatePendingUserBeforeResendOtp(userId, user, 0, null, null, null, null);
+    public int insertUserWithRole(User user,
+                                  int roleId,
+                                  String licensePlate,
+                                  String idCardNumber,
+                                  Integer shipperProvinceId,
+                                  Integer shipperWardId) {
+        return insertUserWithRole(user, roleId);
     }
 
+    /*
+     * Overload cũ, giữ lại để tránh lỗi compile.
+     * Logic mới bỏ shipper nên các tham số shipper bị bỏ qua.
+     */
+    public int insertUserWithRole(User user,
+                                  int roleId,
+                                  String licensePlate,
+                                  String idCardNumber,
+                                  Integer shipperProvinceId,
+                                  Integer shipperWardId,
+                                  String driverLicenseFrontUrl,
+                                  String driverLicenseBackUrl) {
+        return insertUserWithRole(user, roleId);
+    }
+
+    public boolean updatePendingUserBeforeResendOtp(int userId, User user) {
+        String sql = "UPDATE users "
+                + "SET first_name = ?, "
+                + "last_name = ?, "
+                + "password_hash = ?, "
+                + "gender = ?, "
+                + "date_of_birth = ? "
+                + "WHERE user_id = ? AND status = 'PENDING'";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, user.getFirstName());
+            ps.setString(2, user.getLastName());
+            ps.setString(3, user.getPasswordHash());
+
+            if (user.getGender() != null) {
+                ps.setString(4, user.getGender().name());
+            } else {
+                ps.setNull(4, Types.NVARCHAR);
+            }
+
+            if (user.getDateOfBirth() != null) {
+                ps.setDate(5, Date.valueOf(user.getDateOfBirth()));
+            } else {
+                ps.setNull(5, Types.DATE);
+            }
+
+            ps.setInt(6, userId);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    /*
+     * Overload cũ, giữ lại để tránh lỗi compile.
+     * Logic mới bỏ shipper nên các tham số shipper bị bỏ qua.
+     */
     public boolean updatePendingUserBeforeResendOtp(int userId,
                                                     User user,
                                                     int roleId,
@@ -470,52 +380,17 @@ public class UserDAO extends DBContext {
                                                     Integer shipperProvinceId,
                                                     Integer shipperWardId) {
 
-        String sql = "UPDATE users "
-                + "SET first_name = ?, "
-                + "last_name = ?, "
-                + "password_hash = ?, "
-                + "gender = ?, "
-                + "date_of_birth = ?, "
-                + "license_plate = ?, "
-                + "id_card_number = ?, "
-                + "shipper_province_id = ?, "
-                + "shipper_ward_id = ? "
-                + "WHERE user_id = ? AND status = 'PENDING'";
-
         boolean oldAutoCommit = true;
 
         try {
             oldAutoCommit = connection.getAutoCommit();
             connection.setAutoCommit(false);
 
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, user.getFirstName());
-                ps.setString(2, user.getLastName());
-                ps.setString(3, user.getPasswordHash());
+            boolean updated = updatePendingUserBeforeResendOtp(userId, user);
 
-                if (user.getGender() != null) {
-                    ps.setString(4, user.getGender().name());
-                } else {
-                    ps.setNull(4, Types.NVARCHAR);
-                }
-
-                if (user.getDateOfBirth() != null) {
-                    ps.setDate(5, Date.valueOf(user.getDateOfBirth()));
-                } else {
-                    ps.setNull(5, Types.DATE);
-                }
-
-                setNullableString(ps, 6, licensePlate);
-                setNullableString(ps, 7, idCardNumber);
-                setNullableInteger(ps, 8, shipperProvinceId);
-                setNullableInteger(ps, 9, shipperWardId);
-
-                ps.setInt(10, userId);
-
-                if (ps.executeUpdate() <= 0) {
-                    connection.rollback();
-                    return false;
-                }
+            if (!updated) {
+                connection.rollback();
+                return false;
             }
 
             if (roleId > 0) {
@@ -593,69 +468,6 @@ public class UserDAO extends DBContext {
         }
     }
 
-    private void setFullUserInsertParameters(PreparedStatement ps,
-                                             User user,
-                                             String licensePlate,
-                                             String idCardNumber,
-                                             Integer shipperProvinceId,
-                                             Integer shipperWardId,
-                                             String driverLicenseFrontUrl,
-                                             String driverLicenseBackUrl) throws SQLException {
-
-        ps.setString(1, user.getFirstName());
-        ps.setString(2, user.getLastName());
-        ps.setString(3, user.getEmail());
-        ps.setString(4, user.getPhone());
-        ps.setString(5, user.getPasswordHash());
-
-        if (user.getGender() != null) {
-            ps.setString(6, user.getGender().name());
-        } else {
-            ps.setNull(6, Types.NVARCHAR);
-        }
-
-        if (user.getDateOfBirth() != null) {
-            ps.setDate(7, Date.valueOf(user.getDateOfBirth()));
-        } else {
-            ps.setNull(7, Types.DATE);
-        }
-
-        if (user.getStatus() != null) {
-            ps.setString(8, user.getStatus().name());
-        } else {
-            ps.setString(8, UserStatus.PENDING.name());
-        }
-
-        setNullableString(ps, 9, licensePlate);
-        setNullableString(ps, 10, idCardNumber);
-        setNullableInteger(ps, 11, shipperProvinceId);
-        setNullableInteger(ps, 12, shipperWardId);
-        setNullableString(ps, 13, driverLicenseFrontUrl);
-        setNullableString(ps, 14, driverLicenseBackUrl);
-
-        if (user.getCreatedAt() != null) {
-            ps.setTimestamp(15, Timestamp.valueOf(user.getCreatedAt()));
-        } else {
-            ps.setTimestamp(15, new Timestamp(System.currentTimeMillis()));
-        }
-    }
-
-    private void setNullableString(PreparedStatement ps, int index, String value) throws SQLException {
-        if (value == null || value.trim().isEmpty()) {
-            ps.setNull(index, Types.VARCHAR);
-        } else {
-            ps.setString(index, value.trim());
-        }
-    }
-
-    private void setNullableInteger(PreparedStatement ps, int index, Integer value) throws SQLException {
-        if (value == null) {
-            ps.setNull(index, Types.INTEGER);
-        } else {
-            ps.setInt(index, value);
-        }
-    }
-
     public User getUserByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return null;
@@ -713,23 +525,6 @@ public class UserDAO extends DBContext {
         user.setPasswordHash(rs.getString("password_hash"));
         user.setAvatarUrl(rs.getString("avatar_url"));
 
-        user.setLicensePlate(rs.getString("license_plate"));
-        user.setIdCardNumber(rs.getString("id_card_number"));
-
-        int shipperProvinceId = rs.getInt("shipper_province_id");
-        if (!rs.wasNull()) {
-            user.setShipperProvinceId(shipperProvinceId);
-        }
-
-        int shipperWardId = rs.getInt("shipper_ward_id");
-        if (!rs.wasNull()) {
-            user.setShipperWardId(shipperWardId);
-        }
-
-        user.setDriverLicenseFrontUrl(rs.getString("driver_license_front_url"));
-        user.setDriverLicenseBackUrl(rs.getString("driver_license_back_url"));
-        user.setShipperApprovalStatus(rs.getString("shipper_approval_status"));
-
         String gender = rs.getString("gender");
         if (gender != null && !gender.trim().isEmpty()) {
             try {
@@ -776,34 +571,44 @@ public class UserDAO extends DBContext {
 
         return false;
     }
-// =========================================================================
-    // PHẦN BỔ SUNG: PHỤC VỤ TRANG QUẢN LÝ USER ADMIN (ĐỒNG BỘ 100% DB HIỆN TẠI)
+
+    // =========================================================================
+    // PHẦN BỔ SUNG: PHỤC VỤ TRANG QUẢN LÝ USER ADMIN
     // =========================================================================
 
-    public java.util.List<UserAdminDTO> getFilteredUsers(String search, String role, String status, int pageIndex, int pageSize) {
-        java.util.List<UserAdminDTO> list = new java.util.ArrayList<>();
+    public List<UserAdminDTO> getFilteredUsers(String search,
+                                               String role,
+                                               String status,
+                                               int pageIndex,
+                                               int pageSize) {
+        List<UserAdminDTO> list = new ArrayList<>();
 
-        // Câu lệnh SQL truy vấn động (Dùng cú pháp OFFSET FETCH của SQL Server tương ứng với TOP trong dự án của bạn)
-        // Ghép first_name và last_name thành fullName, gộp các role tương ứng của user lại
         String sql = "SELECT u.user_id, u.avatar_url, (u.first_name + ' ' + u.last_name) AS full_name, "
                 + "u.email, u.status, u.created_at, "
-                + "(SELECT STRING_AGG(r.role_name, ', ') FROM user_roles ur JOIN roles r ON ur.role_id = r.role_id WHERE ur.user_id = u.user_id) AS role_names "
+                + "(SELECT STRING_AGG(r.role_name, ', ') "
+                + "FROM user_roles ur "
+                + "JOIN roles r ON ur.role_id = r.role_id "
+                + "WHERE ur.user_id = u.user_id) AS role_names "
                 + "FROM users u "
                 + "WHERE (u.first_name LIKE ? OR u.last_name LIKE ? OR u.email LIKE ?) ";
 
         if (!"all".equals(status)) {
             sql += " AND u.status = ? ";
         }
+
         if (!"all".equals(role)) {
-            sql += " AND EXISTS (SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.role_id = r2.role_id WHERE ur2.user_id = u.user_id AND r2.role_name = ?) ";
+            sql += " AND EXISTS (SELECT 1 "
+                    + "FROM user_roles ur2 "
+                    + "JOIN roles r2 ON ur2.role_id = r2.role_id "
+                    + "WHERE ur2.user_id = u.user_id AND r2.role_name = ?) ";
         }
 
-        // Thực hiện phân trang an toàn
         sql += " ORDER BY u.user_id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             int paramIndex = 1;
             String searchPattern = "%" + search + "%";
+
             ps.setString(paramIndex++, searchPattern);
             ps.setString(paramIndex++, searchPattern);
             ps.setString(paramIndex++, searchPattern);
@@ -811,11 +616,11 @@ public class UserDAO extends DBContext {
             if (!"all".equals(status)) {
                 ps.setString(paramIndex++, status);
             }
+
             if (!"all".equals(role)) {
                 ps.setString(paramIndex++, role);
             }
 
-            // Tính toán số hàng bỏ qua để phân trang
             ps.setInt(paramIndex++, (pageIndex - 1) * pageSize);
             ps.setInt(paramIndex++, pageSize);
 
@@ -835,25 +640,34 @@ public class UserDAO extends DBContext {
                     list.add(dto);
                 }
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return list;
     }
 
     public int getTotalFilteredUsers(String search, String role, String status) {
-        String sql = "SELECT COUNT(*) FROM users u WHERE (u.first_name LIKE ? OR u.last_name LIKE ? OR u.email LIKE ?) ";
+        String sql = "SELECT COUNT(*) "
+                + "FROM users u "
+                + "WHERE (u.first_name LIKE ? OR u.last_name LIKE ? OR u.email LIKE ?) ";
 
         if (!"all".equals(status)) {
             sql += " AND u.status = ? ";
         }
+
         if (!"all".equals(role)) {
-            sql += " AND EXISTS (SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.role_id = r2.role_id WHERE ur2.user_id = u.user_id AND r2.role_name = ?) ";
+            sql += " AND EXISTS (SELECT 1 "
+                    + "FROM user_roles ur2 "
+                    + "JOIN roles r2 ON ur2.role_id = r2.role_id "
+                    + "WHERE ur2.user_id = u.user_id AND r2.role_name = ?) ";
         }
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             int paramIndex = 1;
             String searchPattern = "%" + search + "%";
+
             ps.setString(paramIndex++, searchPattern);
             ps.setString(paramIndex++, searchPattern);
             ps.setString(paramIndex++, searchPattern);
@@ -861,6 +675,7 @@ public class UserDAO extends DBContext {
             if (!"all".equals(status)) {
                 ps.setString(paramIndex++, status);
             }
+
             if (!"all".equals(role)) {
                 ps.setString(paramIndex++, role);
             }
@@ -870,18 +685,21 @@ public class UserDAO extends DBContext {
                     return rs.getInt(1);
                 }
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return 0;
     }
 
-    // Hàm thực hiện cập nhật trạng thái người dùng khi ấn Block/Unblock từ giao diện admin
     public boolean updateStatus(int userId, String newStatus) {
         String sql = "UPDATE users SET status = ? WHERE user_id = ?";
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, newStatus);
             ps.setInt(2, userId);
+
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -893,11 +711,14 @@ public class UserDAO extends DBContext {
 
     public boolean updateUserContact(int userId, String email, String phone) {
         String sql = "UPDATE users SET email = ?, phone = ? WHERE user_id = ?";
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, email);
             ps.setString(2, phone);
             ps.setInt(3, userId);
+
             return ps.executeUpdate() > 0;
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -906,22 +727,16 @@ public class UserDAO extends DBContext {
     }
 
     public boolean activateUserAfterOtp(int userId) {
-        boolean isDelivery = userHasRole(userId, "DELIVERY");
-
-        String sql;
-
-        if (isDelivery) {
-            sql = "UPDATE users "
-                    + "SET status = 'ACTIVE', shipper_approval_status = 'PENDING' "
-                    + "WHERE user_id = ?";
-        } else {
-            sql = "UPDATE users "
-                    + "SET status = 'ACTIVE' "
-                    + "WHERE user_id = ?";
-        }
+        /*
+         * Logic mới:
+         * OTP xác thực xong thì ACTIVE tài khoản.
+         * Không update shipper_approval_status.
+         */
+        String sql = "UPDATE users SET status = 'ACTIVE' WHERE user_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, userId);
+
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -934,8 +749,6 @@ public class UserDAO extends DBContext {
     /*
      * Dùng khi người dùng bấm "Sửa thông tin đăng ký".
      * Chỉ xóa user chưa xác thực OTP: users.status = 'PENDING'.
-     * Không xóa shipper chờ duyệt vì shipper chờ duyệt là:
-     * users.status = 'ACTIVE' và shipper_approval_status = 'PENDING'.
      */
     public boolean deletePendingRegistrationByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
@@ -1005,12 +818,7 @@ public class UserDAO extends DBContext {
     /*
      * Dọn các tài khoản chưa xác thực OTP quá hạn.
      * Ví dụ gọi deleteExpiredPendingRegistrations(15)
-     * thì user có users.status = 'PENDING' quá 15 phút kể từ lần gửi OTP gần nhất sẽ bị xóa.
-     *
-     * Quan trọng:
-     * - Chỉ xóa users.status = 'PENDING'
-     * - Không xóa shipper chờ admin duyệt:
-     *   users.status = 'ACTIVE', shipper_approval_status = 'PENDING'
+     * thì user có users.status = 'PENDING' quá 15 phút kể từ created_at sẽ bị xóa.
      */
     public int deleteExpiredPendingRegistrations(int pendingMinutes) {
         String findSql = "SELECT user_id, email "

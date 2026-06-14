@@ -80,22 +80,38 @@
 
                 <div class="form-group">
                     <label for="password">MẬT KHẨU</label>
-                    <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            required
-                            autocomplete="current-password"
-                            placeholder="••••••••"
-                    >
+
+                    <div class="password-wrap">
+                        <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                required
+                                autocomplete="current-password"
+                                placeholder="••••••••"
+                        >
+
+                        <button type="button"
+                                class="toggle-password"
+                                onclick="togglePasswordVisibility()"
+                                aria-label="Hiện hoặc ẩn mật khẩu">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 width="22"
+                                 height="22"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="form-actions">
-                    <label class="remember">
-                        <input type="checkbox" name="remember">
-                        <span>Ghi nhớ đăng nhập</span>
-                    </label>
-
                     <a href="#" class="forgot-link">Quên mật khẩu?</a>
                 </div>
 
@@ -162,6 +178,10 @@
 
     emailInput.addEventListener("input", validateEmailInput);
     passwordInput.addEventListener("input", validatePasswordInput);
+
+    function togglePasswordVisibility() {
+        passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+    }
 
     loginForm.addEventListener("submit", function (event) {
         const emailValid = validateEmailInput();
