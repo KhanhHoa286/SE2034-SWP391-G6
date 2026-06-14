@@ -21,10 +21,10 @@
         <div class="header__icons">
             <div class="header__search">
                 <form action="product-list" method="get">
-<%--                    <c:if test="${not empty param.gender}">--%>
-<%--                        <input type="hidden" name="gender" value="${param.gender}">--%>
-<%--                    </c:if>--%>
-                <input type="text" placeholder="Tìm kiếm..." class="header__search-input" name="text_search" value="${textSearch}">
+                    <c:if test="${filter.type != null}">
+                        <input type="hidden" value="${filter.type}" name="type">
+                    </c:if>
+                <input type="text" placeholder="Tìm kiếm..." class="header__search-input" name="text_search" value="${filter.textSearch}">
                     <button type="submit" style="border: 0px;background: transparent;"><i class="fa-solid fa-magnifying-glass header__icon"></i></button>
                 </form>
             </div>
@@ -32,9 +32,9 @@
                 <i class="fa-regular fa-heart header__icon"></i>
                 <span class="cart-count" id="wishlist-count">${numberProductWishlist}</span>
             </a>
-            <a href="${pageContext.request.contextPath}/cart-list" class="header__icon header__icon-cart" style="color: inherit; text-decoration: none;">
+            <a href="${pageContext.request.contextPath}/cart" class="header__icon header__icon-cart" style="color: inherit; text-decoration: none;">
                 <i class="fa-solid fa-bag-shopping"></i>
-                <span class="cart-count">${numberProductCart}</span>
+                <span class="cart-count" id="cart-count">${numberProductCart}</span>
             </a>
             <c:if test="${session.user != null}">
                 <a href="${pageContext.request.contextPath}/customer-dashboard" class="avatar-link">

@@ -18,7 +18,7 @@ import java.io.IOException;
  * Description: Bật tắt thêm vào sản phẩm yêu thích
  */
 
-@WebServlet("/toggle-wishlist")
+@WebServlet("/api/customer/toggle-wishlist")
 public class ToggleWishlistServlet extends HttpServlet {
     private final WishlistDAO wishlistDAO = new WishlistDAO();
 

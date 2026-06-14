@@ -1,100 +1,37 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thêm tài khoản nhận tiền - MODA</title>
+    <title>Th&#234;m t&#224;i kho&#7843;n nh&#7853;n ti&#7873;n - MODA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/add-payout-account.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260611d">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/add-payout-account.css?v=20260611e">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-<jsp:include page="/public/header.jsp"/>
 
 <div class="payout-account-shell">
-    <aside class="payout-sidebar">
-        <div class="sidebar-block">
-            <h2>Seller Center</h2>
-            <nav class="seller-nav">
-                <a href="${pageContext.request.contextPath}/seller/dashboard/view-seller-dashboard.jsp">
-                    <i data-lucide="layout-grid"></i>
-                    <span>Tổng quan</span>
-                </a>
-                <a class="active" href="${pageContext.request.contextPath}/seller/finance/add-payout-account">
-                    <i data-lucide="wallet-cards"></i>
-                    <span>Ví tiền</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/seller/order/list-seller-orders.jsp">
-                    <i data-lucide="archive"></i>
-                    <span>Đơn hàng</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/seller/customer_mgt/list-customers.jsp">
-                    <i data-lucide="users"></i>
-                    <span>Khách hàng</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/seller/product/list-seller-products.jsp">
-                    <i data-lucide="clipboard-check"></i>
-                    <span>Sản phẩm</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/seller/voucher/list-seller-voucher.jsp">
-                    <i data-lucide="badge-percent"></i>
-                    <span>Khuyến mãi</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/public/shop/view-shop.jsp">
-                    <i data-lucide="store"></i>
-                    <span>Hồ sơ shop</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/seller/config/edit-shipping-settings.jsp">
-                    <i data-lucide="truck"></i>
-                    <span>Cấu hình giao hàng</span>
-                </a>
-            </nav>
-        </div>
-
-        <div class="sidebar-block account-block">
-            <p>Tài khoản của tôi</p>
-            <nav class="seller-nav">
-                <a href="${pageContext.request.contextPath}/home">
-                    <i data-lucide="shopping-bag"></i>
-                    <span>Về trang mua sắm</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/customer/order/list-orders.jsp">
-                    <i data-lucide="receipt-text"></i>
-                    <span>Đơn mua của tôi</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/customer/account/view-profile.jsp">
-                    <i data-lucide="circle-user-round"></i>
-                    <span>Hồ sơ cá nhân</span>
-                </a>
-            </nav>
-        </div>
-
-        <div class="sidebar-footer">
-            <a href="#">
-                <i data-lucide="circle-help"></i>
-                <span>Hỗ trợ</span>
-            </a>
-            <a href="#">
-                <i data-lucide="log-out"></i>
-                <span>Đăng xuất</span>
-            </a>
-        </div>
-    </aside>
+    <%
+        request.setAttribute("activePage", "finance");
+        request.setAttribute("sellerSidebarClass", "sidebar");
+    %>
+    <%@ include file="/seller/taskbar-seller.jsp" %>
 
     <main class="payout-main container-fluid">
         <nav class="payout-breadcrumb d-flex align-items-center">
-            <span>Seller Finance</span>
+            <span>T&#224;i ch&#237;nh ng&#432;&#7901;i b&#225;n</span>
             <span>/</span>
-            <strong>Add Payout Account</strong>
+            <strong>Th&#234;m t&#224;i kho&#7843;n nh&#7853;n ti&#7873;n</strong>
         </nav>
 
         <header class="payout-heading">
-            <h1>Add Payout Account</h1>
-            <p>Link bank account information to receive seller revenue.</p>
+            <h1>Th&#234;m t&#224;i kho&#7843;n nh&#7853;n ti&#7873;n</h1>
+            <p>Li&#234;n k&#7871;t t&#224;i kho&#7843;n ng&#226;n h&#224;ng &#273;&#7875; nh&#7853;n doanh thu t&#7915; shop.</p>
         </header>
 
         <c:if test="${not empty popupMessage}">
@@ -106,48 +43,18 @@
 
         <div class="payout-content-grid">
             <section class="payout-card card shadow-sm">
-                <h2>Input Information</h2>
-
-                <c:if test="${otpRequired}">
-                    <div class="otp-verification-card">
-                        <div>
-                            <h3>Xác thực Gmail</h3>
-                            <p>Mã xác thực đã được gửi tới <strong>${verifiedEmail}</strong>. Mã có hiệu lực trong 10 phút.</p>
-                        </div>
-                        <form class="otp-form"
-                              action="${pageContext.request.contextPath}/seller/finance/add-payout-account"
-                              method="POST"
-                              novalidate>
-                            <input type="hidden" name="action" value="verifyOtp">
-                            <div class="form-group">
-                                <label for="otpCode">Mã xác thực</label>
-                                <input type="text"
-                                       id="otpCode"
-                                       name="otpCode"
-                                       class="form-control otp-input ${not empty errors.otpCode ? 'input-error' : ''}"
-                                       placeholder="Nhập mã 6 số"
-                                       maxlength="6"
-                                       inputmode="numeric"
-                                       autocomplete="one-time-code"
-                                       required>
-                                <c:if test="${not empty errors.otpCode}">
-                                    <span class="field-error">${errors.otpCode}</span>
-                                </c:if>
-                            </div>
-                            <button type="submit" class="verify-button btn btn-dark">
-                                Verify & Save Account
-                            </button>
-                        </form>
-                    </div>
-                </c:if>
+                <h2>Th&#244;ng tin t&#224;i kho&#7843;n</h2>
 
                 <form id="payoutAccountForm"
                       action="${pageContext.request.contextPath}/seller/finance/add-payout-account"
                       method="POST"
                       novalidate>
-                    <input type="hidden" name="action" value="requestOtp">
+                    <input type="hidden"
+                           id="submitAction"
+                           name="action"
+                           value="${otpRequired ? 'verifyOtp' : 'requestOtp'}">
                     <div class="form-group">
-                        <label for="bankName">Tên ngân hàng</label>
+                        <label for="bankName">T&#234;n ng&#226;n h&#224;ng</label>
                         <div class="bank-combobox ${not empty errors.bankName ? 'input-error' : ''}">
                             <input type="hidden"
                                    id="bankName"
@@ -158,10 +65,10 @@
                                 <input type="search"
                                        id="bankSearch"
                                        class="bank-search-input form-control"
-                                       placeholder="Chọn hoặc tìm ngân hàng..."
+                                       placeholder="Ch&#7885;n ho&#7863;c t&#236;m ng&#226;n h&#224;ng..."
                                        value="${oldInput.bankName}"
                                        autocomplete="off">
-                                <button type="button" class="combo-toggle" id="bankToggle" aria-label="Mở danh sách ngân hàng">
+                                <button type="button" class="combo-toggle" id="bankToggle" aria-label="M&#7903; danh s&#225;ch ng&#226;n h&#224;ng">
                                     <i data-lucide="chevron-down"></i>
                                 </button>
                             </div>
@@ -208,12 +115,12 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="accountNumber">Số tài khoản</label>
+                        <label for="accountNumber">S&#7889; t&#224;i kho&#7843;n</label>
                         <input type="text"
                                id="accountNumber"
                                name="accountNumber"
                                class="form-control ${not empty errors.accountNumber ? 'input-error' : ''}"
-                               placeholder="Nhập số tài khoản"
+                               placeholder="Nh&#7853;p s&#7889; t&#224;i kho&#7843;n"
                                inputmode="numeric"
                                maxlength="50"
                                value="${oldInput.accountNumber}"
@@ -224,7 +131,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="accountHolderName">Tên chủ tài khoản</label>
+                        <label for="accountHolderName">T&#234;n ch&#7911; t&#224;i kho&#7843;n</label>
                         <input type="text"
                                id="accountHolderName"
                                name="accountHolderName"
@@ -237,6 +144,34 @@
                         </c:if>
                     </div>
 
+                    <c:if test="${otpRequired}">
+                        <div class="form-group otp-inline-group">
+                            <label for="otpCode">M&#227; x&#225;c th&#7921;c</label>
+                            <p class="otp-helper">
+                                M&#227; x&#225;c th&#7921;c &#273;&#227; &#273;&#432;&#7907;c g&#7917;i t&#7899;i <strong>${verifiedEmail}</strong>. M&#227; c&#243; hi&#7879;u l&#7921;c trong 10 ph&#250;t.
+                            </p>
+                            <div class="otp-control-row">
+                                <input type="text"
+                                       id="otpCode"
+                                       name="otpCode"
+                                       class="form-control otp-input ${not empty errors.otpCode ? 'input-error' : ''}"
+                                       placeholder="Nh&#7853;p m&#227; 6 s&#7889;"
+                                       maxlength="6"
+                                       inputmode="numeric"
+                                       autocomplete="one-time-code">
+                                <button type="submit"
+                                        data-action="requestOtp"
+                                        class="resend-otp-button btn"
+                                        id="resendOtpButton">
+                                    G&#7917;i l&#7841;i m&#227;
+                                </button>
+                            </div>
+                            <c:if test="${not empty errors.otpCode}">
+                                <span class="field-error">${errors.otpCode}</span>
+                            </c:if>
+                        </div>
+                    </c:if>
+
                     <div class="form-group">
                         <input type="hidden"
                                id="isDefault"
@@ -247,7 +182,7 @@
                                    id="isDefaultCheck"
                                    ${oldInput.isDefault == 'true' ? 'checked' : ''}>
                             <span class="checkbox-box"></span>
-                            <span>Đặt làm tài khoản mặc định</span>
+                            <span>&#272;&#7863;t l&#224;m t&#224;i kho&#7843;n m&#7863;c &#273;&#7883;nh</span>
                         </label>
                         <c:if test="${not empty errors.isDefault}">
                             <span class="field-error">${errors.isDefault}</span>
@@ -258,26 +193,30 @@
                         <div class="inline-error">${errors.system}</div>
                     </c:if>
 
-                    <button type="submit" class="save-button btn btn-dark" id="saveButton">
-                        Send Verification Code
+                    <button type="submit"
+                            data-action="${otpRequired ? 'verifyOtp' : 'requestOtp'}"
+                            class="save-button btn btn-dark"
+                            id="saveButton">
+                        <c:choose>
+                            <c:when test="${otpRequired}">X&#225;c th&#7921;c v&#224; l&#432;u t&#224;i kho&#7843;n</c:when>
+                            <c:otherwise>G&#7917;i m&#227; x&#225;c th&#7921;c</c:otherwise>
+                        </c:choose>
                     </button>
                 </form>
             </section>
 
             <aside class="business-card card shadow-sm">
-                <h2>Business Rule</h2>
+                <h2>L&#432;u &#253; khi th&#7921;c hi&#7879;n</h2>
                 <ul>
-                    <li>Chỉ lưu bank_name, account_number, account_holder_name, is_default để tránh phình database.</li>
-                    <li>Required fields must be validated before submit.</li>
-                    <li>Seller must verify Gmail OTP before the payout account is saved.</li>
-                    <li>Successful updates are recorded in database.</li>
+                    <li>T&#224;i kho&#7843;n ng&#226;n h&#224;ng n&#224;y s&#7869; &#273;&#432;&#7907;c d&#249;ng &#273;&#7875; nh&#7853;n ti&#7873;n r&#250;t t&#7915; v&#237; ng&#432;&#7901;i b&#225;n.</li>
+                    <li>Vui l&#242;ng nh&#7853;p &#273;&#250;ng t&#234;n ch&#7911; t&#224;i kho&#7843;n theo th&#244;ng tin ng&#226;n h&#224;ng.</li>
+                    <li>M&#227; x&#225;c th&#7921;c Gmail c&#243; hi&#7879;u l&#7921;c trong 10 ph&#250;t.</li>
+                    <li>N&#7871;u &#273;&#225;nh d&#7845;u m&#7863;c &#273;&#7883;nh, t&#224;i kho&#7843;n n&#224;y s&#7869; &#273;&#432;&#7907;c ch&#7885;n s&#7861;n khi t&#7841;o y&#234;u c&#7847;u r&#250;t ti&#7873;n.</li>
                 </ul>
             </aside>
         </div>
     </main>
 </div>
-
-<jsp:include page="/public/footer.jsp"/>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -297,7 +236,9 @@
     const isDefault = document.getElementById('isDefault');
     const isDefaultCheck = document.getElementById('isDefaultCheck');
     const saveButton = document.getElementById('saveButton');
+    const resendOtpButton = document.getElementById('resendOtpButton');
     const otpCode = document.getElementById('otpCode');
+    const submitActionInput = document.getElementById('submitAction');
 
     function openBankDropdown() {
         bankDropdown.classList.add('is-open');
@@ -369,7 +310,7 @@
     accountHolderName.addEventListener('input', function () {
         let value = this.value.toUpperCase();
         value = value.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        value = value.replace(/[đĐ]/g, 'D');
+        value = value.replace(/[\u0111\u0110]/g, 'D');
         this.value = value;
     });
 
@@ -397,19 +338,28 @@
     form.addEventListener('submit', function (event) {
         clearClientErrors();
         let valid = true;
+        const submitAction = event.submitter && event.submitter.dataset.action
+            ? event.submitter.dataset.action
+            : submitActionInput.value;
+        submitActionInput.value = submitAction;
 
         if (!bankName.value) {
-            showClientError(bankSearch, 'Vui lòng chọn ngân hàng trong danh sách.');
+            showClientError(bankSearch, 'Vui l\u00f2ng ch\u1ecdn ng\u00e2n h\u00e0ng trong danh s\u00e1ch.');
             valid = false;
         }
 
         if (!/^\d{6,50}$/.test(accountNumber.value.trim())) {
-            showClientError(accountNumber, 'Số tài khoản chỉ gồm 6 đến 50 chữ số.');
+            showClientError(accountNumber, 'S\u1ed1 t\u00e0i kho\u1ea3n ch\u1ec9 g\u1ed3m 6 \u0111\u1ebfn 50 ch\u1eef s\u1ed1.');
             valid = false;
         }
 
         if (!accountHolderName.value.trim()) {
-            showClientError(accountHolderName, 'Vui lòng nhập tên chủ tài khoản.');
+            showClientError(accountHolderName, 'Vui l\u00f2ng nh\u1eadp t\u00ean ch\u1ee7 t\u00e0i kho\u1ea3n.');
+            valid = false;
+        }
+
+        if (submitAction === 'verifyOtp' && otpCode && !/^\d{6}$/.test(otpCode.value.trim())) {
+            showClientError(otpCode, 'Vui l\u00f2ng nh\u1eadp m\u00e3 x\u00e1c th\u1ef1c g\u1ed3m 6 ch\u1eef s\u1ed1.');
             valid = false;
         }
 
@@ -418,8 +368,18 @@
             return;
         }
 
-        saveButton.disabled = true;
-        saveButton.textContent = 'Sending code...';
+        if (event.submitter) {
+            event.submitter.disabled = true;
+            event.submitter.textContent = submitAction === 'verifyOtp'
+                ? '\u0110ang x\u00e1c th\u1ef1c...'
+                : '\u0110ang g\u1eedi m\u00e3...';
+        }
+        if (event.submitter !== saveButton) {
+            saveButton.disabled = true;
+        }
+        if (resendOtpButton && event.submitter !== resendOtpButton) {
+            resendOtpButton.disabled = true;
+        }
     });
 
     <c:if test="${not empty popupMessage}">

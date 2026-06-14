@@ -91,8 +91,6 @@
             <%-- Bước 1: Đóng gói URL hiện tại của sản phẩm đang xem --%>
             <c:url var="currentProductUrl" value="product-detail">
                 <c:param name="pid" value="${productDetail.productId}" />
-                <c:param name="gender" value="${param.gender}" />
-                <c:param name="final_price" value="${productDetail.finalPrice}" />
                 <c:param name="returnUrl" value="${param.returnUrl}" />
             </c:url>
 
@@ -129,7 +127,11 @@
                     </c:forEach>
                 </div>
             </div>
-
+            <div id="data-helper" hidden
+                 data-context-path="${pageContext.request.contextPath}"
+                 data-check-seller="${checkProductSeller}"
+            >
+            </div>
             <!-- Hien thi kich co cua san pham -->
             <div class="product-attr">
                 <div class="product-attr__title">
@@ -149,26 +151,25 @@
             </div>
 
             <%--Chọn số lượng, màu, cỡ, id sản phẩm--%>
-    <form action="${request.contextPath}/add-to-cart" method="POST" class="add-to-cart-form">
-        <input type="hidden" name="productId" value="${productDetail.productId}">
-
+    <form action="${pageContext.request.contextPath}/add-to-cart" method="POST" class="add-to-cart-form">
         <input type="hidden" id="hidden-color-id" name="colorId" value="${productDetail.colors[0].colorId}">
         <input type="hidden" id="hidden-size-id" name="sizeId" value="${productDetail.sizes[0].sizeId}">
         <input type="hidden" id="hidden-product-id" name="productId" value="${productDetail.productId}">
 
         <div class="quantity-input mb-3">
             <label>Số lượng:</label>
-            <input type="number" name="quantity" value="1" min="1" class="form-control" style="width: 80px;">
+            <input type="number" name="quantity" id="hidden-quantity" value="1" min="1"  oninput="if(this.value < 1) this.value = 1;" class="form-control" style="width: 80px;">
         </div>
 
             <!-- Actions -->
             <div class="product-actions">
-                <button class="moda-btn moda-btn-primary" type="submit" id="add-to-cart">THÊM VÀO GIỎ HÀNG</button>
+                <button class="moda-btn moda-btn-primary" type="button" onclick="cart()" id="add-to-cart">THÊM VÀO GIỎ HÀNG</button>
                 <button class="moda-btn moda-btn-outline" type="submit" id="add-order">MUA NGAY</button>
             </div>
     </form>
             <span id="product-seller" class="text-danger fw-bold"></span>
-
+            <span id="cart-over-quantity" class="text-danger fw-bold"></span>
+            <span id="add-to-cart-success" class="text-success fw-bold"></span>
             <!-- Description -->
             <div class="product-desc">
                 <h3 class="product-desc__title">MÔ TẢ SẢN PHẨM</h3>
@@ -193,10 +194,8 @@
 
                 <c:url var="goToRelatedUrl" value="product-detail">
                     <c:param name="pid" value="${product.productId}" />
-                    <c:param name="gender" value="${product.gender}" />
-                    <c:param name="final_price" value="${product.finalPrice}" />
                     <%-- Điều hướng nút quay lại chỉ thẳng vào servlet product-detail kèm data chuẩn --%>
-                    <c:param name="returnUrl" value="product-detail?pid=${productDetail.productId}&gender=${param.gender}&final_price=${productDetail.finalPrice}&returnUrl=${param.returnUrl}" />
+                    <c:param name="returnUrl" value="product-detail?pid=${productDetail.productId}&returnUrl=${param.returnUrl}" />
                 </c:url>
 
                 <article class="product-card col-6 col-md-4 col-lg-3">
@@ -238,87 +237,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/customer/wishlist.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script><script>
-    // thay đổi ảnh
-    function changeImage(element) {
-        // 1. Lấy cái ảnh to nhất ra
-        let mainImage = document.getElementById("zoom-image");
-        // 2. Thay đổi đường dẫn src của ảnh to bằng đường dẫn của ảnh phụ vừa click
-        mainImage.src = element.src;
-        // 3. (Tùy chọn UX) Xóa class 'active' ở tất cả ảnh phụ cũ và nạp vào ảnh phụ mới click
-        let thumbnails = document.querySelectorAll(".thumb-img");
-        thumbnails.forEach(thumb => thumb.classList.remove("active"));
-
-        element.classList.add("active");
-    }
-    // hàm chọn màu sắc
-    function selectColor(button) {
-        // 1. Gỡ bỏ class active của tất cả các nút màu cũ và gán cho nút vừa bấm
-        document.querySelectorAll('.color-list').forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-
-        const colorId = button.getAttribute('data-color-id');
-        document.getElementById('hidden-color-id').value = colorId;
-
-        getVariantStock();
-    }
-    // hàm chọn kích cơ
-    function selectSize(button) {
-        document.querySelectorAll('.size-list').forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-
-        const sizeId = button.getAttribute('data-size-id');
-        document.getElementById('hidden-size-id').value = sizeId;
-
-        getVariantStock();
-    }
-
-    // ajax cho việc lấy tồn kho khi chọn size và color
-    function getVariantStock() {
-        // kiểm tra seller
-        const checkSeller = ${checkProductSeller};
-        // lâấy ra 3 tham số để gửi đi
-        const productId = ${productDetail.productId};
-        const sizeId = document.getElementById("hidden-size-id").value;
-        const colorId = document.getElementById("hidden-color-id").value;
-        const productSeller = document.getElementById("product-seller");
-        // lấy 2 nút ấn và thẻ thẻ hiện thị số lượng
-        const stockDisplay = document.getElementById("stock-display");
-        const addToCart = document.getElementById("add-to-cart");
-        const addOrder = document.getElementById("add-order");
-        //
-        if (checkSeller) {
-            productSeller.innerHTML = "* Sản phẩm thuộc shop! Không thể mua!"
-            addToCart.disabled = true;
-            addOrder.disabled = true;
-        }
-        // bắn dữ liệu đi
-        axios.get("${pageContext.request.contextPath}/get-variant-stock", {
-            params: {
-                product_id: productId,
-                size_id: sizeId,
-                color_id: colorId
-            }
-        }).then(response => {
-            if(parseInt(response.data) > 0) {
-                stockDisplay.innerHTML = 'Còn lại: <strong class="text-success">' + response.data + '</strong> sản phẩm có sẵn';
-                            if(!checkSeller) {
-                                addToCart.disabled = false;
-                                addOrder.disabled = false; // nếu còn thif cho thao tác
-                            }
-            }else{
-                stockDisplay.innerHTML = `<strong class="text-danger">Tạm hết hàng</strong> cho phân loại này`;
-                            addToCart.disabled = true;
-                            addOrder.disabled = true; // nếu hết hàng thì khóa 2 nút
-            }
-        })
-            .catch(error=> {
-                console.error("Lỗi lấy kho:", error);
-                stockDisplay.innerText = "Không thể lấy thông tin tồn kho";
-            })
-    }
-    getVariantStock();
-</script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/customer/product-detail.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/customer/cart.js"></script>
 </body>
 </html>
 
