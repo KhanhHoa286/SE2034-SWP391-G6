@@ -1,58 +1,156 @@
-/* ================= REGISTER PAGE - CURRENT JSP CUSTOM STYLE ================= */
-
-.input-focus-border::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 1px;
-    background-color: black;
-    transition: width 0.3s ease;
+body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #f8f9ff;
 }
 
-.input-focus-border:focus-within::after {
+input::placeholder {
+    color: #a1a1aa;
+}
+
+/* =======================
+   Layout tổng
+   ======================= */
+
+.split-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: calc(100vh - 72px);
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+    .split-container {
+        grid-template-columns: 50% 50%;
+        min-height: calc(100vh - 72px);
+    }
+
+    [data-purpose="editorial-image"] {
+        min-height: calc(100vh - 72px);
+    }
+
+    [data-purpose="editorial-image"] img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+    }
+
+    /* Căn giữa toàn bộ cụm form bên phải theo chiều dọc */
+    [data-purpose="registration-form-container"] {
+        min-height: calc(100vh - 72px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 64px !important;
+    }
+
+    [data-purpose="registration-form-container"] > div {
+        width: 100%;
+        max-width: 560px !important;
+        margin: auto;
+    }
+}
+
+/* Màn hình lớn */
+@media (min-width: 1440px) {
+    [data-purpose="registration-form-container"] {
+        padding-left: 80px !important;
+        padding-right: 80px !important;
+    }
+
+    [data-purpose="registration-form-container"] > div {
+        max-width: 580px !important;
+    }
+}
+
+/* =======================
+   Form spacing thoáng hơn
+   ======================= */
+
+form.space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 24px !important;
+}
+
+.space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 32px !important;
+}
+
+.grid.gap-4 {
+    gap: 20px !important;
+}
+
+.space-y-1 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 6px !important;
+}
+
+/* Input giữ nguyên style Stitch */
+input,
+select {
+    font-size: 14px !important;
+}
+
+input:focus,
+select:focus {
+    outline: none !important;
+}
+
+/* =======================
+   Nút Đăng ký nổi bật hơn
+   ======================= */
+
+button[type="submit"] {
+    display: block;
     width: 100%;
-}
-
-.field-error {
-    min-height: 16px;
-    margin-top: 4px;
-    font-size: 12px;
-    color: #dc2626;
-}
-
-.account-option {
-    border: 1px solid #d1d5db;
-    border-radius: 14px;
-    padding: 14px;
+    background: #000000 !important;
+    color: #ffffff !important;
+    padding: 16px 20px !important;
+    border: 1px solid #000000 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.18em !important;
+    text-transform: uppercase;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.account-option:hover {
-    border-color: #111827;
-    background: #f9fafb;
+button[type="submit"]:hover {
+    background: #18181b !important;
+    border-color: #18181b !important;
+    opacity: 1 !important;
 }
 
-.account-option input:checked + div {
-    color: #111827;
+button[type="submit"]:active {
+    transform: translateY(1px);
 }
 
-.shipper-box {
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    padding: 16px;
-    background: #fafafa;
+/* =======================
+   Error message
+   ======================= */
+
+.field-error {
+    display: block;
+    margin-top: 6px;
+    min-height: 14px;
+    font-size: 11px;
+    line-height: 14px;
+    color: #dc2626;
 }
 
-/* Password eye button */
+.field-error:empty {
+    display: none;
+}
+
+/* =======================
+   Password eye button
+   ======================= */
+
 .password-toggle-btn {
     position: absolute;
-    right: 10px;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: #6b7280;
+    color: #71717a;
     cursor: pointer;
     background: transparent;
     border: none;
@@ -61,11 +159,67 @@
 }
 
 .password-toggle-btn:hover {
-    color: #111827;
+    color: #000000;
 }
 
-/* Ẩn icon mắt mặc định của Edge/IE để không bị lúc có lúc không */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
     display: none;
+}
+
+/* =======================
+   Tablet
+   ======================= */
+
+@media (max-width: 1023px) {
+    [data-purpose="editorial-image"] {
+        display: none !important;
+    }
+
+    [data-purpose="registration-form-container"] {
+        min-height: calc(100vh - 72px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 28px !important;
+    }
+
+    [data-purpose="registration-form-container"] > div {
+        width: 100%;
+        max-width: 560px;
+    }
+}
+
+/* =======================
+   Mobile
+   ======================= */
+
+@media (max-width: 640px) {
+    header {
+        height: 64px !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    header a {
+        font-size: 26px !important;
+    }
+
+    .split-container {
+        min-height: calc(100vh - 64px);
+    }
+
+    [data-purpose="registration-form-container"] {
+        min-height: calc(100vh - 64px);
+        padding: 36px 20px !important;
+    }
+
+    .grid.grid-cols-2 {
+        grid-template-columns: 1fr !important;
+    }
+
+    form.space-y-6 > :not([hidden]) ~ :not([hidden]) {
+        margin-top: 22px !important;
+    }
+
 }
