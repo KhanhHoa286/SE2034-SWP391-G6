@@ -211,7 +211,7 @@ form {
 }
 
 .password-wrap input {
-    padding-right: 56px;
+    padding-right: 44px;
 }
 
 .toggle-password {
@@ -219,45 +219,33 @@ form {
     top: 50%;
     right: 0;
     transform: translateY(-50%);
-    padding: 6px 0 6px 12px;
+    width: 36px;
+    height: 36px;
     border: none;
     background: transparent;
     color: #4c4546;
     cursor: pointer;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }
 
 .toggle-password:hover {
     color: #000;
 }
 
+/* Ẩn icon mắt mặc định của Edge/IE để không bị chồng icon */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
 .form-actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 16px;
-}
-
-.remember {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #4c4546;
-    cursor: pointer;
-    font-size: 12px;
-    line-height: 1;
-    letter-spacing: 0.05em;
-    font-weight: 600;
-}
-
-.remember input {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    accent-color: #000;
-    cursor: pointer;
 }
 
 .forgot-link {
