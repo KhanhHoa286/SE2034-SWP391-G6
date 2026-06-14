@@ -19,7 +19,7 @@
 </head>
 <body>
 
-<jsp:include page="/public/header.jsp" />
+<jsp:include page="/common/header.jsp" />
 
 <main class="container cart-page">
 
@@ -40,10 +40,10 @@
                         <input type="checkbox" checked data-shop-id="${shop.key}">
                         <i class="fa-solid fa-store"></i> ${shop.value.shopName}
                     </div>
-                    <div class="vendor-header__right">
-                        <input type="text" placeholder="Mã giảm giá" class="discount-input">
-                        <button class="apply-discount-btn">ÁP DỤNG</button>
-                    </div>
+<%--                    <div class="vendor-header__right">--%>
+<%--                        <input type="text" placeholder="Mã giảm giá" class="discount-input">--%>
+<%--                        <button class="apply-discount-btn">ÁP DỤNG</button>--%>
+<%--                    </div>--%>
                 </div>
 
                 <!-- Item 1 -->
@@ -88,10 +88,10 @@
                     <span>Phí vận chuyển (Tổng)</span>
                     <span>0đ</span>
                 </div>
-                <div class="summary-row">
-                    <span>Giảm giá</span>
-                    <span>0đ</span>
-                </div>
+<%--                <div class="summary-row">--%>
+<%--                    <span>Giảm giá</span>--%>
+<%--                    <span>0đ</span>--%>
+<%--                </div>--%>
 
                 <div class="summary-row total">
                     <span>TỔNG CỘNG</span>
@@ -114,7 +114,7 @@
     </div>
 </main>
 
-<jsp:include page="/public/footer.jsp" />
+<jsp:include page="/common/footer.jsp" />
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

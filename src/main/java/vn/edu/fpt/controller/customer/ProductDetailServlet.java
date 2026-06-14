@@ -8,14 +8,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.dao.ProductDAO;
 import vn.edu.fpt.dao.ShopDAO;
-import vn.edu.fpt.dao.WishlistDAO;
 import vn.edu.fpt.dto.response.ProductDetailResponse;
 import vn.edu.fpt.dto.response.ProductResponse;
 import vn.edu.fpt.model.User;
 import vn.edu.fpt.util.ParamUtil;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -27,7 +25,6 @@ import java.util.List;
 public class ProductDetailServlet extends HttpServlet {
     private final ShopDAO shopDAO = new ShopDAO();
     private final ProductDAO productDAO = new ProductDAO();
-    private final WishlistDAO wishlistDAO = new WishlistDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -63,7 +60,6 @@ public class ProductDetailServlet extends HttpServlet {
         // đắp dữ liệu để tô màu tim
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-        wishlistDAO.setLikedForProduct(productRelatedList, user);
 
         // check product của shop seller
         boolean checkProductSeller = checkSeller(request, productDetailResponse.getProductId());

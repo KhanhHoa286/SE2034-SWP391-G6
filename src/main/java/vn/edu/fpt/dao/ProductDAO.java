@@ -104,7 +104,7 @@ public class ProductDAO extends DBContext {
     }
 
     /**
-     * HoaNK - Hàm lấy product theo giới tính, cate, province, giá, tìm kiếm, xem tất cả .. ở trang product list
+     * HoaNK - Lấy product theo giới tính, cate, province, giá, tìm kiếm, xem tất cả .. ở trang product list
      */
     public List<ProductResponse> getAllProductByFilter(ProductFilterRequest productFilterRequest) {
         List<ProductResponse> products = new ArrayList<>();
@@ -131,8 +131,7 @@ public class ProductDAO extends DBContext {
             params.add(productFilterRequest.getCid());
         }
         if (productFilterRequest.getTextSearch() != null && !productFilterRequest.getTextSearch().trim().isEmpty()) { // loc theo search
-            sql += " AND (p.product_name LIKE ? OR p.description LIKE ? OR s.shop_name LIKE ?)";
-            params.add("%" + productFilterRequest.getTextSearch() + "%");
+            sql += " AND (p.product_name LIKE ? OR p.description LIKE ?)";
             params.add("%" + productFilterRequest.getTextSearch() + "%");
             params.add("%" + productFilterRequest.getTextSearch() + "%");
         }
@@ -231,8 +230,7 @@ public class ProductDAO extends DBContext {
             params.add(productFilterRequest.getCid());
         }
         if (productFilterRequest.getTextSearch() != null && !productFilterRequest.getTextSearch().trim().isEmpty()) { // loc theo search
-            sql += " AND (p.product_name LIKE ? OR p.description LIKE ? OR s.shop_name LIKE ?)";
-            params.add("%" + productFilterRequest.getTextSearch() + "%");
+            sql += " AND (p.product_name LIKE ? OR p.description LIKE ?)";
             params.add("%" + productFilterRequest.getTextSearch() + "%");
             params.add("%" + productFilterRequest.getTextSearch() + "%");
         }

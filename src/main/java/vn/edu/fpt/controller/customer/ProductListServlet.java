@@ -28,7 +28,6 @@ public class ProductListServlet extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
     private final ProvinceDAO provinceDAO = new ProvinceDAO();
-    private final WishlistDAO wishlistDAO = new WishlistDAO();
     private static final int PAGE_SIZE = 8;
 
     @Override
@@ -59,7 +58,6 @@ public class ProductListServlet extends HttpServlet {
         // đắp trạng thái tim đỏ yêu thích
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-        wishlistDAO.setLikedForProduct(listProductFilter, user);
 
         // giữ trạng thái bộ lọc hiển thị
         request.setAttribute("filter", productFilterRequest);

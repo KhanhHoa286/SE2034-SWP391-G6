@@ -28,7 +28,6 @@ public class ShopServlet extends HttpServlet {
     private final ShopDAO shopDAO = new ShopDAO();
     private final ProductDAO productDAO = new ProductDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
-    private final WishlistDAO wishlistDAO = new WishlistDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -69,7 +68,6 @@ public class ShopServlet extends HttpServlet {
         // trạng thái trái tim yêu thích
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-        wishlistDAO.setLikedForProduct(listProductFilter, user);
 
         //giữ trạng thái bộ lọc trên JSP
         request.setAttribute("filter", productFilterRequest);

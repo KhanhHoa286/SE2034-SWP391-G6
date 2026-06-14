@@ -23,9 +23,6 @@ public class SubOrder {
     private Integer shopId;
     private Shop shop;
 
-    private Integer voucherId;
-    private Voucher voucher;
-
     private BigDecimal subTotal;
 
     private BigDecimal shippingFee;

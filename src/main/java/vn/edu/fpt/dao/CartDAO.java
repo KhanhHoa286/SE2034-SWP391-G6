@@ -35,7 +35,7 @@ public class CartDAO extends DBContext {
      * HoaNK - Kiểm tra xem giỏ hàng có chưa có rồi thì update, chư thì thêm sản phẩm mới vào giỏ hàng
      */
     private final String EDIT_ITEM_CART = """
-     MERGE INTO cart_items AS target
+     MERGE INTO cart_items WITH (HOLDLOCK) AS target 
                  USING (SELECT ? AS user_id, ? AS variant_id) AS source
                  ON (target.user_id = source.user_id AND target.variant_id = source.variant_id)
                  WHEN MATCHED THEN

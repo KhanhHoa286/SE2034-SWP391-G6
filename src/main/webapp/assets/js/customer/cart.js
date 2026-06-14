@@ -27,6 +27,7 @@ function cart() {
         .then(response => {
             if(response.data === "OVER_STOCK") {
                 cartOvorQuantity.innerText = "* Số lượng sản phẩm này trong giỏ đã vượt quá giới hạn tồn kho!"
+                addToCartSuccess.innerText = "";
             }else {
                 cartOvorQuantity.innerText = "";
                 addToCartSuccess.innerText = "Thêm sản phẩm thành công vào giỏ hàng!";

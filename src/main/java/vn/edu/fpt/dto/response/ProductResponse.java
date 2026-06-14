@@ -36,6 +36,4 @@ public class ProductResponse {
     private Integer totalSold;
 
     private Gender gender;
-
-    private boolean liked;
 }
