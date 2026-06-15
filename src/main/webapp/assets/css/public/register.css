@@ -1,71 +1,411 @@
-/* ================= REGISTER PAGE - CURRENT JSP CUSTOM STYLE ================= */
+/* =========================================================
+   Register Page - Pure CSS
+   Không dùng Tailwind
+   Dùng 8pt grid system: 8px, 16px, 24px, 32px, 48px, 64px
+   ========================================================= */
 
-.input-focus-border::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 1px;
-    background-color: black;
-    transition: width 0.3s ease;
+:root {
+    --color-bg: #f3f4f6;
+    --color-card: #ffffff;
+    --color-text: #111827;
+    --color-muted: #6b7280;
+    --color-border: #e5e7eb;
+    --color-border-dark: #d1d5db;
+    --color-primary: #111827;
+    --color-primary-hover: #374151;
+    --color-error: #b91c1c;
+    --color-error-bg: #fee2e2;
+    --shadow-card: 0 24px 64px rgba(15, 23, 42, 0.12);
+    --shadow-button: 0 12px 24px rgba(17, 24, 39, 0.18);
+    --radius-lg: 12px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
 }
 
-.input-focus-border:focus-within::after {
+/* Reset cơ bản */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+select {
+    font-family: inherit;
+}
+
+/* =========================================================
+   Header
+   ========================================================= */
+
+.register-header {
+    height: 72px;
+    padding: 0 32px;
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    backdrop-filter: blur(16px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.register-logo {
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 24px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+/* =========================================================
+   Main Layout
+   ========================================================= */
+
+.register-layout {
+    min-height: calc(100vh - 72px);
+    display: grid;
+    grid-template-columns: minmax(420px, 1fr) minmax(480px, 1fr);
+}
+
+/* =========================================================
+   Left Visual
+   ========================================================= */
+
+.register-visual {
+    position: relative;
+    min-height: calc(100vh - 72px);
+    overflow: hidden;
+    background: #111827;
+}
+
+.visual-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transform: scale(1.02);
+}
+
+.visual-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+            linear-gradient(180deg, rgba(17, 24, 39, 0.12), rgba(17, 24, 39, 0.72)),
+            linear-gradient(90deg, rgba(17, 24, 39, 0.15), rgba(17, 24, 39, 0.04));
+    z-index: 1;
+}
+
+.visual-content {
+    position: absolute;
+    left: 48px;
+    right: 48px;
+    bottom: 48px;
+    z-index: 2;
+    color: #ffffff;
+}
+
+.visual-label {
+    margin: 0 0 16px 0;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+}
+
+.visual-content h2 {
+    max-width: 520px;
+    margin: 0 0 16px 0;
+    font-size: 40px;
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+.visual-content p {
+    max-width: 480px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* =========================================================
+   Register Card
+   ========================================================= */
+
+.register-content {
+    padding: 96px 64px 64px 64px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.register-card {
+    width: 100%;
+    max-width: 560px;
+    background: var(--color-card);
+    border: 1px solid rgba(229, 231, 235, 0.9);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 40px;
+}
+
+.register-heading {
+    margin-bottom: 32px;
+}
+
+.eyebrow {
+    margin: 0 0 12px 0;
+    color: var(--color-muted);
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+.register-heading h1 {
+    margin: 0 0 12px 0;
+    color: var(--color-text);
+    font-size: 36px;
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+.register-heading p:last-child {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* =========================================================
+   Form
+   ========================================================= */
+
+.server-error {
+    margin-bottom: 24px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--color-error-bg);
+    color: var(--color-error);
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: 600;
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group {
     width: 100%;
 }
 
-.field-error {
-    min-height: 16px;
-    margin-top: 4px;
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--color-text);
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 700;
+}
+
+.form-group label span {
+    color: var(--color-muted);
+    font-weight: 500;
+}
+
+.field-note {
+    margin: -4px 0 8px 0;
+    color: var(--color-muted);
     font-size: 12px;
-    color: #dc2626;
+    line-height: 1.45;
 }
 
-.account-option {
-    border: 1px solid #d1d5db;
-    border-radius: 14px;
-    padding: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+.form-group input,
+.form-group select,
+.password-field input {
+    width: 100%;
+    height: 48px;
+    border: 1px solid var(--color-border-dark);
+    border-radius: var(--radius-sm);
+    background: #ffffff;
+    color: var(--color-text);
+    padding: 0 14px;
+    font-size: 14px;
+    outline: none;
+    transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease,
+            background 0.18s ease;
 }
 
-.account-option:hover {
-    border-color: #111827;
-    background: #f9fafb;
+.form-group input::placeholder,
+.password-field input::placeholder {
+    color: #9ca3af;
 }
 
-.account-option input:checked + div {
-    color: #111827;
+.form-group input:focus,
+.form-group select:focus,
+.password-field input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.08);
+    background: #ffffff;
 }
 
-.shipper-box {
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    padding: 16px;
-    background: #fafafa;
+.field-error {
+    min-height: 18px;
+    margin: 6px 0 0 0;
+    color: var(--color-error);
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 500;
 }
 
-/* Password eye button */
-.password-toggle-btn {
+/* Password */
+.password-field {
+    position: relative;
+}
+
+.password-field input {
+    padding-right: 48px;
+}
+
+.password-toggle {
     position: absolute;
-    right: 10px;
     top: 50%;
-    transform: translateY(-50%);
-    color: #6b7280;
-    cursor: pointer;
-    background: transparent;
+    right: 8px;
+    width: 36px;
+    height: 36px;
     border: none;
-    padding: 0;
-    line-height: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: #4b5563;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-50%);
+    transition: background 0.18s ease, color 0.18s ease;
 }
 
-.password-toggle-btn:hover {
-    color: #111827;
+.password-toggle:hover {
+    background: #f3f4f6;
+    color: var(--color-text);
 }
 
-/* Ẩn icon mắt mặc định của Edge/IE để không bị lúc có lúc không */
-input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear {
-    display: none;
+/* Submit button */
+.register-button {
+    width: 100%;
+    height: 52px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--color-primary);
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: var(--shadow-button);
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition:
+            background 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+}
+
+.register-button:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px rgba(17, 24, 39, 0.22);
+}
+
+.register-button:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-button);
+}
+
+/* Login link */
+.login-text {
+    margin: 24px 0 0 0;
+    color: var(--color-muted);
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.login-text a {
+    color: var(--color-primary);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.login-text a:hover {
+    text-decoration: underline;
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+/* =========================================================
+   Web only fixes
+   ========================================================= */
+
+/* Giữ layout desktop cố định */
+.register-layout {
+    grid-template-columns: minmax(420px, 1fr) minmax(480px, 1fr);
+}
+
+.register-visual {
+    display: block;
+}
+
+.form-row {
+    grid-template-columns: 1fr 1fr;
+}
+
+/* Fix căn thẳng 2 ô mật khẩu */
+.password-row {
+    align-items: start;
+}
+
+.password-row .form-group {
+    display: grid;
+    grid-template-rows: auto 40px 48px 18px;
+}
+
+.password-row .field-note {
+    height: 40px;
+    min-height: 40px;
+    margin: -4px 0 8px 0;
+}
+
+.password-row .password-field {
+    height: 48px;
+}
+
+.password-row .password-field input {
+    height: 48px;
 }

@@ -32,18 +32,6 @@ public class User {
 
     // users.status: PENDING / ACTIVE
     private UserStatus status;
-
-    // Thông tin shipper trong bảng users
-    private String licensePlate;
-    private String idCardNumber;
-    private Integer shipperProvinceId;
-    private Integer shipperWardId;
-    private String driverLicenseFrontUrl;
-    private String driverLicenseBackUrl;
-
-    // shipper_approval_status: null / PENDING / APPROVED / REJECTED
-    private String shipperApprovalStatus;
-
     private LocalDateTime createdAt;
 
 
