@@ -60,11 +60,12 @@
 
                     <div class="cart-item__actions">
                         <div class="quantity-control">
-                            <button class="qty-btn">-</button>
-                            <input type="text" value="${shopProduct.quantity}" class="qty-input" min="1" readonly>
-                            <button class="qty-btn">+</button>
+                            <button class="qty-btn" onclick="updateItemQuantity('${pageContext.request.contextPath}', ${shopProduct.cartItemId},${shopProduct.variantId},'decrease', this)">-</button>
+                            <input type="number" value="${shopProduct.quantity}" class="qty-input" min="1" readonly>
+                            <button class="qty-btn"  onclick="updateItemQuantity('${pageContext.request.contextPath}', ${shopProduct.cartItemId},${shopProduct.variantId}, 'increase', this)">+</button>
                         </div>
                         <button class="cart-item__remove"><i class="fa-regular fa-trash-can"></i></button>
+                        <span class="stock-error text-danger" style=" font-size: 12px; margin-top: 5px;"></span>
                     </div>
                 </div>
                 </c:forEach>

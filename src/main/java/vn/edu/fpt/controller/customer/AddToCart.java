@@ -60,7 +60,7 @@ public class AddToCart extends HttpServlet {
         // đã đăng nhập
         if(user != null) {
             // lấy ra số lượng hiện tại của biến thể đang định thêm
-            int currentStock = productDAO.getVariantStock(cartRequest.getProductId(), cartRequest.getSizeId(), cartRequest.getColorId());
+            int currentStock = productDAO.getVariantStock(variantId);
             // lấy ra số lượng variant trong giỏ ở database
             int quantityDb = cartDAO.getQuantityAVariantCart(variantId, user.getUserId());
             // số lượng muốn thêm + số lượng trong giỏ

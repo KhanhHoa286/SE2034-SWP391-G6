@@ -517,14 +517,12 @@ public class ProductDAO extends DBContext {
      */
     private final String GET_VARIANT_STOCK = """
         SELECT pv.stock_quantity FROM product_variants pv
-        WHERE (pv.product_id = ? AND pv.color_id = ? AND size_id = ?)
+        WHERE pv.variant_id = ?;
     """;
-    public int getVariantStock(int productId, int size_id, int color_id) {
+    public int getVariantStock(int variantId) {
         String sql = GET_VARIANT_STOCK;
         try(PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, productId);
-            stmt.setInt(2, color_id);
-            stmt.setInt(3, size_id);
+            stmt.setInt(1, variantId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1);
