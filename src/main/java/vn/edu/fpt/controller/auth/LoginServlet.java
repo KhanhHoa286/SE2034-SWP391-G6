@@ -78,7 +78,8 @@ public class LoginServlet extends HttpServlet {
             }
         }
 
-        response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp");
+//        response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp");
+        request.getRequestDispatcher("/public/auth/login.jsp").forward(request,response);
     }
 
     @Override
@@ -219,7 +220,7 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect(contextPath + "/home");
 
         } else if (roleId == 3) {
-            response.sendRedirect(contextPath + "/seller/finance/view-wallet");
+            response.sendRedirect(contextPath + "/home");
 
         } else if (roleId == 4) {
             response.sendRedirect(contextPath + "/logistics/delivery/list-deliveries.jsp");

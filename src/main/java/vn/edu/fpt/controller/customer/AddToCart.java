@@ -20,7 +20,7 @@ import java.util.List;
  * Date: 11/6/2026
  * Description: Thêm 1 sản phẩm vào giỏ hàng
  */
-@WebServlet("/api/add-to-cart")
+@WebServlet("/api/customer/add-to-cart")
 public class AddToCart extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     private final CartDAO cartDAO = new CartDAO();
@@ -34,16 +34,16 @@ public class AddToCart extends HttpServlet {
              // lấy ra variant id
         int variantId = productDAO.getVariantById(cartRequest.getProductId(), cartRequest.getSizeId(), cartRequest.getColorId());
         if(variantId == 0) { // lỗi hoặc ko có variant id ném về trang details
-            response.sendRedirect(request.getContextPath() + "/product-detail?pid=" + cartRequest.getProductId());
+            response.getWriter().write("INVALID_VARIANT");
             return;
         }
         // thêm vào giỏ hàng
-        boolean checkAddItemCart = handleGuestCart(request,response, cartRequest,variantId);
+        boolean checkAddItemCart = handleMemberCart(request,response, cartRequest,variantId);
 
         // gửi về cho js
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
-        //
+        // kiểm tra thêm giỏ hàng thành công hay bị vượt quá không
         if(!checkAddItemCart) {
             response.getWriter().write("OVER_STOCK");
             return;
@@ -54,54 +54,26 @@ public class AddToCart extends HttpServlet {
     }
 
     // kiểm tra người dùng đã đăng nhập chưa và lưu vào giỏ hàng
-    private boolean handleGuestCart(HttpServletRequest request,HttpServletResponse response, CartRequest cartRequest, int variantId) throws IOException {
+    private boolean handleMemberCart(HttpServletRequest request,HttpServletResponse response, CartRequest cartRequest, int variantId) throws IOException {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-        // lấy ra số lượng hiện tại của biến thể đang định thêm
-        int currentStock = productDAO.getVariantStock(cartRequest.getProductId(), cartRequest.getSizeId(), cartRequest.getColorId());
-        // check đăng  nhập
-        if(user == null) { // chưa đăng nhập
-           List<CartRequest> sessionCart = (List<CartRequest>) session.getAttribute("cart");
-           if(sessionCart == null) { // chưa đăng nhập và cũng chưa có sản phẩm nào trong giỏ hàng
-               sessionCart = new ArrayList<>();
-               session.setAttribute("cart", sessionCart);
-           }
-           //
-            int quantitySession = 0; // lấy ra số lượng sản phẩm đang có trong giỏ lưu ở session(chưa login)
-            CartRequest item = null;  // dùng để lát lưu sản phẩm đó
-           // chưa đăng nhập nhưng có sản phẩm trong giỏ
-               for(CartRequest c : sessionCart) {
-                   if(c.getProductId().equals(cartRequest.getProductId())
-                   && c.getSizeId().equals(cartRequest.getSizeId())
-                   && c.getColorId().equals(cartRequest.getColorId())) {
-                       quantitySession = c.getQuantity();
-                       item = c;
-                       break;
-                   }
-               }
-
-               // số lượng mà người dùng muốn thêm ví dụ: thêm 3 cái xong lại thêm 3 cái nữa
-               int targetQuantity = quantitySession + cartRequest.getQuantity();
-               if(targetQuantity > currentStock) { // nếu tổng số lượng biến thể người dùng muốn thêm > số lượng kho biến thể
-                   return false;
-               }
-               //ngược lại nếu số lượng người dùng muốn thêm hợp lí kho vẫn còn đủ
-            if(item != null) { // khác null tức có trong ss rồi update số lượng
-                item.setQuantity(targetQuantity);
-            }else{
-                sessionCart.add(cartRequest);
-            }
-        }else{ // đã đăng nhập
+        // đã đăng nhập
+        if(user != null) {
+            // lấy ra số lượng hiện tại của biến thể đang định thêm
+            int currentStock = productDAO.getVariantStock(variantId);
             // lấy ra số lượng variant trong giỏ ở database
             int quantityDb = cartDAO.getQuantityAVariantCart(variantId, user.getUserId());
+            // số lượng muốn thêm + số lượng trong giỏ
             int targetQuantity = quantityDb + cartRequest.getQuantity();
-            if(targetQuantity > currentStock) {
+            // nếu nó lớn hơn so lượng trong kho đang có
+            if (targetQuantity > currentStock) {
                 return false;
             }
-            //
-            cartDAO.addToCart(user.getUserId(),variantId,cartRequest.getQuantity());
+            // nếu không lớn hơn thì thêm vào giỏ hàng
+            cartDAO.addToCart(user.getUserId(), variantId, cartRequest.getQuantity());
+            return true;
         }
-        return true;
+        return false;
     }
 
     //  trả về số lượng để hiện thị động trên icon giỏ hàng
@@ -110,12 +82,7 @@ public class AddToCart extends HttpServlet {
         User user = (User) session.getAttribute("user");
         if(user != null) {
             return cartDAO.getNumberOfProductCart(user.getUserId());
-        }else{ // chauw đang nhập
-            List<CartRequest> sessionCart = (List<CartRequest>) session.getAttribute("cart");
-            if(sessionCart != null) {
-                return sessionCart.size();
-            }
-            return 0;
         }
+            return 0;
     }
 }
