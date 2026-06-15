@@ -35,7 +35,7 @@ public class CartDAO extends DBContext {
      * HoaNK - Kiểm tra xem giỏ hàng có chưa có rồi thì update, chư thì thêm sản phẩm mới vào giỏ hàng
      */
     private final String EDIT_ITEM_CART = """
-     MERGE INTO cart_items AS target
+     MERGE INTO cart_items WITH (HOLDLOCK) AS target 
                  USING (SELECT ? AS user_id, ? AS variant_id) AS source
                  ON (target.user_id = source.user_id AND target.variant_id = source.variant_id)
                  WHEN MATCHED THEN
@@ -124,24 +124,9 @@ public class CartDAO extends DBContext {
        return cartResponses;
     }
 
-    // lấy dữ liệu hiển thị cart cho gúet
-//    public List<CartResponse> getCartForGuest(List<Integer> variantIds) {
-//        if (variantIds == null || variantIds.isEmpty()) return new ArrayList<>();
-//
-//        // Tạo các dấu hỏi chấm động (?, ?, ?) cho lệnh IN
-//        String placeholders = String.join(",", Collections.nCopies(variantIds.size(), "?"));
-//
-//        // Lắp ghép câu SQL hoàn chỉnh cho Guest: Không hề dính dáng tới bảng cart_items
-//        String sql = "SELECT " + SELECT_PRODUCT_INFO
-//                + FROM_PRODUCT_TABLES
-//                + " WHERE v.variant_id IN (" + placeholders + ")"
-//                + " ORDER BY s.shop_id";
-//
-//        // Chạy PreparedStatement nạp list variantIds vào...
-//        // Lấy dữ liệu lên thì set quantity ngầm từ Session sang như anh em mình bàn ở câu trước.
-//    }
-
-    // build 1 đối tượng cartresspone
+    /**
+     * HoaNK: build 1 đối tượng cartresspone
+     */
     private CartResponse buildCartResponse(ResultSet rs) throws SQLException {
         CartResponse item = new CartResponse();
 
@@ -163,6 +148,26 @@ public class CartDAO extends DBContext {
         item.setDiscountPrice(p.getDiscountedPrice());
 
         return item;
+    }
+
+    /**
+     * HoaNK - Update số lượng của 1 item trong giỏ hàng
+     */
+    private final String UPDATE_QUANTITY_ITEM = """
+            UPDATE cart_items SET quantity = ? WHERE cart_item_id = ? AND user_id = ?;
+            """;
+    public boolean updateQuantityItem(int quantity, int cartItemId, int userId) {
+        String sql = UPDATE_QUANTITY_ITEM;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1,quantity);
+            stmt.setInt(2, cartItemId);
+            stmt.setInt(3, userId);
+            stmt.executeUpdate();
+            return true;
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
 

@@ -10,5 +10,5 @@ import java.util.Map;
 import java.util.HashMap;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-public class VoucherDAO extends DBContext {
+public class VoucherDAO extends DBContext{
 }

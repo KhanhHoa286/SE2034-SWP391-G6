@@ -36,8 +36,9 @@ public class GetVariantStockServlet extends HttpServlet {
             return;
         }
 
-        //Nếu dữ liệu đã an toàn và sạch sẽ, lúc này mới tự tin ép kiểu số int
-        int stock = productDAO.getVariantStock(productId, sizeId, colorId);
+        //Dữ liệu ok thì lấy variantId rồi lấy stock
+        int variantId = productDAO.getVariantById(productId,sizeId,colorId);
+        int stock = productDAO.getVariantStock(variantId);
 
         response.setContentType("text/plain");
         response.getWriter().write(String.valueOf(stock));
