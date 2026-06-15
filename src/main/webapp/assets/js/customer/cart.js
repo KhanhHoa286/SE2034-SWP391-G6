@@ -23,8 +23,11 @@ function cart() {
     const cartCount = document.getElementById("cart-count");
     const cartOvorQuantity = document.getElementById("cart-over-quantity");
     const addToCartSuccess = document.getElementById("add-to-cart-success");
-    axios.post(contextPath + "/api/add-to-cart", params)
+    axios.post(contextPath + "/api/customer/add-to-cart", params)
         .then(response => {
+            if(response.data === "INVALID_VARIANT") {
+                window.location.href = contextPath + "/product-detail?pid=" + productId;
+            }
             if(response.data === "OVER_STOCK") {
                 cartOvorQuantity.innerText = "* Số lượng sản phẩm này trong giỏ đã vượt quá giới hạn tồn kho!"
                 addToCartSuccess.innerText = "";
@@ -35,6 +38,10 @@ function cart() {
             }
         })
         .catch(error => {
+            // been filter đá về cái status này thì
+            if(error.response.status === 401) {
+                window.location.href = contextPath + "/login";
+            }
             console.error("Thêm vào giỏ hàng thất bại",error);
         })
 }

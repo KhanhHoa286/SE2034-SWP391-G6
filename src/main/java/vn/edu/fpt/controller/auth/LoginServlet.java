@@ -78,7 +78,8 @@ public class LoginServlet extends HttpServlet {
             }
         }
 
-        response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp");
+//        response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp");
+        request.getRequestDispatcher("/public/auth/login.jsp").forward(request,response);
     }
 
     @Override
