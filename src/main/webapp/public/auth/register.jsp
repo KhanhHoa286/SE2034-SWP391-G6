@@ -1,210 +1,171 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+
 <%!
     private String h(Object value) {
         if (value == null) return "";
         return String.valueOf(value)
                 .replace("&", "&amp;")
                 .replace("\"", "&quot;")
+                .replace("'", "&#x27;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");
     }
 %>
+
 <%
     response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     response.setHeader("Pragma", "no-cache");
     response.setDateHeader("Expires", 0);
+
+    String ctx = request.getContextPath();
+    String selectedGender = h(request.getAttribute("gender"));
 %>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-
+    <meta charset="UTF-8">
     <title>Đăng ký tài khoản | MODA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="https://fonts.googleapis.com" rel="preconnect">
-    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+    <!-- Font chính của giao diện -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
           rel="stylesheet">
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        'moda-black': '#000000',
-                        'moda-gray': '#71717a',
-                        'moda-bg': '#f8f9ff',
-                        'moda-border': '#e4e4e7',
-                    }
-                }
-            }
-        }
-    </script>
-
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/css/public/register.css">
+    <!-- CSS thuần, không dùng Tailwind -->
+    <link rel="stylesheet" href="<%= ctx %>/assets/css/public/register.css">
 </head>
 
-<body class="bg-moda-bg">
+<body>
 
-<header class="w-full bg-white border-b border-moda-border px-6 lg:px-12 py-4 z-50 relative h-[72px] flex items-center">
-    <div class="max-w-[1440px]">
-        <a href="<%= request.getContextPath() %>/home"
-           class="text-3xl font-bold tracking-tighter text-moda-black uppercase">
-            MODA
-        </a>
-    </div>
+<!-- Header -->
+<header class="register-header">
+    <a href="<%= ctx %>/home" class="register-logo">MODA</a>
 </header>
 
-<main class="split-container w-full">
+<!-- Main Content -->
+<main class="register-layout">
 
-    <section class="hidden lg:block relative overflow-hidden" data-purpose="editorial-image">
-        <img
-                alt="MODA Editorial Fashion"
-                class="absolute inset-0 w-full h-full object-cover"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKfh4C_YuubRKatEGr2GNRQmFVFGZfu1ife8wBuqQ10IPHjRj782a3auERnhXHsz73Vx3j9oOMZoOTZ16KmBcWpUlTvetOHzsV0LhQZrEYkipLHZ4qt1WqFVHAfnozMnfswdoeF9b7fuJpyq_1-SixZmKts9CqQmtTXyM5p2LGAMGpdtrZdhP2LFeOTpffFupuaRzoyHoB660VvYCJS1NGnNUFlComXIvO6AcUZzTnsV7WwiF24cuQjXzdLQiC2c9NBgizae67Iy4">
+    <!-- Left Visual Section -->
+    <section class="register-visual">
+        <div class="visual-overlay"></div>
+
+        <img class="visual-image"
+             src="https://i.pinimg.com/736x/82/9e/c1/829ec14750233402aed8b58a799ce830.jpg"
+             alt="MODA Fashion">
+
+        <div class="visual-content">
+            <p class="visual-label">MODA STYLE</p>
+            <h2>Thời trang hiện đại cho phong cách riêng của bạn</h2>
+            <p>
+                Tạo tài khoản để khám phá sản phẩm, lưu yêu thích và theo dõi đơn hàng dễ dàng hơn.
+            </p>
+        </div>
     </section>
 
-    <section class="flex items-center justify-center p-6 md:p-12 lg:p-14"
-             data-purpose="registration-form-container">
+    <!-- Register Form Section -->
+    <section class="register-content">
+        <div class="register-card">
 
-        <div class="w-full max-w-[560px] space-y-8">
-
-            <header class="space-y-2">
-                <h1 class="text-3xl font-bold tracking-tight text-moda-black">
-                    Đăng ký tài khoản
-                </h1>
-
-                <p class="text-moda-gray font-medium">
-                    Tham gia để trải nghiệm dịch vụ MODA
-                </p>
-            </header>
+            <div class="register-heading">
+                <p class="eyebrow">BẮT ĐẦU VỚI MODA</p>
+                <h1>Đăng ký tài khoản</h1>
+                <p>Nhập thông tin của bạn để tạo tài khoản mua sắm.</p>
+            </div>
 
             <% if (request.getAttribute("error") != null) { %>
-            <div class="text-sm font-semibold text-red-600">
+            <div class="server-error">
                 <%= h(request.getAttribute("error")) %>
             </div>
             <% } %>
 
-            <form action="<%= request.getContextPath() %>/register"
-                  class="space-y-6"
+            <form action="<%= ctx %>/register"
                   method="post"
                   id="registerForm"
+                  class="register-form"
                   novalidate>
 
-                <%-- UI gọi là User, nhưng DB hiện tại vẫn dùng role CUSTOMER --%>
+                <!-- Backend vẫn nhận accountType CUSTOMER như luồng cũ -->
                 <input type="hidden" name="accountType" value="CUSTOMER">
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="block text-sm font-semibold text-moda-black" for="firstName">
-                            Họ
-                        </label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">Họ</label>
 
-                        <input
-                                class="w-full px-4 py-3 border border-moda-border rounded-none focus:ring-1 focus:ring-moda-black focus:border-moda-black transition-all h-12"
-                                id="firstName"
-                                name="firstName"
-                                placeholder="Nguyễn"
-                                required
-                                maxlength="50"
-                                autocomplete="family-name"
-                                value="<%= h(request.getAttribute("firstName")) %>"
-                                type="text">
+                        <input type="text"
+                               id="firstName"
+                               name="firstName"
+                               required
+                               maxlength="50"
+                               autocomplete="family-name"
+                               value="<%= h(request.getAttribute("firstName")) %>"
+                               placeholder="Nguyễn">
 
                         <p id="firstNameError" class="field-error"></p>
                     </div>
 
-                    <div class="space-y-1">
-                        <label class="block text-sm font-semibold text-moda-black" for="lastName">
-                            Tên
-                        </label>
+                    <div class="form-group">
+                        <label for="lastName">Tên</label>
 
-                        <input
-                                class="w-full px-4 py-3 border border-moda-border rounded-none focus:ring-1 focus:ring-moda-black focus:border-moda-black transition-all h-12"
-                                id="lastName"
-                                name="lastName"
-                                placeholder="Văn A"
-                                required
-                                maxlength="50"
-                                autocomplete="given-name"
-                                value="<%= h(request.getAttribute("lastName")) %>"
-                                type="text">
+                        <input type="text"
+                               id="lastName"
+                               name="lastName"
+                               required
+                               maxlength="50"
+                               autocomplete="given-name"
+                               value="<%= h(request.getAttribute("lastName")) %>"
+                               placeholder="Văn A">
 
                         <p id="lastNameError" class="field-error"></p>
                     </div>
                 </div>
 
-                <div class="space-y-1">
-                    <label class="block text-sm font-semibold text-moda-black" for="phone">
-                        Số điện thoại
-                    </label>
+                <div class="form-group">
+                    <label for="phone">Số điện thoại</label>
 
-                    <p class="text-[11px] text-moda-gray mb-1">
+                    <p class="field-note">
                         Số điện thoại Việt Nam gồm 10 số, bắt đầu bằng 03, 05, 07, 08 hoặc 09.
                     </p>
 
-                    <input
-                            class="w-full px-4 py-3 border border-moda-border rounded-none focus:ring-1 focus:ring-moda-black focus:border-moda-black transition-all h-12"
-                            id="phone"
-                            name="phone"
-                            placeholder="0923456789"
-                            required
-                            maxlength="10"
-                            inputmode="numeric"
-                            autocomplete="tel"
-                            value="<%= h(request.getAttribute("phone")) %>"
-                            type="tel">
+                    <input type="tel"
+                           id="phone"
+                           name="phone"
+                           required
+                           maxlength="10"
+                           inputmode="numeric"
+                           autocomplete="tel"
+                           value="<%= h(request.getAttribute("phone")) %>"
+                           placeholder="0923456789">
 
                     <p id="phoneError" class="field-error"></p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="block text-sm font-semibold text-moda-black" for="dob">
-                            Ngày sinh (không bắt buộc)
-                        </label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dob">Ngày sinh <span>không bắt buộc</span></label>
 
-                        <input
-                                class="w-full px-4 py-3 border border-moda-border rounded-none focus:ring-1 focus:ring-moda-black focus:border-moda-black transition-all uppercase text-sm h-12"
-                                id="dob"
-                                name="dob"
-                                value="<%= h(request.getAttribute("dob")) %>"
-                                type="date">
+                        <input type="date"
+                               id="dob"
+                               name="dob"
+                               value="<%= h(request.getAttribute("dob")) %>">
 
                         <p id="dobError" class="field-error"></p>
                     </div>
 
-                    <div class="space-y-1">
-                        <label class="block text-sm font-semibold text-moda-black" for="gender">
-                            Giới tính (không bắt buộc)
-                        </label>
+                    <div class="form-group">
+                        <label for="gender">Giới tính <span>không bắt buộc</span></label>
 
-                        <select
-                                class="w-full px-4 py-3 border border-moda-border rounded-none focus:ring-1 focus:ring-moda-black focus:border-moda-black transition-all bg-white text-sm h-12"
-                                id="gender"
-                                name="gender">
-
-                            <option value="" <%= "".equals(h(request.getAttribute("gender"))) ? "selected" : "" %>>
+                        <select name="gender" id="gender">
+                            <option value="" <%= "".equals(selectedGender) ? "selected" : "" %>>
                                 Chọn giới tính
                             </option>
 
-                            <option value="nam" <%= "nam".equalsIgnoreCase(h(request.getAttribute("gender"))) ? "selected" : "" %>>
+                            <option value="nam" <%= "nam".equalsIgnoreCase(selectedGender) ? "selected" : "" %>>
                                 Nam
                             </option>
 
-                            <option value="nu" <%= "nu".equalsIgnoreCase(h(request.getAttribute("gender"))) ? "selected" : "" %>>
+                            <option value="nu" <%= "nu".equalsIgnoreCase(selectedGender) ? "selected" : "" %>>
                                 Nữ
-                            </option>
-
-                            <%-- Giữ giống giao diện Stitch, value rỗng để backend không lỗi nếu chưa hỗ trợ giới tính khác --%>
-                            <option value="">
-                                Khác
                             </option>
                         </select>
 
@@ -212,67 +173,59 @@
                     </div>
                 </div>
 
-                <div class="space-y-1">
-                    <label class="block text-sm font-semibold text-moda-black" for="email">
-                        Email / Tên đăng nhập
-                    </label>
+                <div class="form-group">
+                    <label for="email">Email / Tên đăng nhập</label>
 
-                    <p class="text-[11px] text-moda-gray mb-1">
-                        Email cần đúng định dạng. ví dụ: example@gmail.com.
+                    <p class="field-note">
+                        Email cần đúng định dạng, ví dụ: example@gmail.com.
                     </p>
 
-                    <input
-                            class="w-full px-4 py-3 border border-moda-border rounded-none focus:ring-1 focus:ring-moda-black focus:border-moda-black transition-all h-12"
-                            id="email"
-                            name="email"
-                            placeholder="example@gmail.com"
-                            required
-                            autocomplete="email"
-                            value="<%= h(request.getAttribute("email")) %>"
-                            type="email">
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           required
+                           autocomplete="email"
+                           value="<%= h(request.getAttribute("email")) %>"
+                           placeholder="example@gmail.com">
 
                     <p id="emailError" class="field-error"></p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="block text-sm font-semibold text-moda-black" for="password">
-                            Mật khẩu
-                        </label>
+                <div class="form-row password-row">
+                    <div class="form-group">
+                        <label for="password">Mật khẩu</label>
 
-                        <p class="text-[11px] text-moda-gray mb-1 leading-tight">
+                        <p class="field-note">
                             Mật khẩu chỉ gồm chữ số 0-9, dài từ 6 đến 32 số.
                         </p>
 
-                        <div class="relative">
-                            <input
-                                    class="w-full px-4 py-3 pr-11 border border-moda-border rounded-none focus:ring-1 focus:ring-moda-black focus:border-moda-black transition-all h-12"
-                                    id="password"
-                                    name="password"
-                                    required
-                                    minlength="6"
-                                    maxlength="32"
-                                    inputmode="numeric"
-                                    autocomplete="new-password"
-                                    value="<%= h(request.getAttribute("password")) %>"
-                                    type="password">
+                        <div class="password-field">
+                            <input type="password"
+                                   id="password"
+                                   name="password"
+                                   required
+                                   minlength="6"
+                                   maxlength="32"
+                                   inputmode="numeric"
+                                   autocomplete="new-password"
+                                   value="<%= h(request.getAttribute("password")) %>"
+                                   title="Mật khẩu chỉ được gồm các chữ số 0-9, dài từ 6 đến 32 số.">
 
-                            <button aria-label="Toggle password visibility"
-                                    class="password-toggle-btn"
-                                    type="button"
-                                    onclick="togglePasswordVisibility('password')">
-                                <svg class="w-5 h-5"
+                            <button type="button"
+                                    class="password-toggle"
+                                    onclick="togglePasswordVisibility('password')"
+                                    aria-label="Hiện hoặc ẩn mật khẩu">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     width="20"
+                                     height="20"
+                                     viewBox="0 0 24 24"
                                      fill="none"
                                      stroke="currentColor"
-                                     stroke-width="1.5"
-                                     viewBox="0 0 24 24"
-                                     xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.301 8.216 7.066 5.25 12 5.25c4.935 0 8.701 2.966 9.964 6.428.068.185.068.388 0 .573-1.263 3.462-5.03 6.428-9.964 6.428-4.935 0-8.701-2.966-9.964-6.428ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"></path>
-                                    <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"></path>
+                                     stroke-width="1.8"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/>
+                                    <circle cx="12" cy="12" r="3"/>
                                 </svg>
                             </button>
                         </div>
@@ -280,44 +233,39 @@
                         <p id="passwordError" class="field-error"></p>
                     </div>
 
-                    <div class="space-y-1 password-confirm-block">
-                        <label class="block text-sm font-semibold text-moda-black" for="confirm_password">
-                            Xác nhận mật khẩu
-                        </label>
+                    <div class="form-group">
+                        <label for="confirm_password">Xác nhận mật khẩu</label>
 
-                        <p class="text-[11px] text-moda-gray mb-1 leading-tight">
-                            Nhập lại mật khẩu đã chọn ở trên để xác nhận.
+                        <p class="field-note">
+                            Nhập lại mật khẩu đã chọn.
                         </p>
 
-                        <div class="relative">
-                            <input
-                                    class="w-full px-4 py-3 pr-11 border border-moda-border rounded-none focus:ring-1 focus:ring-moda-black focus:border-moda-black transition-all h-12"
-                                    id="confirm_password"
-                                    name="confirm_password"
-                                    required
-                                    minlength="6"
-                                    maxlength="32"
-                                    inputmode="numeric"
-                                    autocomplete="new-password"
-                                    value="<%= h(request.getAttribute("confirmPassword")) %>"
-                                    type="password">
+                        <div class="password-field">
+                            <input type="password"
+                                   id="confirm_password"
+                                   name="confirm_password"
+                                   required
+                                   minlength="6"
+                                   maxlength="32"
+                                   inputmode="numeric"
+                                   autocomplete="new-password"
+                                   value="<%= h(request.getAttribute("confirmPassword")) %>">
 
-                            <button aria-label="Toggle password visibility"
-                                    class="password-toggle-btn"
-                                    type="button"
-                                    onclick="togglePasswordVisibility('confirm_password')">
-                                <svg class="w-5 h-5"
+                            <button type="button"
+                                    class="password-toggle"
+                                    onclick="togglePasswordVisibility('confirm_password')"
+                                    aria-label="Hiện hoặc ẩn mật khẩu">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     width="20"
+                                     height="20"
+                                     viewBox="0 0 24 24"
                                      fill="none"
                                      stroke="currentColor"
-                                     stroke-width="1.5"
-                                     viewBox="0 0 24 24"
-                                     xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.301 8.216 7.066 5.25 12 5.25c4.935 0 8.701 2.966 9.964 6.428.068.185.068.388 0 .573-1.263 3.462-5.03 6.428-9.964 6.428-4.935 0-8.701-2.966-9.964-6.428ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"></path>
-                                    <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"></path>
+                                     stroke-width="1.8"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/>
+                                    <circle cx="12" cy="12" r="3"/>
                                 </svg>
                             </button>
                         </div>
@@ -326,22 +274,15 @@
                     </div>
                 </div>
 
-                <button
-                        class="w-full bg-moda-black text-white font-bold py-4 text-sm tracking-widest hover:opacity-90 transition-opacity"
-                        type="submit">
-                    ĐĂNG KÝ
+                <button type="submit" class="register-button">
+                    Đăng ký
                 </button>
             </form>
 
-            <footer class="text-center pt-4">
-                <p class="text-sm text-moda-gray">
-                    Đã có tài khoản?
-                    <a class="text-moda-black font-bold hover:underline"
-                       href="<%= request.getContextPath() %>/public/auth/login.jsp">
-                        Đăng nhập
-                    </a>
-                </p>
-            </footer>
+            <p class="login-text">
+                Đã có tài khoản?
+                <a href="<%= ctx %>/public/auth/login.jsp">Đăng nhập</a>
+            </p>
         </div>
     </section>
 </main>
@@ -357,9 +298,7 @@
     const firstNameInput = document.getElementById("firstName");
     const lastNameInput = document.getElementById("lastName");
     const phoneInput = document.getElementById("phone");
-    const dobError = document.getElementById("dobError");
     const genderInput = document.getElementById("gender");
-    const genderError = document.getElementById("genderError");
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
     const confirmPasswordInput = document.getElementById("confirm_password");
@@ -367,9 +306,18 @@
     const firstNameError = document.getElementById("firstNameError");
     const lastNameError = document.getElementById("lastNameError");
     const phoneError = document.getElementById("phoneError");
+    const dobError = document.getElementById("dobError");
+    const genderError = document.getElementById("genderError");
     const emailError = document.getElementById("emailError");
     const passwordError = document.getElementById("passwordError");
     const confirmPasswordError = document.getElementById("confirmPasswordError");
+
+    let firstNameTouched = false;
+    let lastNameTouched = false;
+    let phoneTouched = false;
+    let emailTouched = false;
+    let passwordTouched = false;
+    let confirmPasswordTouched = false;
 
     function showError(input, errorElement, message) {
         if (input) {
@@ -391,30 +339,62 @@
         }
     }
 
-    function validateName(input, errorElement, label) {
-        const value = input.value.trim();
+    function validateFirstName(forceCheck) {
+        const value = firstNameInput.value.trim();
 
         if (value.length === 0) {
-            showError(input, errorElement, label + " không được để trống.");
-            return false;
+            if (forceCheck || firstNameTouched) {
+                showError(firstNameInput, firstNameError, "Họ không được để trống.");
+                return false;
+            }
+
+            clearError(firstNameInput, firstNameError);
+            return true;
         }
 
         if (value.length > 50 || !/^[\p{L}\s'-]+$/u.test(value)) {
-            showError(input, errorElement, label + " không hợp lệ.");
+            showError(firstNameInput, firstNameError, "Họ không hợp lệ.");
             return false;
         }
 
-        clearError(input, errorElement);
+        clearError(firstNameInput, firstNameError);
         return true;
     }
 
-    function validatePhone() {
+    function validateLastName(forceCheck) {
+        const value = lastNameInput.value.trim();
+
+        if (value.length === 0) {
+            if (forceCheck || lastNameTouched) {
+                showError(lastNameInput, lastNameError, "Tên không được để trống.");
+                return false;
+            }
+
+            clearError(lastNameInput, lastNameError);
+            return true;
+        }
+
+        if (value.length > 50 || !/^[\p{L}\s'-]+$/u.test(value)) {
+            showError(lastNameInput, lastNameError, "Tên không hợp lệ.");
+            return false;
+        }
+
+        clearError(lastNameInput, lastNameError);
+        return true;
+    }
+
+    function validatePhone(forceCheck) {
         const value = phoneInput.value.trim();
         const regex = /^(0)(3[2-9]|5[689]|7[06-9]|8[0-9]|9[0-9])[0-9]{7}$/;
 
         if (value.length === 0) {
-            showError(phoneInput, phoneError, "Số điện thoại không được để trống.");
-            return false;
+            if (forceCheck || phoneTouched) {
+                showError(phoneInput, phoneError, "Số điện thoại không được để trống.");
+                return false;
+            }
+
+            clearError(phoneInput, phoneError);
+            return true;
         }
 
         if (!regex.test(value)) {
@@ -452,13 +432,18 @@
         return true;
     }
 
-    function validateEmail() {
+    function validateEmail(forceCheck) {
         const value = emailInput.value.trim();
         const regex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
         if (value.length === 0) {
-            showError(emailInput, emailError, "Email không được để trống.");
-            return false;
+            if (forceCheck || emailTouched) {
+                showError(emailInput, emailError, "Email không được để trống.");
+                return false;
+            }
+
+            clearError(emailInput, emailError);
+            return true;
         }
 
         if (!regex.test(value)) {
@@ -470,13 +455,18 @@
         return true;
     }
 
-    function validatePassword() {
+    function validatePassword(forceCheck) {
         const value = passwordInput.value.trim();
         const regex = /^[0-9]{6,32}$/;
 
         if (value.length === 0) {
-            showError(passwordInput, passwordError, "Mật khẩu không được để trống.");
-            return false;
+            if (forceCheck || passwordTouched) {
+                showError(passwordInput, passwordError, "Mật khẩu không được để trống.");
+                return false;
+            }
+
+            clearError(passwordInput, passwordError);
+            return true;
         }
 
         if (!regex.test(value)) {
@@ -488,13 +478,18 @@
         return true;
     }
 
-    function validateConfirmPassword() {
+    function validateConfirmPassword(forceCheck) {
         const value = confirmPasswordInput.value.trim();
         const passwordValue = passwordInput.value.trim();
 
         if (value.length === 0) {
-            showError(confirmPasswordInput, confirmPasswordError, "Vui lòng xác nhận mật khẩu.");
-            return false;
+            if (forceCheck || confirmPasswordTouched) {
+                showError(confirmPasswordInput, confirmPasswordError, "Vui lòng xác nhận mật khẩu.");
+                return false;
+            }
+
+            clearError(confirmPasswordInput, confirmPasswordError);
+            return true;
         }
 
         if (value !== passwordValue) {
@@ -507,49 +502,66 @@
     }
 
     firstNameInput.addEventListener("input", function () {
-        clearError(firstNameInput, firstNameError);
+        firstNameTouched = true;
+        validateFirstName(false);
     });
 
     lastNameInput.addEventListener("input", function () {
-        clearError(lastNameInput, lastNameError);
+        lastNameTouched = true;
+        validateLastName(false);
     });
 
     phoneInput.addEventListener("input", function () {
+        phoneTouched = true;
         phoneInput.value = phoneInput.value.replace(/[^0-9]/g, "");
-        clearError(phoneInput, phoneError);
+        validatePhone(false);
     });
 
     dobInput.addEventListener("change", function () {
-        clearError(dobInput, dobError);
+        validateDob();
     });
 
     genderInput.addEventListener("change", function () {
-        clearError(genderInput, genderError);
+        validateGender();
     });
 
     emailInput.addEventListener("input", function () {
-        clearError(emailInput, emailError);
+        emailTouched = true;
+        validateEmail(false);
     });
 
     passwordInput.addEventListener("input", function () {
+        passwordTouched = true;
         passwordInput.value = passwordInput.value.replace(/[^0-9]/g, "");
-        clearError(passwordInput, passwordError);
+        validatePassword(false);
+
+        if (confirmPasswordTouched) {
+            validateConfirmPassword(false);
+        }
     });
 
     confirmPasswordInput.addEventListener("input", function () {
+        confirmPasswordTouched = true;
         confirmPasswordInput.value = confirmPasswordInput.value.replace(/[^0-9]/g, "");
-        clearError(confirmPasswordInput, confirmPasswordError);
+        validateConfirmPassword(false);
     });
 
     registerForm.addEventListener("submit", function (event) {
-        const isFirstNameValid = validateName(firstNameInput, firstNameError, "Họ");
-        const isLastNameValid = validateName(lastNameInput, lastNameError, "Tên");
-        const isPhoneValid = validatePhone();
+        firstNameTouched = true;
+        lastNameTouched = true;
+        phoneTouched = true;
+        emailTouched = true;
+        passwordTouched = true;
+        confirmPasswordTouched = true;
+
+        const isFirstNameValid = validateFirstName(true);
+        const isLastNameValid = validateLastName(true);
+        const isPhoneValid = validatePhone(true);
         const isDobValid = validateDob();
         const isGenderValid = validateGender();
-        const isEmailValid = validateEmail();
-        const isPasswordValid = validatePassword();
-        const isConfirmPasswordValid = validateConfirmPassword();
+        const isEmailValid = validateEmail(true);
+        const isPasswordValid = validatePassword(true);
+        const isConfirmPasswordValid = validateConfirmPassword(true);
 
         if (!isFirstNameValid
             || !isLastNameValid
