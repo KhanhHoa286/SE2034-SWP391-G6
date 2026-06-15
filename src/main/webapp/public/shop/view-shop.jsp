@@ -51,9 +51,9 @@
         <div class="sort-wrapper">
                 <span>Sắp xếp theo:</span>
                 <select class="sort-select" name="sort_by" onchange="this.form.submit()">
-                    <option value="" ${sortBy eq '' || empty sortBy ? 'selected' : ''}>Mới nhất</option>
-                    <option value="low_price" ${sortBy eq 'low_price' ? 'selected' : ''}>Giá: Thấp đến Cao</option>
-                    <option value="high_price" ${sortBy eq 'high_price' ? 'selected' : ''}>Giá: Cao đến Thấp</option>
+                    <option value="" ${filter.sortBy eq '' || empty filter.sortBy ? 'selected' : ''}>Mới nhất</option>
+                    <option value="low_price" ${filter.sortBy eq 'low_price' ? 'selected' : ''}>Giá: Thấp đến Cao</option>
+                    <option value="high_price" ${filter.sortBy eq 'high_price' ? 'selected' : ''}>Giá: Cao đến Thấp</option>
             </select>
         </div>
     </div>
@@ -63,7 +63,7 @@
         <aside class="sidebar col-lg-3 mb-4">
           <%-- search--%>
             <div class="header__search" style="margin-bottom: 35px;width: 100%">
-                    <input type="text" placeholder="Tìm kiếm trong shop..." class="header__search-input" style="width: 90%;" name="text_search" value="${textSearch}">
+                    <input type="text" placeholder="Tìm kiếm trong shop..." class="header__search-input" style="width: 90%;" name="text_search" value="${filter.textSearch}">
                     <button type="submit" style="border: 0px;background: transparent;"><i class="fa-solid fa-magnifying-glass header__icon"></i></button>
             </div>
             <!-- Giới tính -->
