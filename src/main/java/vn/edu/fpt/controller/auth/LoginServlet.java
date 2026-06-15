@@ -66,6 +66,18 @@ public class LoginServlet extends HttpServlet {
 
         setNoCache(response);
 
+        /*
+         * Người dùng bấm "Quay lại đăng nhập" từ màn OTP.
+         * Lúc này phải xóa session pendingOtpEmail.
+         */
+        if ("true".equalsIgnoreCase(request.getParameter("exitOtp"))) {
+            HttpSession session = request.getSession(false);
+
+            if (session != null) {
+                session.removeAttribute("pendingOtpEmail");
+            }
+        }
+
         response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp");
     }
 
@@ -181,16 +193,7 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        /*
-         * Đã bỏ check shipperApprovalStatus.
-         *
-         * Lý do:
-         * DB mới không có shipper_approval_status.
-         * Register mới cũng không đăng ký shipper nữa.
-         *
-         * Nếu tài khoản có role DELIVERY trong DB,
-         * coi như tài khoản đó được admin tạo/gán quyền sẵn.
-         */
+
 
         HttpSession session = request.getSession();
         session.setAttribute("user", user);

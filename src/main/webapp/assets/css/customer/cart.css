@@ -250,3 +250,12 @@
     color: var(--text-muted);
 }
 
+.cart-item__actions {
+    position: relative;
+}
+.stock-error {
+    position: absolute;
+    right: 8px;
+    top: 35px;
+    white-space: nowrap;
+}
