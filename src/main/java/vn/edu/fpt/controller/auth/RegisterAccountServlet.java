@@ -1,13 +1,11 @@
 package vn.edu.fpt.controller.auth;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import vn.edu.fpt.common.EmailUtils;
 import vn.edu.fpt.common.OtpUtils;
 import vn.edu.fpt.common.PasswordUtils;
-import vn.edu.fpt.common.UploadImage;
 import vn.edu.fpt.dao.EmailVerificationDAO;
 import vn.edu.fpt.dao.UserDAO;
 import vn.edu.fpt.enums.Gender;
@@ -22,21 +20,10 @@ import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
 @WebServlet("/register")
-@MultipartConfig(
-        fileSizeThreshold = 1024 * 1024,
-        maxFileSize = 5 * 1024 * 1024,
-        maxRequestSize = 15 * 1024 * 1024
-)
 public class RegisterAccountServlet extends HttpServlet {
 
-    private static final String ACCOUNT_TYPE_CUSTOMER = "CUSTOMER";
-    private static final String ACCOUNT_TYPE_DELIVERY = "DELIVERY";
+    private static final String REGISTER_ROLE = "CUSTOMER";
 
-    /*
-     * Thông báo tổng quát cho các trường unique trong DB:
-     * email, phone, id_card_number, license_plate.
-     * Không phân biệt PENDING hay ACTIVE để tránh lộ chi tiết tài khoản.
-     */
     private static final String MSG_INFO_USED =
             "Thông tin đăng ký đã được sử dụng hoặc đang chờ xác thực. Vui lòng kiểm tra lại.";
 
@@ -61,82 +48,10 @@ public class RegisterAccountServlet extends HttpServlet {
         return password != null && Pattern.matches("^[0-9]{6,32}$", password);
     }
 
-    private boolean isValidVietnamIdCardNumber(String idCardNumber) {
-        if (idCardNumber == null) {
-            return false;
-        }
-
-        String value = idCardNumber.trim();
-
-        if (!Pattern.matches("^[0-9]{12}$", value)) {
-            return false;
-        }
-
-        if (Pattern.matches("^(\\d)\\1{11}$", value)) {
-            return false;
-        }
-
-        try {
-            int provinceCode = Integer.parseInt(value.substring(0, 3));
-            return provinceCode >= 1 && provinceCode <= 96;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private String normalizeLicensePlate(String licensePlate) {
-        if (licensePlate == null) {
-            return "";
-        }
-
-        return licensePlate.trim()
-                .toUpperCase()
-                .replaceAll("[\\s\\-.]", "");
-    }
-
-    private boolean isValidVietnamLicensePlate(String licensePlate) {
-        String normalized = normalizeLicensePlate(licensePlate);
-        return Pattern.matches("^[1-9][0-9][A-Z][0-9A-Z]?[0-9]{4,5}$", normalized);
-    }
-
-    private Integer parseInteger(String value) {
-        try {
-            if (value == null || value.trim().isEmpty()) {
-                return null;
-            }
-
-            return Integer.parseInt(value.trim());
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private boolean hasImageFile(Part part) {
-        return part != null && part.getSize() > 0;
-    }
-
-    private boolean isValidImageFile(Part part) {
-        if (!hasImageFile(part)) {
-            return false;
-        }
-
-        String contentType = part.getContentType();
-
-        return contentType != null
-                && contentType.startsWith("image/")
-                && part.getSize() <= 5 * 1024 * 1024;
-    }
-
     private void setNoCache(HttpServletResponse response) {
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         response.setHeader("Pragma", "no-cache");
         response.setDateHeader("Expires", 0);
-    }
-
-    private void prepareRegisterPage(HttpServletRequest request) {
-        UserDAO userDao = new UserDAO();
-        request.setAttribute("provinces", userDao.getAllProvincesForRegister());
-        request.setAttribute("wards", userDao.getAllWardsForRegister());
     }
 
     private void keepFormData(HttpServletRequest request,
@@ -159,24 +74,9 @@ public class RegisterAccountServlet extends HttpServlet {
         request.setAttribute("confirmPassword", confirmPassword);
     }
 
-    private void keepShipperFormData(HttpServletRequest request,
-                                     String accountType,
-                                     String idCardNumber,
-                                     String licensePlate,
-                                     String shipperProvinceId,
-                                     String shipperWardId) {
-
-        request.setAttribute("accountType", accountType);
-        request.setAttribute("idCardNumber", idCardNumber);
-        request.setAttribute("licensePlate", licensePlate);
-        request.setAttribute("shipperProvinceId", shipperProvinceId);
-        request.setAttribute("shipperWardId", shipperWardId);
-    }
-
     private void forwardRegister(HttpServletRequest request,
                                  HttpServletResponse response,
                                  String error,
-                                 String accountType,
                                  String firstName,
                                  String lastName,
                                  String phone,
@@ -184,19 +84,22 @@ public class RegisterAccountServlet extends HttpServlet {
                                  String gender,
                                  String email,
                                  String password,
-                                 String confirmPassword,
-                                 String idCardNumber,
-                                 String licensePlate,
-                                 String shipperProvinceId,
-                                 String shipperWardId)
+                                 String confirmPassword)
             throws ServletException, IOException {
 
         request.setAttribute("error", error);
 
-        keepFormData(request, firstName, lastName, phone, dob, gender, email, password, confirmPassword);
-        keepShipperFormData(request, accountType, idCardNumber, licensePlate, shipperProvinceId, shipperWardId);
-
-        prepareRegisterPage(request);
+        keepFormData(
+                request,
+                firstName,
+                lastName,
+                phone,
+                dob,
+                gender,
+                email,
+                password,
+                confirmPassword
+        );
 
         request.getRequestDispatcher("/public/auth/register.jsp").forward(request, response);
     }
@@ -279,8 +182,6 @@ public class RegisterAccountServlet extends HttpServlet {
             }
         }
 
-        request.setAttribute("accountType", ACCOUNT_TYPE_CUSTOMER);
-        prepareRegisterPage(request);
         request.getRequestDispatcher("/public/auth/register.jsp").forward(request, response);
     }
 
@@ -294,16 +195,11 @@ public class RegisterAccountServlet extends HttpServlet {
         UserDAO userDao = new UserDAO();
 
         /*
-         * Chỉ dọn user chưa xác thực OTP quá 15 phút:
-         * users.status = 'PENDING'
-         *
-         * Không ảnh hưởng shipper chờ duyệt:
-         * users.status = 'ACTIVE'
-         * shipper_approval_status = 'PENDING'
+         * Chỉ dọn tài khoản chưa xác thực OTP quá 15 phút.
+         * Không xử lý đăng ký shipper ở màn này nữa.
          */
         userDao.deleteExpiredPendingRegistrations(15);
 
-        String accountType = request.getParameter("accountType");
         String firstName = request.getParameter("firstName");
         String lastName = request.getParameter("lastName");
         String phone = request.getParameter("phone");
@@ -313,12 +209,6 @@ public class RegisterAccountServlet extends HttpServlet {
         String password = request.getParameter("password");
         String confirmPassword = request.getParameter("confirm_password");
 
-        String idCardNumber = request.getParameter("idCardNumber");
-        String licensePlate = request.getParameter("licensePlate");
-        String shipperProvinceIdStr = request.getParameter("shipperProvinceId");
-        String shipperWardIdStr = request.getParameter("shipperWardId");
-
-        accountType = accountType == null ? ACCOUNT_TYPE_CUSTOMER : accountType.trim().toUpperCase();
         firstName = firstName == null ? "" : firstName.trim();
         lastName = lastName == null ? "" : lastName.trim();
         phone = phone == null ? "" : phone.trim();
@@ -327,39 +217,6 @@ public class RegisterAccountServlet extends HttpServlet {
         email = email == null ? "" : email.trim().toLowerCase();
         password = password == null ? "" : password.trim();
         confirmPassword = confirmPassword == null ? "" : confirmPassword.trim();
-
-        idCardNumber = idCardNumber == null ? "" : idCardNumber.trim();
-        licensePlate = normalizeLicensePlate(licensePlate);
-        shipperProvinceIdStr = shipperProvinceIdStr == null ? "" : shipperProvinceIdStr.trim();
-        shipperWardIdStr = shipperWardIdStr == null ? "" : shipperWardIdStr.trim();
-
-        boolean registerAsShipper = ACCOUNT_TYPE_DELIVERY.equals(accountType);
-
-        if (!ACCOUNT_TYPE_CUSTOMER.equals(accountType) && !ACCOUNT_TYPE_DELIVERY.equals(accountType)) {
-            forwardRegister(request, response,
-                    "Loại tài khoản đăng ký không hợp lệ.",
-                    ACCOUNT_TYPE_CUSTOMER,
-                    firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-            return;
-        }
-
-        Part driverLicenseFrontPart = null;
-        Part driverLicenseBackPart = null;
-
-        if (registerAsShipper) {
-            try {
-                driverLicenseFrontPart = request.getPart("driverLicenseFront");
-                driverLicenseBackPart = request.getPart("driverLicenseBack");
-            } catch (Exception e) {
-                forwardRegister(request, response,
-                        "Không đọc được ảnh bằng lái xe. Vui lòng chọn lại ảnh.",
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
-        }
 
         if (firstName.isEmpty()
                 || lastName.isEmpty()
@@ -370,63 +227,49 @@ public class RegisterAccountServlet extends HttpServlet {
 
             forwardRegister(request, response,
                     "Vui lòng nhập đầy đủ thông tin bắt buộc.",
-                    accountType,
-                    firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                    firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword);
             return;
         }
 
         if (!isValidName(firstName)) {
             forwardRegister(request, response,
                     "Họ không hợp lệ.",
-                    accountType,
-                    "", lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                    "", lastName, phone, dobStr, genderInput, email, password, confirmPassword);
             return;
         }
 
         if (!isValidName(lastName)) {
             forwardRegister(request, response,
                     "Tên không hợp lệ.",
-                    accountType,
-                    firstName, "", phone, dobStr, genderInput, email, password, confirmPassword,
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                    firstName, "", phone, dobStr, genderInput, email, password, confirmPassword);
             return;
         }
 
         if (!isValidEmail(email)) {
             forwardRegister(request, response,
                     "Email không hợp lệ.",
-                    accountType,
-                    firstName, lastName, phone, dobStr, genderInput, "", password, confirmPassword,
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                    firstName, lastName, phone, dobStr, genderInput, "", password, confirmPassword);
             return;
         }
 
         if (!isValidVietnamPhone(phone)) {
             forwardRegister(request, response,
                     "Số điện thoại không hợp lệ.",
-                    accountType,
-                    firstName, lastName, "", dobStr, genderInput, email, password, confirmPassword,
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                    firstName, lastName, "", dobStr, genderInput, email, password, confirmPassword);
             return;
         }
 
         if (!isValidPassword(password)) {
             forwardRegister(request, response,
                     "Mật khẩu không hợp lệ. Mật khẩu chỉ gồm chữ số 0-9, dài từ 6 đến 32 số.",
-                    accountType,
-                    firstName, lastName, phone, dobStr, genderInput, email, "", confirmPassword,
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                    firstName, lastName, phone, dobStr, genderInput, email, "", confirmPassword);
             return;
         }
 
         if (!password.equals(confirmPassword)) {
             forwardRegister(request, response,
                     "Mật khẩu xác nhận không khớp.",
-                    accountType,
-                    firstName, lastName, phone, dobStr, genderInput, email, password, "",
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                    firstName, lastName, phone, dobStr, genderInput, email, password, "");
             return;
         }
 
@@ -438,18 +281,14 @@ public class RegisterAccountServlet extends HttpServlet {
             } catch (Exception e) {
                 forwardRegister(request, response,
                         "Ngày sinh không hợp lệ.",
-                        accountType,
-                        firstName, lastName, phone, "", genderInput, email, password, confirmPassword,
-                        idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                        firstName, lastName, phone, "", genderInput, email, password, confirmPassword);
                 return;
             }
 
             if (dob.isAfter(LocalDate.now())) {
                 forwardRegister(request, response,
                         "Ngày sinh không được lớn hơn ngày hiện tại.",
-                        accountType,
-                        firstName, lastName, phone, "", genderInput, email, password, confirmPassword,
-                        idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                        firstName, lastName, phone, "", genderInput, email, password, confirmPassword);
                 return;
             }
         }
@@ -463,127 +302,20 @@ public class RegisterAccountServlet extends HttpServlet {
         } else if (!genderInput.isEmpty()) {
             forwardRegister(request, response,
                     "Giới tính không hợp lệ.",
-                    accountType,
-                    firstName, lastName, phone, dobStr, "", email, password, confirmPassword,
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                    firstName, lastName, phone, dobStr, "", email, password, confirmPassword);
             return;
         }
 
-        Integer shipperProvinceId = parseInteger(shipperProvinceIdStr);
-        Integer shipperWardId = parseInteger(shipperWardIdStr);
-
-        if (registerAsShipper) {
-            if (dobStr.isEmpty() || dob == null) {
-                forwardRegister(request, response,
-                        "Đối tác giao hàng bắt buộc nhập ngày sinh.",
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
-
-            if (gender == null) {
-                forwardRegister(request, response,
-                        "Đối tác giao hàng bắt buộc chọn giới tính.",
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
-
-            if (idCardNumber.isEmpty()) {
-                forwardRegister(request, response,
-                        "Đối tác giao hàng bắt buộc nhập số CCCD.",
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        "", licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
-
-            if (!isValidVietnamIdCardNumber(idCardNumber)) {
-                forwardRegister(request, response,
-                        "Số CCCD không hợp lệ.",
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        "", licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
-
-            if (licensePlate.isEmpty()) {
-                forwardRegister(request, response,
-                        "Đối tác giao hàng bắt buộc nhập biển số xe.",
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        idCardNumber, "", shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
-
-            if (!isValidVietnamLicensePlate(licensePlate)) {
-                forwardRegister(request, response,
-                        "Biển số xe không hợp lệ.",
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        idCardNumber, "", shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
-
-            if (shipperProvinceId == null || !userDao.isProvinceExist(shipperProvinceId)) {
-                forwardRegister(request, response,
-                        "Vui lòng chọn tỉnh/thành phố hoạt động hợp lệ.",
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        idCardNumber, licensePlate, "", shipperWardIdStr);
-                return;
-            }
-
-            if (shipperWardId == null || !userDao.isWardBelongsToProvince(shipperWardId, shipperProvinceId)) {
-                forwardRegister(request, response,
-                        "Vui lòng chọn xã/phường thuộc đúng tỉnh/thành phố hoạt động.",
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        idCardNumber, licensePlate, shipperProvinceIdStr, "");
-                return;
-            }
-
-            if (!isValidImageFile(driverLicenseFrontPart)) {
-                forwardRegister(request, response,
-                        "Ảnh bằng lái xe mặt trước không hợp lệ. Chỉ chấp nhận file ảnh tối đa 5MB.",
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
-
-            if (!isValidImageFile(driverLicenseBackPart)) {
-                forwardRegister(request, response,
-                        "Ảnh bằng lái xe mặt sau không hợp lệ. Chỉ chấp nhận file ảnh tối đa 5MB.",
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
-
-        } else {
-            idCardNumber = null;
-            licensePlate = null;
-            shipperProvinceId = null;
-            shipperWardId = null;
-        }
-
         /*
-         * Check trùng tất cả thuộc tính unique.
-         * Không phân biệt PENDING hay ACTIVE.
-         * Vì PENDING dưới 15 phút vẫn giữ chỗ trong DB.
-         * Nếu người dùng muốn sửa thông tin thì phải bấm link "Sửa thông tin đăng ký" ở màn OTP.
+         * Check trùng email và số điện thoại.
+         * Không phân biệt PENDING hay ACTIVE vì PENDING vẫn đang giữ chỗ trong DB.
          */
         User existingUserByEmail = userDao.getUserByEmail(email);
 
         if (existingUserByEmail != null) {
             forwardRegister(request, response,
                     MSG_INFO_USED,
-                    accountType,
-                    firstName, lastName, phone, dobStr, genderInput, "", password, confirmPassword,
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                    firstName, lastName, phone, dobStr, genderInput, "", password, confirmPassword);
             return;
         }
 
@@ -592,75 +324,21 @@ public class RegisterAccountServlet extends HttpServlet {
         if (existingUserByPhone != null) {
             forwardRegister(request, response,
                     MSG_INFO_USED,
-                    accountType,
-                    firstName, lastName, "", dobStr, genderInput, email, password, confirmPassword,
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                    firstName, lastName, "", dobStr, genderInput, email, password, confirmPassword);
             return;
         }
 
-        if (registerAsShipper) {
-            User existingUserByIdCard = userDao.getUserByIdCardNumber(idCardNumber);
-
-            if (existingUserByIdCard != null) {
-                forwardRegister(request, response,
-                        MSG_INFO_USED,
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        "", licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
-
-            User existingUserByLicensePlate = userDao.getUserByLicensePlate(licensePlate);
-
-            if (existingUserByLicensePlate != null) {
-                forwardRegister(request, response,
-                        MSG_INFO_USED,
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        idCardNumber, "", shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
-        }
-
-        String roleName = registerAsShipper ? "DELIVERY" : "CUSTOMER";
-        int roleId = userDao.getRoleIdByName(roleName);
+        /*
+         * Màn register bây giờ chỉ tạo CUSTOMER.
+         * Không nhận DELIVERY từ form dù form có gửi accountType.
+         */
+        int roleId = userDao.getRoleIdByName(REGISTER_ROLE);
 
         if (roleId <= 0) {
             forwardRegister(request, response,
-                    "Không tìm thấy quyền đăng ký phù hợp trong hệ thống.",
-                    accountType,
-                    firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                    "Không tìm thấy quyền CUSTOMER trong hệ thống.",
+                    firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword);
             return;
-        }
-
-        String driverLicenseFrontUrl = null;
-        String driverLicenseBackUrl = null;
-
-        if (registerAsShipper) {
-            try {
-                driverLicenseFrontUrl = UploadImage.uploadImage(driverLicenseFrontPart, "driver_licenses");
-                driverLicenseBackUrl = UploadImage.uploadImage(driverLicenseBackPart, "driver_licenses");
-
-                if (driverLicenseFrontUrl == null || driverLicenseBackUrl == null) {
-                    forwardRegister(request, response,
-                            "Upload ảnh bằng lái xe thất bại. Vui lòng chọn lại ảnh.",
-                            accountType,
-                            firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                            idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-                    return;
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-
-                forwardRegister(request, response,
-                        "Upload ảnh bằng lái xe thất bại. Vui lòng chọn lại ảnh và thử lại.",
-                        accountType,
-                        firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                        idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
-                return;
-            }
         }
 
         User user = User.builder()
@@ -675,23 +353,12 @@ public class RegisterAccountServlet extends HttpServlet {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        int userId = userDao.insertUserWithRole(
-                user,
-                roleId,
-                licensePlate,
-                idCardNumber,
-                shipperProvinceId,
-                shipperWardId,
-                driverLicenseFrontUrl,
-                driverLicenseBackUrl
-        );
+        int userId = userDao.insertUserWithRole(user, roleId);
 
         if (userId <= 0) {
             forwardRegister(request, response,
                     "Đăng ký thất bại. Vui lòng thử lại.",
-                    accountType,
-                    firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword,
-                    idCardNumber, licensePlate, shipperProvinceIdStr, shipperWardIdStr);
+                    firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword);
             return;
         }
 
