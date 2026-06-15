@@ -37,7 +37,7 @@
       <!-- Tổng quan (demo: link vô hiệu hóa) -->
       <!-- Tổng quan -->
       <li class="sidebar-item <%= isDashboardActive ? "active" : "" %>">
-        <a href="#" class="sidebar-link">
+        <a href="${pageContext.request.contextPath}/sellerDashboard" class="sidebar-link">
           <i data-lucide="layout-dashboard"></i>
           <span>Tổng quan</span>
         </a>
@@ -46,7 +46,7 @@
       <!-- Quản lý cửa hàng (demo: link vô hiệu hóa) -->
       <!-- Quản lý cửa hàng -->
       <li class="sidebar-item <%= isAddShopActive ? "active" : "" %>">
-        <a href="#" class="sidebar-link">
+        <a href="${pageContext.request.contextPath}/view-shop" class="sidebar-link">
           <i data-lucide="store"></i>
           <span>Quản lý cửa hàng</span>
         </a>
