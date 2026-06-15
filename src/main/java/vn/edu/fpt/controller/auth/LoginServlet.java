@@ -66,18 +66,6 @@ public class LoginServlet extends HttpServlet {
 
         setNoCache(response);
 
-        /*
-         * Người dùng bấm "Quay lại đăng nhập" từ màn OTP.
-         * Lúc này phải xóa session pendingOtpEmail.
-         */
-        if ("true".equalsIgnoreCase(request.getParameter("exitOtp"))) {
-            HttpSession session = request.getSession(false);
-
-            if (session != null) {
-                session.removeAttribute("pendingOtpEmail");
-            }
-        }
-
         response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp");
     }
 

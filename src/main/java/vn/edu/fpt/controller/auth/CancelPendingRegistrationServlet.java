@@ -18,6 +18,19 @@ public class CancelPendingRegistrationServlet extends HttpServlet {
         response.setDateHeader("Expires", 0);
     }
 
+    private String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase();
+    }
+
+    private String getPendingEmailFromSession(HttpSession session) {
+        if (session == null) {
+            return "";
+        }
+
+        Object value = session.getAttribute("pendingOtpEmail");
+        return value == null ? "" : normalizeEmail(String.valueOf(value));
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -25,31 +38,21 @@ public class CancelPendingRegistrationServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         setNoCache(response);
 
-        /*
-         * PENDING chỉ có hạn 15 phút.
-         * Dọn bản ghi quá hạn trước.
-         */
         userDao.deleteExpiredPendingRegistrations(15);
 
-        String email = request.getParameter("email");
-        email = email == null ? "" : email.trim().toLowerCase();
-
         HttpSession session = request.getSession(false);
-        String pendingOtpEmail = session == null
-                ? null
-                : (String) session.getAttribute("pendingOtpEmail");
+        String emailFromSession = getPendingEmailFromSession(session);
+        String emailFromRequest = normalizeEmail(request.getParameter("email"));
 
-        boolean isSamePendingSession = pendingOtpEmail != null
-                && pendingOtpEmail.trim().equalsIgnoreCase(email);
+        /*
+         * Nút QUAY LẠI trên màn OTP:
+         * xóa tài khoản PENDING để người dùng nhập lại form đăng ký.
+         * Ưu tiên email trong session, hidden email chỉ dùng khi session bị mất.
+         */
+        String emailToDelete = !emailFromSession.isEmpty() ? emailFromSession : emailFromRequest;
 
-        if (!email.isEmpty() && isSamePendingSession) {
-            /*
-             * Chỉ xóa user chưa xác thực OTP:
-             * users.status = 'PENDING'.
-             * Không xóa shipper chờ admin duyệt vì shipper chờ duyệt là:
-             * users.status = 'ACTIVE' và shipper_approval_status = 'PENDING'.
-             */
-            userDao.deletePendingRegistrationByEmail(email);
+        if (!emailToDelete.isEmpty()) {
+            userDao.deletePendingRegistrationByEmail(emailToDelete);
         }
 
         if (session != null) {
