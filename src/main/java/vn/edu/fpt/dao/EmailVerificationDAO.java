@@ -74,4 +74,5 @@ public class EmailVerificationDAO extends DBContext {
             e.printStackTrace();
         }
     }
+
 }

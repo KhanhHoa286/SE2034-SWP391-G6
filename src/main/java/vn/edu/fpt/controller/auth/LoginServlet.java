@@ -78,8 +78,7 @@ public class LoginServlet extends HttpServlet {
             }
         }
 
-//        response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp");
-        request.getRequestDispatcher("/public/auth/login.jsp").forward(request,response);
+        response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp");
     }
 
     @Override
@@ -194,16 +193,7 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        /*
-         * Đã bỏ check shipperApprovalStatus.
-         *
-         * Lý do:
-         * DB mới không có shipper_approval_status.
-         * Register mới cũng không đăng ký shipper nữa.
-         *
-         * Nếu tài khoản có role DELIVERY trong DB,
-         * coi như tài khoản đó được admin tạo/gán quyền sẵn.
-         */
+
 
         HttpSession session = request.getSession();
         session.setAttribute("user", user);
@@ -220,7 +210,7 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect(contextPath + "/home");
 
         } else if (roleId == 3) {
-            response.sendRedirect(contextPath + "/home");
+            response.sendRedirect(contextPath + "/seller/finance/view-wallet");
 
         } else if (roleId == 4) {
             response.sendRedirect(contextPath + "/logistics/delivery/list-deliveries.jsp");

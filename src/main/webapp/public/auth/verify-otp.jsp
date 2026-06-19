@@ -115,8 +115,7 @@
 
                     <button id="resend-btn"
                             type="button"
-                            class="resend-button disabled"
-                            disabled>
+                            class="resend-button">
                         Gửi lại mã
                     </button>
                 </div>
@@ -198,25 +197,26 @@
         timerElement.innerText =
             String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
 
-        if (timeLeft <= 0) {
-            clearInterval(countdown);
+if (timeLeft <= 0) {
+    clearInterval(countdown);
 
-            timerElement.innerText = 'Mã OTP đã hết hạn';
-            timerElement.classList.add('expired');
+    timerElement.innerText = 'Mã OTP đã hết hạn';
+    timerElement.classList.add('expired');
 
-            resendBtn.disabled = false;
-            resendBtn.classList.remove('disabled');
+    /*
+     * OTP hết hạn thì không cho xác nhận mã cũ nữa.
+     * Nhưng vẫn cho bấm gửi lại mã.
+     */
+    submitBtn.disabled = true;
+    submitBtn.classList.add('disabled');
 
-            submitBtn.disabled = true;
-            submitBtn.classList.add('disabled');
+    inputs.forEach(input => {
+        input.disabled = true;
+        input.classList.add('disabled');
+    });
 
-            inputs.forEach(input => {
-                input.disabled = true;
-                input.classList.add('disabled');
-            });
-
-            return;
-        }
+    return;
+}
 
         timeLeft--;
     }, 1000);

@@ -97,7 +97,7 @@ public class CartDAO extends DBContext {
                     " JOIN colors co ON v.color_id = co.color_id " +
                     " JOIN sizes sz ON v.size_id = sz.size_id ";
 
-    // lấy ra danh sách cho người dùng đã đăng nhập
+    // lấy ra danh sách sản phẩm trong giỏ cho người dùng đã đăng nhập nếu trong giỏ ko còn sản pẩm nào thì list rỗng
     public List<CartResponse> getCartForMember(int userId) {
         List<CartResponse> cartResponses = new ArrayList<>();
         String sql = "SELECT c.cart_item_id, c.quantity, c.is_selected, " + SELECT_PRODUCT_INFO
@@ -165,6 +165,25 @@ public class CartDAO extends DBContext {
             stmt.executeUpdate();
             return true;
         }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * HoaNK - Xóa 1 item trong giỏ hàng
+     */
+    private final String DELETE_ITEM_CART = """
+            DELETE FROM cart_items WHERE cart_item_id = ? AND user_id = ?;
+            """;
+    public boolean deleteCartItem(int cartItemId, int userId) {
+        String sql = DELETE_ITEM_CART;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, cartItemId);
+            stmt.setInt(2, userId);
+            stmt.executeUpdate();
+            return true;
+        }catch(Exception e) {
             e.printStackTrace();
         }
         return false;

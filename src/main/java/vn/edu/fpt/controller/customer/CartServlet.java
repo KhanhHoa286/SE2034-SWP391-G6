@@ -12,6 +12,8 @@ import vn.edu.fpt.dto.response.ShopCartResponse;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -25,23 +27,28 @@ public class CartServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // lấy ra danh sách cart list
-        Map<Integer, ShopCartResponse> responseMap = checkCartUser(request);
-
         //
-        request.setAttribute("cartDetail", responseMap);
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        if (user != null) { // đã đăng nhập
+            // xuống db lấy sản phẩm trong giỏ để hiển thị
+            List<CartResponse> cartResponses = cartDAO.getCartForMember(user.getUserId());
+            // lấy ra danh sách cart list
+            Map<Integer, ShopCartResponse> responseMap = checkCartUser(cartResponses);
+            // lấy ra tổng tiền từ các shop trong giỏ
+            BigDecimal newShopAllTotal = getShopAllTotal(cartResponses);
+
+            request.setAttribute("shopAllTotal", newShopAllTotal);
+            request.setAttribute("cartDetail", responseMap);
+        }
+        //
         request.getRequestDispatcher("/customer/cart/list-cart-items.jsp").forward(request, response);
     }
 
     // kiểm tra người dùng trả về list cart
-    private Map<Integer, ShopCartResponse> checkCartUser(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("user");
+    private Map<Integer, ShopCartResponse> checkCartUser(List<CartResponse> cartResponses) {
         //
         Map<Integer, ShopCartResponse> cartResponseMap = new LinkedHashMap<>();
-        if (user != null) { // đã đăng nhập
-            // xuống db lấy sản phẩm trong giỏ để hiển thị
-            List<CartResponse> cartResponses = cartDAO.getCartForMember(user.getUserId());
 
             // Duyệt đưa shopid vào làm key
             for (CartResponse c : cartResponses) {
@@ -56,7 +63,16 @@ public class CartServlet extends HttpServlet {
                 // sau khi có trong map rồi thì add list vào
                 cartResponseMap.get(shopId).getItems().add(c);
             }
-        }
             return cartResponseMap;
+    }
+
+    private BigDecimal getShopAllTotal(List<CartResponse> cartResponses) {
+        BigDecimal newShopAllTotal = new BigDecimal(BigInteger.ZERO);
+        if(cartResponses != null) {
+            for (CartResponse c : cartResponses) {
+                newShopAllTotal = newShopAllTotal.add(c.getTotalPrice());
+            }
+        }
+        return newShopAllTotal;
     }
 }
