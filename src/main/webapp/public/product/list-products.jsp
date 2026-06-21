@@ -29,7 +29,7 @@
                 </a>
     </div>
 
-    <form action="product-list" method="get">
+    <form action="${pageContext.request.contextPath}/product-list" method="get">
         <%--Gửi dữ liệu search về bên contrller--%>
         <input type="hidden" name="type" value="${filter.type}">
         <input type="hidden" name="text_search" value="${filter.textSearch}">

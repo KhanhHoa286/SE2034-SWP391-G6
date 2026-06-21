@@ -1,12 +1,9 @@
 /* ================================
-   MODA - View Profile
-   Convert từ Stitch Tailwind sang CSS thuần
-   Chỉ style phần profile content.
-   Header/footer dùng public/header.jsp + public/footer.jsp.
+   MODA - Profile / Dashboard Styles
 ================================ */
 
 :root {
-    --profile-bg: #f8f9ff;
+    --profile-bg: #ffffff;
     --profile-primary: #000000;
     --profile-text: #121c28;
     --profile-text-variant: #4c4546;
@@ -34,15 +31,15 @@
     vertical-align: middle;
 }
 
-/* Fix global/bootstrap ảnh hưởng link trong profile */
+/* Fix global/bootstrap ảnh hưởng link */
 .profile-layout a:not(.profile-edit-btn):not(.profile-side-link),
 .profile-layout a:not(.profile-edit-btn):not(.profile-side-link):hover {
-    color: inherit !important;
-    text-decoration: none !important;
+    color: inherit;
+    text-decoration: none;
 }
+
 /* ================================
-   Layout giống Stitch:
-   <div class="flex min-h-screen">
+   Layout
 ================================ */
 .profile-layout {
     display: flex;
@@ -51,8 +48,7 @@
 }
 
 /* ================================
-   Sidebar giống Stitch:
-   width 256px, bg surface, border right
+   Sidebar
 ================================ */
 .profile-sidebar {
     width: 256px;
@@ -74,7 +70,6 @@
     font-size: 24px;
     line-height: 1.3;
     font-weight: 700;
-    letter-spacing: -0.01em;
 }
 
 .profile-sidebar__head p {
@@ -82,7 +77,6 @@
     color: var(--profile-text-variant);
     font-size: 14px;
     line-height: 1.5;
-    font-weight: 400;
 }
 
 .profile-sidebar__nav {
@@ -95,32 +89,41 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 16px 24px;
+    padding: 0 24px;
+    height: 56px;
     color: var(--profile-text-variant);
+    text-decoration: none;
     transition: background 0.15s ease, color 0.15s ease;
 }
 
 .profile-side-link:hover {
     background: var(--profile-secondary-fixed);
+    color: var(--profile-text-variant);
 }
 
 .profile-side-link.active {
-    background: var(--profile-primary);
-    color: #ffffff;
+    background: var(--profile-secondary-fixed); /* Light gray instead of black */
+    color: var(--profile-primary);
     font-weight: 700;
+}
+
+.profile-side-link.active span,
+.profile-side-link.active .material-symbols-outlined {
+    color: var(--profile-primary);
 }
 
 .profile-side-link .material-symbols-outlined {
     font-size: 24px;
     flex-shrink: 0;
+    color: inherit;
 }
 
 .profile-side-link span:last-child {
     font-size: 12px;
-    line-height: 1;
     font-weight: 600;
     letter-spacing: 0.12em;
     text-transform: uppercase;
+    color: inherit;
 }
 
 .profile-sidebar__logout {
@@ -129,8 +132,7 @@
 }
 
 .profile-sidebar__logout .profile-side-link {
-    padding-top: 24px;
-    padding-bottom: 24px;
+    height: 72px;
 }
 
 .profile-sidebar__logout .profile-side-link:hover {
@@ -139,8 +141,7 @@
 }
 
 /* ================================
-   Main giống Stitch:
-   flex-1 px 64 py 64
+   Main Content
 ================================ */
 .profile-main {
     flex: 1;
@@ -151,6 +152,7 @@
 .profile-container {
     max-width: 896px;
     margin: 0 auto;
+    width: 100%;
 }
 
 /* Back button */
@@ -164,7 +166,6 @@
     gap: 8px;
     color: var(--profile-primary);
     font-size: 12px;
-    line-height: 1;
     font-weight: 600;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -202,23 +203,40 @@
     color: var(--profile-text-variant);
     font-size: 16px;
     line-height: 1.5;
-    font-weight: 400;
 }
 
 /* Edit button */
-
-
-.profile-edit-btn:hover {
-    opacity: 0.9;
+.profile-title-row .profile-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 56px;
+    padding: 0 32px;
+    background: var(--profile-primary);
+    color: #ffffff;
+    border: 1px solid var(--profile-primary);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
 }
 
-.profile-edit-btn .material-symbols-outlined {
+.profile-title-row .profile-edit-btn:hover {
+    opacity: 0.9;
+    color: #ffffff;
+}
+
+.profile-title-row .profile-edit-btn .material-symbols-outlined {
     font-size: 18px;
+    color: #ffffff;
 }
 
 /* ================================
-   Profile Card giống Stitch:
-   grid 12 columns, bg white, border, padding 32
+   Profile Card
 ================================ */
 .profile-card {
     display: grid;
@@ -258,7 +276,6 @@
     margin: 0;
     color: var(--profile-primary);
     font-size: 24px;
-    line-height: 1.3;
     font-weight: 700;
 }
 
@@ -266,8 +283,6 @@
     margin: 8px 0 0;
     color: var(--profile-secondary);
     font-size: 14px;
-    line-height: 1.5;
-    font-weight: 400;
 }
 
 /* Right column: lg:col-span-8 */
@@ -288,7 +303,6 @@
     margin: 0 0 4px;
     color: var(--profile-text-variant);
     font-size: 12px;
-    line-height: 1;
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -297,8 +311,6 @@
 .profile-info-row div {
     color: var(--profile-text);
     font-size: 16px;
-    line-height: 1.5;
-    font-weight: 400;
 }
 
 .profile-empty {
@@ -307,7 +319,7 @@
 }
 
 /* ================================
-   Responsive giống Stitch
+   Responsive
 ================================ */
 @media (max-width: 1024px) {
     .profile-main {
@@ -321,7 +333,6 @@
 
     .profile-title-row h1 {
         font-size: 36px;
-        line-height: 1.2;
     }
 
     .profile-card {
@@ -339,134 +350,4 @@
         padding-right: 0;
         padding-bottom: 24px;
     }
-}
-
-.profile-title-row .profile-edit-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-
-    width: auto !important;
-    min-width: unset !important;
-    max-width: none !important;
-    height: 56px !important;
-
-    background: #000000 !important;
-    color: #ffffff !important;
-    border: 1px solid #000000 !important;
-
-    padding: 0 32px !important;
-
-    font-size: 12px !important;
-    line-height: 1 !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.12em !important;
-    text-transform: uppercase !important;
-    white-space: nowrap !important;
-
-    text-decoration: none !important;
-    opacity: 1 !important;
-}
-
-.profile-title-row .profile-edit-btn:hover {
-    background: #000000 !important;
-    color: #ffffff !important;
-    opacity: 0.9 !important;
-    text-decoration: none !important;
-}
-
-.profile-title-row .profile-edit-btn span,
-.profile-title-row .profile-edit-btn .material-symbols-outlined {
-    color: #ffffff !important;
-}
-
-.profile-title-row .profile-edit-btn .material-symbols-outlined {
-    font-size: 18px !important;
-}
-/* ===== Fix sidebar giống Stitch ===== */
-
-.profile-sidebar {
-    width: 256px !important;
-    min-width: 256px !important;
-    background: #f8f9ff !important;
-    border-right: 1px solid #cfc4c5 !important;
-}
-
-.profile-side-link {
-    height: 56px !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 16px !important;
-    padding: 0 24px !important;
-
-    color: #4c4546 !important;
-    background: transparent !important;
-
-    text-decoration: none !important;
-    transition: background 0.15s ease, color 0.15s ease !important;
-}
-
-.profile-side-link:hover {
-    background: #e1e2e4 !important;
-    color: #4c4546 !important;
-}
-
-.profile-side-link.active {
-    background: #000000 !important;
-    color: #ffffff !important;
-    font-weight: 700 !important;
-}
-
-.profile-side-link.active span,
-.profile-side-link.active .material-symbols-outlined {
-    color: #ffffff !important;
-}
-
-.profile-side-link .material-symbols-outlined {
-    font-size: 24px !important;
-    color: inherit !important;
-    line-height: 1 !important;
-}
-
-.profile-side-link span:last-child {
-    color: inherit !important;
-    font-size: 12px !important;
-    line-height: 1 !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.12em !important;
-    text-transform: uppercase !important;
-}
-
-.profile-sidebar__head {
-    padding: 40px 24px !important;
-}
-
-.profile-sidebar__head h2 {
-    margin: 0 !important;
-    color: #000000 !important;
-    font-size: 24px !important;
-    line-height: 1.3 !important;
-    font-weight: 700 !important;
-}
-
-.profile-sidebar__head p {
-    margin: 4px 0 0 !important;
-    color: #4c4546 !important;
-    font-size: 14px !important;
-    line-height: 1.5 !important;
-}
-
-.profile-sidebar__logout {
-    margin-top: auto !important;
-    border-top: 1px solid #cfc4c5 !important;
-}
-
-.profile-sidebar__logout .profile-side-link {
-    height: 72px !important;
-}
-
-.profile-sidebar__logout .profile-side-link:hover {
-    background: #ffdad6 !important;
-    color: #ba1a1a !important;
 }

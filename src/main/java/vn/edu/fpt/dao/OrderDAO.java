@@ -1,6 +1,10 @@
 package vn.edu.fpt.dao;
 
 import vn.edu.fpt.common.DBContext;
+import vn.edu.fpt.dto.request.OrderHistoryFilterRequest;
+import vn.edu.fpt.dto.response.OrderHistoryFilterResponse;
+import vn.edu.fpt.dto.response.OrderHistoryResponse;
+import vn.edu.fpt.enums.SubOrderStatus;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
@@ -182,4 +186,102 @@ public class OrderDAO extends DBContext {
         }
         return list;
     }
+
+    /**
+     * HoaNK - Lấy ra danh sách suborder của người dùng
+     */
+    private final String GET_SUBORDER_BY_CUSTOMERID = """
+            select so.sub_order_id, so.created_at, so.status,so.total_amount,s.shop_name from sub_orders so
+            JOIN shops s ON s.shop_id = so.shop_id
+            JOIN master_orders mo ON mo.master_order_id = so.master_order_id
+            WHERE mo.customer_id = ?
+            """;
+    private final String PAGING = """
+            ORDER BY so.sub_order_id ASC 
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+            """;
+    public List<OrderHistoryResponse> getSubOrderByCustomerId(int customer_id, OrderHistoryFilterRequest orderRequest, int pageSize) {
+        String sql = GET_SUBORDER_BY_CUSTOMERID;
+        List<OrderHistoryResponse> orderResponse = new ArrayList<>();
+        // check điều kiện order từ ngày nào đến ngày nào
+        if(orderRequest.getFromDate() != null && orderRequest.getToDate() != null && !orderRequest.getFromDate().isEmpty()  && !orderRequest.getToDate().isEmpty()) {
+            sql += " AND mo.created_at BETWEEN CAST(? AS DATETIME) + ' 00:00:00' AND CAST(? AS DATETIME) + ' 23:59:59' ";
+        }
+        // lọc theo trạng thái đơn hàng
+        if(orderRequest.getStatus() != null && !orderRequest.getStatus().isEmpty()) {
+            sql += " AND so.status = ?";
+        }
+        sql += PAGING;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            int index = 1;
+            stmt.setInt(index++, customer_id);
+            if(orderRequest.getFromDate() != null && orderRequest.getToDate() != null && !orderRequest.getFromDate().isEmpty()  && !orderRequest.getToDate().isEmpty()) {
+                stmt.setString(index++, orderRequest.getFromDate());
+                stmt.setString(index++, orderRequest.getToDate());
+            }
+            if(orderRequest.getStatus() != null && !orderRequest.getStatus().isEmpty()) {
+                stmt.setString(index++, orderRequest.getStatus());
+            }
+            stmt.setInt(index++,(orderRequest.getPageNumber() - 1) * pageSize);
+            stmt.setInt(index++, pageSize);
+            //
+            try(ResultSet rs = stmt.executeQuery()) {
+                while(rs.next()) {
+                    OrderHistoryResponse order = new OrderHistoryResponse();
+                    order.setSubOrderId(rs.getInt("sub_order_id"));
+                    order.setShopName(rs.getString("shop_name"));
+                    order.setStatus(SubOrderStatus.valueOf(rs.getString("status")));
+                    order.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                    order.setTotalAmount(rs.getBigDecimal("total_amount"));
+                    orderResponse.add(order);
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return orderResponse;
+    }
+
+    /**
+     * Đếm số lượng đơn hàng của customer để phục vụ phân trang
+     */
+    private final String COUNT_SUBORDER_BY_CUSTOMERID = """
+             SELECT COUNT(*) FROM sub_orders so
+            JOIN shops s ON s.shop_id = so.shop_id
+            JOIN master_orders mo ON mo.master_order_id = so.master_order_id
+            WHERE mo.customer_id = ?
+            """;
+    public int countSubOrderByCustomerId(int customer_id, OrderHistoryFilterRequest orderRequest) {
+        String sql = COUNT_SUBORDER_BY_CUSTOMERID;
+
+        if(orderRequest.getFromDate() != null && orderRequest.getToDate() != null && !orderRequest.getFromDate().isEmpty()  && !orderRequest.getToDate().isEmpty()) {
+            sql += " AND mo.created_at BETWEEN CAST(? AS DATETIME) + ' 00:00:00' AND CAST(? AS DATETIME) + ' 23:59:59' ";
+        }
+        // lọc theo trạng thái đơn hàng
+        if(orderRequest.getStatus() != null && !orderRequest.getStatus().isEmpty()) {
+            sql += " AND so.status = ?";
+        }
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            int index = 1;
+            stmt.setInt(index++, customer_id);
+            if(orderRequest.getFromDate() != null && orderRequest.getToDate() != null && !orderRequest.getFromDate().isEmpty()  && !orderRequest.getToDate().isEmpty()) {
+                stmt.setString(index++, orderRequest.getFromDate());
+                stmt.setString(index++, orderRequest.getToDate());
+            }
+            if(orderRequest.getStatus() != null && !orderRequest.getStatus().isEmpty()) {
+                stmt.setString(index++, orderRequest.getStatus());
+            }
+
+            //
+            try(ResultSet rs = stmt.executeQuery()) {
+                if(rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
 }
