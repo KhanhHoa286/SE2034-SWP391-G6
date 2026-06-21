@@ -104,7 +104,7 @@ public class ProductDAO extends DBContext {
     }
 
     /**
-     * HoaNK - Hàm lấy product theo giới tính, cate, province, giá, tìm kiếm, xem tất cả .. ở trang product list
+     * HoaNK - Lấy product theo giới tính, cate, province, giá, tìm kiếm, xem tất cả .. ở trang product list
      */
     public List<ProductResponse> getAllProductByFilter(ProductFilterRequest productFilterRequest) {
         List<ProductResponse> products = new ArrayList<>();
@@ -131,8 +131,7 @@ public class ProductDAO extends DBContext {
             params.add(productFilterRequest.getCid());
         }
         if (productFilterRequest.getTextSearch() != null && !productFilterRequest.getTextSearch().trim().isEmpty()) { // loc theo search
-            sql += " AND (p.product_name LIKE ? OR p.description LIKE ? OR s.shop_name LIKE ?)";
-            params.add("%" + productFilterRequest.getTextSearch() + "%");
+            sql += " AND (p.product_name LIKE ? OR p.description LIKE ?)";
             params.add("%" + productFilterRequest.getTextSearch() + "%");
             params.add("%" + productFilterRequest.getTextSearch() + "%");
         }
@@ -231,8 +230,7 @@ public class ProductDAO extends DBContext {
             params.add(productFilterRequest.getCid());
         }
         if (productFilterRequest.getTextSearch() != null && !productFilterRequest.getTextSearch().trim().isEmpty()) { // loc theo search
-            sql += " AND (p.product_name LIKE ? OR p.description LIKE ? OR s.shop_name LIKE ?)";
-            params.add("%" + productFilterRequest.getTextSearch() + "%");
+            sql += " AND (p.product_name LIKE ? OR p.description LIKE ?)";
             params.add("%" + productFilterRequest.getTextSearch() + "%");
             params.add("%" + productFilterRequest.getTextSearch() + "%");
         }
@@ -517,16 +515,14 @@ public class ProductDAO extends DBContext {
     /**
      * HoaNK - Lấy ra so lượng biến thể còn trong kho
      */
-    public final String GET_VARIANT_STOCK = """
+    private final String GET_VARIANT_STOCK = """
         SELECT pv.stock_quantity FROM product_variants pv
-        WHERE (pv.product_id = ? AND pv.color_id = ? AND size_id = ?)
+        WHERE pv.variant_id = ?;
     """;
-    public int getVariantStock(int productId, int size_id, int color_id) {
+    public int getVariantStock(int variantId) {
         String sql = GET_VARIANT_STOCK;
         try(PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, productId);
-            stmt.setInt(2, color_id);
-            stmt.setInt(3, size_id);
+            stmt.setInt(1, variantId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1);
@@ -577,6 +573,30 @@ public class ProductDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * HoaNK - Lấy ra id product variant từ product id, size id và color id
+     */
+    private final String GET_VARIANT_ID = """
+            SELECT variant_id FROM product_variants
+        WHERE product_id = ? AND color_id = ? AND size_id = ?
+    """;
+    public int getVariantById(int pid, int sizeId, int colorId) {
+        String sql = GET_VARIANT_ID;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, pid);
+            stmt.setInt(2, colorId);
+            stmt.setInt(3, sizeId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("variant_id");
+                }
+            }
+        }catch (Exception e) {
             e.printStackTrace();
         }
         return 0;

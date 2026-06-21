@@ -68,11 +68,11 @@ public class LoginServlet extends HttpServlet {
 
         /*
          * Người dùng bấm "Quay lại đăng nhập" từ màn OTP.
-         * Lúc này phải xóa session pendingOtpEmail, nếu không sau khi đăng nhập tài khoản khác
-         * hoặc bấm vào /register, hệ thống vẫn kéo về màn OTP cũ.
+         * Lúc này phải xóa session pendingOtpEmail.
          */
         if ("true".equalsIgnoreCase(request.getParameter("exitOtp"))) {
             HttpSession session = request.getSession(false);
+
             if (session != null) {
                 session.removeAttribute("pendingOtpEmail");
             }
@@ -89,16 +89,20 @@ public class LoginServlet extends HttpServlet {
         setNoCache(response);
 
         /*
-         * Khi người dùng chủ động submit form login, coi như họ đã rời luồng OTP hiện tại.
-         * Xóa pendingOtpEmail để tránh đăng nhập tài khoản khác xong vẫn bị kéo về OTP cũ.
+         * Khi người dùng submit form login,
+         * coi như họ rời luồng OTP hiện tại.
          */
         HttpSession otpSession = request.getSession(false);
+
         if (otpSession != null) {
             otpSession.removeAttribute("pendingOtpEmail");
         }
 
         UserDAO userDao = new UserDAO();
 
+        /*
+         * Dọn các tài khoản PENDING quá hạn OTP.
+         */
         userDao.deleteExpiredPendingRegistrations(15);
 
         String email = request.getParameter("email");
@@ -131,6 +135,9 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
+        /*
+         * Nếu user chưa xác thực OTP thì gửi lại OTP và chuyển về màn verify.
+         */
         if (user.getStatus() == UserStatus.PENDING) {
             try {
                 sendOtp(email);
@@ -148,61 +155,53 @@ public class LoginServlet extends HttpServlet {
             } catch (Exception e) {
                 e.printStackTrace();
 
-                forwardLogin(request, response,
-                        "Tài khoản chưa xác thực OTP nhưng hệ thống chưa gửi lại được mã. Vui lòng thử lại sau.");
+                forwardLogin(
+                        request,
+                        response,
+                        "Tài khoản chưa xác thực OTP nhưng hệ thống chưa gửi lại được mã. Vui lòng thử lại sau."
+                );
                 return;
             }
         }
 
         if (user.getStatus() == UserStatus.LOCKED) {
-            forwardLogin(request, response,
-                    "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+            forwardLogin(
+                    request,
+                    response,
+                    "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên."
+            );
             return;
         }
 
         if (user.getStatus() != UserStatus.ACTIVE) {
-            forwardLogin(request, response,
-                    "Trạng thái tài khoản không hợp lệ.");
+            forwardLogin(
+                    request,
+                    response,
+                    "Trạng thái tài khoản không hợp lệ."
+            );
             return;
         }
 
         Integer roleId = userDao.getRoleIdByUserId(user.getUserId());
 
         if (roleId == null || roleId <= 0) {
-            forwardLogin(request, response,
-                    "Tài khoản chưa được gán quyền. Vui lòng liên hệ quản trị viên.");
+            forwardLogin(
+                    request,
+                    response,
+                    "Tài khoản chưa được gán quyền. Vui lòng liên hệ quản trị viên."
+            );
             return;
         }
 
-        String contextPath = request.getContextPath();
 
-        if (roleId == 4) {
-            String shipperApprovalStatus = user.getShipperApprovalStatus();
-
-            if (!"APPROVED".equalsIgnoreCase(shipperApprovalStatus)) {
-                if ("PENDING".equalsIgnoreCase(shipperApprovalStatus)) {
-                    forwardLogin(request, response,
-                            "Hồ sơ shipper của bạn đang chờ Admin duyệt. Bạn chưa thể đăng nhập vào hệ thống giao hàng.");
-                    return;
-                }
-
-                if ("REJECTED".equalsIgnoreCase(shipperApprovalStatus)) {
-                    forwardLogin(request, response,
-                            "Hồ sơ shipper của bạn đã bị Admin từ chối. Vui lòng liên hệ Admin để được hỗ trợ.");
-                    return;
-                }
-
-                forwardLogin(request, response,
-                        "Trạng thái hồ sơ shipper không hợp lệ. Vui lòng liên hệ Admin.");
-                return;
-            }
-        }
 
         HttpSession session = request.getSession();
         session.setAttribute("user", user);
         session.setAttribute("userId", user.getUserId());
         session.setAttribute("roleId", roleId);
         session.setAttribute("fullName", user.getFirstName() + " " + user.getLastName());
+
+        String contextPath = request.getContextPath();
 
         if (roleId == 1) {
             response.sendRedirect(contextPath + "/admin/dashboard/view-system-overview.jsp");
@@ -211,7 +210,7 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect(contextPath + "/home");
 
         } else if (roleId == 3) {
-            response.sendRedirect(contextPath + "/home");
+            response.sendRedirect(contextPath + "/seller/finance/view-wallet");
 
         } else if (roleId == 4) {
             response.sendRedirect(contextPath + "/logistics/delivery/list-deliveries.jsp");
