@@ -32,7 +32,7 @@
     </div>
 
     <%-- Form lọc sản phẩm theo shop--%>
-    <form action="shop" method="get">
+    <form action="${pageContext.request.contextPath}/shop" method="get">
         <input type="hidden" name="shop_id" value="${shopInfo.shopId}">
     <!-- Thông tin shop -->
     <div class="vendor-banner">

@@ -13,7 +13,6 @@
     <title>MODA - Hồ sơ cá nhân</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-```
 <!-- Google Font -->
 <link href="https://fonts.googleapis.com" rel="preconnect">
 <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
@@ -33,17 +32,17 @@
 
 <!-- CSS riêng profile, đặt cuối để không bị đè -->
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=4">
-```
+
 
 </head>
 
 <body class="profile-body">
 
-<jsp:include page="/public/header.jsp" />
+<jsp:include page="/common/header.jsp" />
 
 <div class="profile-layout">
 
-```
+
 <!-- Sidebar -->
 <aside class="profile-sidebar">
     <div class="profile-sidebar__head">
@@ -197,11 +196,10 @@
 
     </div>
 </main>
-```
 
 </div>
 
-<jsp:include page="/public/footer.jsp" />
+<jsp:include page="/common/footer.jsp" />
 
 </body>
 </html>

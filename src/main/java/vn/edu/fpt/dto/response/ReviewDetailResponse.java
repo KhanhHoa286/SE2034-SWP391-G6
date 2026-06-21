@@ -1,15 +1,12 @@
 package vn.edu.fpt.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Date;
 
-@Data
+@Getter@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
