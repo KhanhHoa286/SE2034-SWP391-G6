@@ -513,7 +513,28 @@ public class UserDAO extends DBContext {
 
         return null;
     }
+    public User getUserById(int userId) {
+        if (userId <= 0) {
+            return null;
+        }
 
+        String sql = "SELECT TOP 1 * FROM users WHERE user_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapUser(rs);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
     private User mapUser(ResultSet rs) throws SQLException {
         User user = new User();
 

@@ -9,6 +9,8 @@ import vn.edu.fpt.enums.UserStatus;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @WebServlet("/verify-otp")
 public class VerifyOtpServlet extends HttpServlet {
@@ -22,6 +24,58 @@ public class VerifyOtpServlet extends HttpServlet {
         response.setDateHeader("Expires", 0);
     }
 
+    private String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase();
+    }
+
+    private String getPendingEmailFromSession(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            return "";
+        }
+
+        Object value = session.getAttribute("pendingOtpEmail");
+        return value == null ? "" : normalizeEmail(String.valueOf(value));
+    }
+
+    private void clearPendingSession(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session != null) {
+            session.removeAttribute("pendingOtpEmail");
+        }
+    }
+
+    private void savePendingSession(HttpServletRequest request, String email) {
+        request.getSession().setAttribute("pendingOtpEmail", normalizeEmail(email));
+    }
+
+    private void redirectVerify(HttpServletRequest request,
+                                HttpServletResponse response,
+                                String email)
+            throws IOException {
+
+        String encodedEmail = URLEncoder.encode(normalizeEmail(email), StandardCharsets.UTF_8);
+        response.sendRedirect(request.getContextPath() + "/verify-otp?email=" + encodedEmail);
+    }
+
+    private void forwardOtp(HttpServletRequest request,
+                            HttpServletResponse response,
+                            String email,
+                            String error)
+            throws ServletException, IOException {
+
+        savePendingSession(request, email);
+        request.setAttribute("email", normalizeEmail(email));
+
+        if (error != null && !error.trim().isEmpty()) {
+            request.setAttribute("error", error);
+        }
+
+        request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -29,20 +83,33 @@ public class VerifyOtpServlet extends HttpServlet {
         setNoCache(response);
 
         /*
-         * PENDING chỉ có hạn 15 phút.
-         * Quá 15 phút thì xóa user PENDING + OTP + role để đăng ký lại từ đầu.
+         * Chỉ xóa tài khoản PENDING quá 15 phút.
+         * Nếu người dùng còn trong hạn thì vẫn giữ lại để nhập OTP.
          */
         userDao.deleteExpiredPendingRegistrations(15);
 
-        String email = request.getParameter("email");
+        String emailFromParam = normalizeEmail(request.getParameter("email"));
+        String emailFromSession = getPendingEmailFromSession(request);
 
-        if ((email == null || email.trim().isEmpty()) && request.getSession(false) != null) {
-            email = (String) request.getSession(false).getAttribute("pendingOtpEmail");
+        String email;
+
+        if (!emailFromSession.isEmpty()) {
+            /*
+             * Session là nguồn chính.
+             * Nếu user tự sửa email trên URL thì kéo về email đang chờ OTP trong session.
+             */
+            email = emailFromSession;
+
+            if (!emailFromParam.isEmpty() && !emailFromParam.equals(emailFromSession)) {
+                redirectVerify(request, response, emailFromSession);
+                return;
+            }
+        } else {
+            email = emailFromParam;
         }
 
-        email = email == null ? "" : email.trim().toLowerCase();
-
         if (email.isEmpty()) {
+            clearPendingSession(request);
             response.sendRedirect(request.getContextPath() + "/register");
             return;
         }
@@ -50,38 +117,24 @@ public class VerifyOtpServlet extends HttpServlet {
         User user = userDao.getUserByEmail(email);
 
         if (user == null) {
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                session.removeAttribute("pendingOtpEmail");
-            }
-
+            clearPendingSession(request);
             response.sendRedirect(request.getContextPath() + "/register");
             return;
         }
 
         if (user.getStatus() == UserStatus.ACTIVE) {
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                session.removeAttribute("pendingOtpEmail");
-            }
-
+            clearPendingSession(request);
             response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp?verified=true");
             return;
         }
 
         if (user.getStatus() != UserStatus.PENDING) {
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                session.removeAttribute("pendingOtpEmail");
-            }
-
+            clearPendingSession(request);
             response.sendRedirect(request.getContextPath() + "/register");
             return;
         }
 
-        request.getSession().setAttribute("pendingOtpEmail", email);
-        request.setAttribute("email", email);
-        request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+        forwardOtp(request, response, email, null);
     }
 
     @Override
@@ -91,80 +144,85 @@ public class VerifyOtpServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         setNoCache(response);
 
-        String email = request.getParameter("email");
+        String emailFromSession = getPendingEmailFromSession(request);
+        String emailFromRequest = normalizeEmail(request.getParameter("email"));
         String otpInput = request.getParameter("otp");
 
-        email = email == null ? "" : email.trim().toLowerCase();
         otpInput = otpInput == null ? "" : otpInput.trim();
 
-        if (email.isEmpty() || otpInput.isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập đầy đủ mã OTP.");
-            request.setAttribute("email", email);
-            request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+        /*
+         * POST xác nhận OTP phải đi theo session đang chờ OTP.
+         * Không tin hoàn toàn hidden email để tránh verify nhầm tài khoản.
+         */
+        String email = !emailFromSession.isEmpty() ? emailFromSession : emailFromRequest;
+
+        if (email.isEmpty()) {
+            clearPendingSession(request);
+            response.sendRedirect(request.getContextPath() + "/register");
             return;
         }
 
-        /*
-         * PENDING chỉ có hạn 15 phút.
-         * Nếu quá hạn thì xóa trước khi kiểm tra OTP.
-         */
+        if (!emailFromSession.isEmpty()
+                && !emailFromRequest.isEmpty()
+                && !emailFromSession.equals(emailFromRequest)) {
+
+            forwardOtp(
+                    request,
+                    response,
+                    emailFromSession,
+                    "Phiên xác thực OTP không hợp lệ. Vui lòng nhập mã cho email hiện tại."
+            );
+            return;
+        }
+
+        if (otpInput.isEmpty()) {
+            forwardOtp(request, response, email, "Vui lòng nhập đầy đủ mã OTP.");
+            return;
+        }
+
+        if (!otpInput.matches("^[0-9]{6}$")) {
+            forwardOtp(request, response, email, "Mã OTP phải gồm đúng 6 chữ số.");
+            return;
+        }
+
         userDao.deleteExpiredPendingRegistrations(15);
 
         User user = userDao.getUserByEmail(email);
 
         if (user == null) {
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                session.removeAttribute("pendingOtpEmail");
-            }
-
+            clearPendingSession(request);
             response.sendRedirect(request.getContextPath() + "/register");
             return;
         }
 
         if (user.getStatus() == UserStatus.ACTIVE) {
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                session.removeAttribute("pendingOtpEmail");
-            }
-
+            clearPendingSession(request);
             response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp?verified=true");
             return;
         }
 
         if (user.getStatus() != UserStatus.PENDING) {
-            request.setAttribute("error", "Trạng thái tài khoản không hợp lệ để xác thực OTP.");
-            request.setAttribute("email", email);
-            request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+            clearPendingSession(request);
+            response.sendRedirect(request.getContextPath() + "/register");
             return;
         }
 
         boolean isValid = otpDao.verifyOtp(email, otpInput);
 
         if (!isValid) {
-            request.setAttribute("error", "Mã OTP không hợp lệ hoặc đã hết hạn.");
-            request.setAttribute("email", email);
-            request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+            forwardOtp(request, response, email, "Mã OTP không hợp lệ hoặc đã hết hạn.");
             return;
         }
 
         boolean activated = userDao.activateUserAfterOtp(user.getUserId());
 
         if (!activated) {
-            request.setAttribute("error", "Không cập nhật được trạng thái tài khoản sau xác thực OTP.");
-            request.setAttribute("email", email);
-            request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+            forwardOtp(request, response, email, "Không cập nhật được trạng thái tài khoản sau xác thực OTP.");
             return;
         }
 
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.removeAttribute("pendingOtpEmail");
-        }
+        clearPendingSession(request);
 
-        response.sendRedirect(
-                request.getContextPath()
-                        + "/public/auth/login.jsp?verified=true"
-        );
+        response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp?verified=true");
     }
 }

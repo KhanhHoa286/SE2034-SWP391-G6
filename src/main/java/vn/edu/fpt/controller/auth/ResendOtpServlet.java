@@ -19,9 +19,63 @@ public class ResendOtpServlet extends HttpServlet {
     private final UserDAO userDao = new UserDAO();
     private final EmailVerificationDAO otpDao = new EmailVerificationDAO();
 
+    private void setNoCache(HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase();
+    }
+
+    private String getPendingEmailFromSession(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            return "";
+        }
+
+        Object value = session.getAttribute("pendingOtpEmail");
+        return value == null ? "" : normalizeEmail(String.valueOf(value));
+    }
+
+    private void clearPendingSession(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session != null) {
+            session.removeAttribute("pendingOtpEmail");
+        }
+    }
+
+    private void forwardOtp(HttpServletRequest request,
+                            HttpServletResponse response,
+                            String email,
+                            String error,
+                            String success)
+            throws ServletException, IOException {
+
+        request.getSession().setAttribute("pendingOtpEmail", normalizeEmail(email));
+        request.setAttribute("email", normalizeEmail(email));
+
+        if (error != null && !error.trim().isEmpty()) {
+            request.setAttribute("error", error);
+        }
+
+        if (success != null && !success.trim().isEmpty()) {
+            request.setAttribute("success", success);
+        }
+
+        request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+    }
+
     private void sendOtp(String email) throws Exception {
         String otp = OtpUtils.generateOtp();
 
+        /*
+         * createOtp() trong EmailVerificationDAO đã gọi invalidateOldOtp(email),
+         * nên mỗi lần gửi lại mã mới thì mã cũ tự mất hiệu lực.
+         */
         otpDao.createOtp(email, otp, LocalDateTime.now().plusMinutes(1));
 
         EmailUtils.sendEmail(
@@ -40,59 +94,84 @@ public class ResendOtpServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        setNoCache(response);
 
-        String email = request.getParameter("email");
-        email = email == null ? "" : email.trim().toLowerCase();
+        String emailFromSession = getPendingEmailFromSession(request);
+        String emailFromRequest = normalizeEmail(request.getParameter("email"));
+
+        /*
+         * Ưu tiên email trong session.
+         * Hidden input chỉ dùng dự phòng.
+         */
+        String email = !emailFromSession.isEmpty() ? emailFromSession : emailFromRequest;
 
         if (email.isEmpty()) {
-            request.setAttribute("error", "Không tìm thấy email cần gửi lại OTP.");
-            request.setAttribute("email", email);
-            request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+            clearPendingSession(request);
+            response.sendRedirect(request.getContextPath() + "/register");
+            return;
+        }
+
+        if (!emailFromSession.isEmpty()
+                && !emailFromRequest.isEmpty()
+                && !emailFromSession.equals(emailFromRequest)) {
+
+            forwardOtp(
+                    request,
+                    response,
+                    emailFromSession,
+                    "Phiên gửi lại OTP không hợp lệ.",
+                    null
+            );
             return;
         }
 
         /*
-         * Chỉ dọn user chưa xác thực OTP quá 15 phút.
-         * Không ảnh hưởng shipper chờ admin duyệt vì shipper chờ duyệt là:
-         * users.status = ACTIVE
-         * shipper_approval_status = PENDING
+         * User PENDING chỉ tồn tại tối đa 15 phút.
+         * Trong 15 phút đó, người dùng được gửi lại OTP bất kỳ lúc nào.
          */
         userDao.deleteExpiredPendingRegistrations(15);
 
         User user = userDao.getUserByEmail(email);
 
         if (user == null) {
-            request.setAttribute("error", "Yêu cầu đăng ký đã hết hạn. Vui lòng đăng ký lại từ đầu.");
-            request.setAttribute("email", email);
-            request.getRequestDispatcher("/public/auth/register.jsp").forward(request, response);
+            clearPendingSession(request);
+            response.sendRedirect(request.getContextPath() + "/register");
             return;
         }
 
         if (user.getStatus() == UserStatus.ACTIVE) {
+            clearPendingSession(request);
             response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp?verified=true");
             return;
         }
 
         if (user.getStatus() != UserStatus.PENDING) {
-            request.setAttribute("error", "Trạng thái tài khoản không hợp lệ để gửi lại OTP.");
-            request.setAttribute("email", email);
-            request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+            clearPendingSession(request);
+            response.sendRedirect(request.getContextPath() + "/register");
             return;
         }
 
         try {
             sendOtp(email);
 
-            request.setAttribute("success", "Mã OTP mới đã được gửi. Vui lòng kiểm tra email.");
-            request.setAttribute("email", email);
-            request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+            forwardOtp(
+                    request,
+                    response,
+                    email,
+                    null,
+                    "Mã OTP mới đã được gửi. Vui lòng kiểm tra email."
+            );
 
         } catch (Exception e) {
             e.printStackTrace();
 
-            request.setAttribute("error", "Không gửi được mã OTP. Vui lòng thử lại.");
-            request.setAttribute("email", email);
-            request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+            forwardOtp(
+                    request,
+                    response,
+                    email,
+                    "Không gửi được mã OTP. Vui lòng thử lại.",
+                    null
+            );
         }
     }
 }
