@@ -14,7 +14,7 @@ public class ReviewDetailResponse {
     private Date createdAt;
     private Integer rating;
     private String comment;
-
+    private String reviewTitle;
     private String avatarUrl;
     private String userName;
 }

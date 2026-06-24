@@ -86,26 +86,22 @@ public class CartDAO extends DBContext {
      * HoaNK - Lấy ra các tham số để hiện thị lên trang giỏ hàng đưa vào biến CartResponse để trả về cho bên jsp
      */
     // Các trường thông tin của Sản phẩm, Biến thể và Shop
-    private static final String SELECT_PRODUCT_INFO =
-            " v.variant_id, s.shop_id, s.shop_name, p.product_id, p.product_name, p.thumbnail_url, " +
-                    " co.color_name, sz.size_name, v.price AS variant_price, p.discount_percentage, v.stock_quantity ";
-
-    // Các lệnh JOIN bảng để lấy thông tin sản phẩm
-    private static final String INFO_CART_PRODUCT =
-                    " JOIN products p ON v.product_id = p.product_id " +
-                    " JOIN shops s ON p.shop_id = s.shop_id " +
-                    " JOIN colors co ON v.color_id = co.color_id " +
-                    " JOIN sizes sz ON v.size_id = sz.size_id ";
-
+    private final String GET_CART_ITEM = """
+            SELECT c.cart_item_id, c.quantity,c.is_selected, v.variant_id,s.shop_id,s.shop_name,p.product_id,p.product_name,
+            p.thumbnail_url, co.color_name, sz.size_name, p.base_price AS variant_price, p.discount_percentage,  v.stock_quantity
+            FROM cart_items c
+            JOIN product_variants v ON c.variant_id = v.variant_id 
+            JOIN products p ON v.product_id = p.product_id
+            JOIN shops s ON p.shop_id = s.shop_id
+            JOIN colors co ON v.color_id = co.color_id
+            JOIN sizes sz ON v.size_id = sz.size_id
+            WHERE c.user_id = ?
+            ORDER BY s.shop_id, c.added_at DESC;
+            """;
     // lấy ra danh sách sản phẩm trong giỏ cho người dùng đã đăng nhập nếu trong giỏ ko còn sản pẩm nào thì list rỗng
     public List<CartResponse> getCartForMember(int userId) {
         List<CartResponse> cartResponses = new ArrayList<>();
-        String sql = "SELECT c.cart_item_id, c.quantity, c.is_selected, " + SELECT_PRODUCT_INFO
-                + " FROM cart_items c "
-                + " JOIN product_variants v ON c.variant_id = v.variant_id "
-                + INFO_CART_PRODUCT
-                + " WHERE c.user_id = ? "
-                + " ORDER BY s.shop_id, c.added_at DESC";
+        String sql = GET_CART_ITEM;
 
         try(PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
