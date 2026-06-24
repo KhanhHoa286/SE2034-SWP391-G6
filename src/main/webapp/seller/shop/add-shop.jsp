@@ -46,8 +46,6 @@
                 <!-- BREADCRUMBS -->
                 <nav class="breadcrumbs">
                     <a href="#">Đăng ký người bán</a>
-                    <span class="separator">›</span>
-                    <span class="current-page">Thêm hồ sơ cửa hàng</span>
                 </nav>
 
                 <h1 class="page-title">Hồ Sơ Cửa Hàng</h1>

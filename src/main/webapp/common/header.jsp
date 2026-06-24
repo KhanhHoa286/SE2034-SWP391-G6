@@ -20,7 +20,7 @@
 
         <div class="header__icons">
             <div class="header__search">
-                <form action="product-list" method="get">
+                <form action="${pageContext.request.contextPath}/product-list" method="get">
                     <c:if test="${filter.type != null}">
                         <input type="hidden" value="${filter.type}" name="type">
                     </c:if>
@@ -36,13 +36,13 @@
                 <i class="fa-solid fa-bag-shopping"></i>
                 <span class="cart-count" id="cart-count">${numberProductCart}</span>
             </a>
-            <c:if test="${session.user != null}">
-                <a href="${pageContext.request.contextPath}/customer-dashboard" class="avatar-link">
-                <img src="${session.user.avatarUrl}" alt="User Avatar" class="header__avatar">
+            <c:if test="${sessionScope.user != null}">
+                <a href="${pageContext.request.contextPath}/customer/profile" class="avatar-link">
+                <img src="${sessionScope.user.avatarUrl}" alt="User Avatar" class="header__avatar">
                 </a>
             </c:if>
-            <c:if test="${session.user == null}">
-            <a href="${pageContext.request.contextPath}/customer-dashboard" class="avatar-link">
+            <c:if test="${sessionScope.user == null}">
+            <a href="${pageContext.request.contextPath}/customer/profile" class="avatar-link">
                 <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg" alt="User Avatar" class="header__avatar">
             </a>
                 </c:if>

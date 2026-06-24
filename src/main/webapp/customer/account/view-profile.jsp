@@ -45,6 +45,9 @@
 
 
 <!-- Sidebar -->
+    <jsp:include page="/common/customer-sidebar.jsp">
+        <jsp:param name="active" value="profile" />
+    </jsp:include>
 
 <!-- Main Content -->
 <main class="profile-main">

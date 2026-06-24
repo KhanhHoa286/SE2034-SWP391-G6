@@ -42,7 +42,7 @@
                         <h1 class="shop-page-title">Hồ sơ cửa hàng</h1>
                         <div class="subtitle-container">
                             <span class="subtitle-line"></span>
-                            <span class="shop-page-subtitle">STORE PROFILE OVERVIEW</span>
+                            <span class="shop-page-subtitle">TỔNG QUAN HỒ SƠ CỬA HÀNG</span>
                         </div>
                     </div>
                     <div class="action-area">

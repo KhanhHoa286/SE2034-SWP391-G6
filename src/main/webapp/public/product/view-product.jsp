@@ -66,7 +66,7 @@
 
             <!-- Product Stats -->
             <div class="product-info__stats" style="display: flex; align-items: center; margin-bottom: 15px; font-size: 14px;">
-                <a href="view-reviews.jsp" class="product-info__reviews-link" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+                <a href="${pageContext.request.contextPath}/product-review?pid=${productDetail.productId}" class="product-info__reviews-link" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
                     <span style="font-weight: 600; margin-right: 5px; border-bottom: 1px solid #000; padding-bottom: 1px;">${productDetail.averageRating}</span>
                     <span style="color: #f5c518; margin-right: 8px; font-size: 12px;">
               <i class="fa-solid fa-star"></i>
