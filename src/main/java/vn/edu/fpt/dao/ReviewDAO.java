@@ -16,14 +16,14 @@ public class ReviewDAO extends DBContext {
     private final String GET_INFO_REVIEW_PRODUCT = """
     SELECT 
         p.product_id, p.product_name, p.base_price, p.discount_percentage, 
-        pr.created_at, pr.rating, pr.comment, u.avatar_url, 
+        pr.created_at, pr.rating,pr.review_title, pr.comment, u.avatar_url, 
         (u.first_name + ' ' + u.last_name) AS user_name,
         
         -- Đếm tổng số review của bộ lọc hiện tại
         COUNT(pr.review_id) OVER() AS total_review,
         
         -- Tính trung bình sao TỔNG của sản phẩm 
-        (SELECT ISNULL(AVG(rating), 0) FROM product_reviews WHERE product_id = p.product_id) AS average_rating
+        (SELECT ISNULL(AVG(CAST(rating AS FLOAT)), 0) FROM product_reviews WHERE product_id = p.product_id) AS average_rating
         
     FROM products p
     LEFT JOIN product_reviews pr ON p.product_id = pr.product_id %s
@@ -38,14 +38,14 @@ public class ReviewDAO extends DBContext {
 
     public ProductReviewResponse getProductReviewList(int productId, int page, int pageSize, Integer star) {
         // Xử lý chuỗi điều kiện lọc sao động
-        String starCondition = "";
-        boolean checkStar = (star != null && star >= 1 && star <= 5); // ĐÃ SỬA: Lấy từ 1 đến 5 sao
+        String conditionStar = "";
+        boolean checkStar = (star != null && star >= 1 && star <= 5);
         if (checkStar) {
-            starCondition = " AND pr.rating = " + star;
+            conditionStar = " AND pr.rating = " + star;
         }
 
-        // Định dạng lại chuỗi SQL tổng chỉnh
-        String sql = String.format(GET_INFO_REVIEW_PRODUCT, starCondition) + PAGING_REVIEW_PRODUCT;
+        // chuỗi chính sau khi lắp các điều kiện
+        String sql = String.format(GET_INFO_REVIEW_PRODUCT, conditionStar) + PAGING_REVIEW_PRODUCT;
         ProductReviewResponse productReviewResponse = null;
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -54,7 +54,7 @@ public class ReviewDAO extends DBContext {
 
             int offsetPage = (page - 1) * pageSize;
             stmt.setInt(index++, offsetPage);
-            stmt.setInt(index++, pageSize); // Chỉ lấy đúng số lượng pageSize (5), không nhân với page
+            stmt.setInt(index++, pageSize);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -63,7 +63,7 @@ public class ReviewDAO extends DBContext {
                         productReviewResponse = new ProductReviewResponse();
                         productReviewResponse.setProductId(rs.getInt("product_id"));
                         productReviewResponse.setProductName(rs.getString("product_name"));
-                        productReviewResponse.setAverageRating(rs.getDouble("average_rating"));
+                        productReviewResponse.setAverageRating(Math.floor(rs.getDouble("average_rating") * 10.0) / 10.0);
 
                         // Nếu bộ lọc rỗng, cột total_review từ LEFT JOIN sẽ bằng 0
                         int totalReview = rs.getInt("total_review");
@@ -86,12 +86,13 @@ public class ReviewDAO extends DBContext {
 
                     ReviewDetailResponse detail = new ReviewDetailResponse();
                     if (rs.getTimestamp("created_at") != null) {
-                        detail.setCreatedAt(new java.util.Date(rs.getTimestamp("created_at").getTime()));
+                        detail.setCreatedAt(new Date(rs.getTimestamp("created_at").getTime()));
                     }
                     detail.setRating(rs.getInt("rating"));
                     detail.setComment(rs.getString("comment"));
                     detail.setAvatarUrl(rs.getString("avatar_url"));
                     detail.setUserName(rs.getString("user_name"));
+                    detail.setReviewTitle(rs.getString("review_title"));
 
                     productReviewResponse.getReviewResponse().add(detail);
                 }
