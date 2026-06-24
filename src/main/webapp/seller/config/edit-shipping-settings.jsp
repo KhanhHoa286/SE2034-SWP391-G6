@@ -24,25 +24,12 @@
             <header class="top-header">
                 <div class="header-left">
                     <span class="seller-center-brand">SELLER CENTER</span>
-                    <div class="search-box">
-                        <i data-lucide="search"></i>
-                        <input type="text" placeholder="Tìm kiếm tính năng...">
-                    </div>
                 </div>
                 <div class="header-right">
-                    <div class="header-icons">
-                        <button class="icon-btn" title="Thông báo">
-                            <i data-lucide="bell"></i>
-                            <span class="icon-badge"></span>
-                        </button>
-                        <button class="icon-btn" title="Tin nhắn">
-                            <i data-lucide="mail"></i>
-                        </button>
-                    </div>
                     <div class="profile-section">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
+                        <img src="${not empty shop && not empty shop.logoUrl ? shop.logoUrl : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}"
                              alt="Admin Profile" class="profile-avatar">
-                        <span class="profile-name">ADMIN</span>
+                        <span class="profile-name">${not empty shop ? shop.shopName : 'ADMIN'}</span>
                     </div>
                 </div>
             </header>
@@ -87,7 +74,7 @@
                                     <p class="carrier-description">Dịch vụ vận chuyển toàn quốc với tốc độ nhanh và mạng lưới bưu cục rộng khắp.</p>
                                 </div>
                                 <div class="carrier-meta-row">
-                                    <span class="meta-label">THỜI GIAN TB.</span>
+                                    <span class="meta-label">THỜI GIAN TRUNG BÌNH.</span>
                                     <span class="meta-value">2-3 Ngày</span>
                                 </div>
                             </div>
@@ -118,7 +105,7 @@
                                     <p class="carrier-description">Đơn vị vận chuyển uy tín từ tập đoàn Viettel, hỗ trợ giao hàng tận vùng sâu vùng xa.</p>
                                 </div>
                                 <div class="carrier-meta-row">
-                                    <span class="meta-label">THỜI GIAN TB.</span>
+                                    <span class="meta-label">THỜI GIAN TRUNG BÌNH.</span>
                                     <span class="meta-value">3-5 Ngày</span>
                                 </div>
                             </div>
@@ -150,7 +137,7 @@
                                     <p class="carrier-description">Công nghệ vận chuyển tối ưu, tích hợp theo dõi đơn hàng thời gian thực.</p>
                                 </div>
                                 <div class="carrier-meta-row">
-                                    <span class="meta-label">THỜI GIAN TB.</span>
+                                    <span class="meta-label">THỜI GIAN TRUNG BÌNH.</span>
                                     <span class="meta-value">1-3 Ngày</span>
                                 </div>
                             </div>
@@ -179,7 +166,7 @@
                                     <p class="carrier-description">Dịch vụ chuyển phát nhanh phủ sóng 63 tỉnh thành, làm việc cả ngày lễ.</p>
                                 </div>
                                 <div class="carrier-meta-row">
-                                    <span class="meta-label">THỜI GIAN TB.</span>
+                                    <span class="meta-label">THỜI GIAN TRUNG BÌNH.</span>
                                     <span class="meta-value">2-4 Ngày</span>
                                 </div>
                             </div>
@@ -198,28 +185,12 @@
                         </div>
                     </div>
                 </form>
-
-                <!-- Warning Banner -->
-                <div class="warning-banner">
-                    <div class="warning-icon-wrapper">
-                        <i data-lucide="info"></i>
-                    </div>
-                    <div class="warning-text-container">
-                        <h4 class="warning-title">THÔNG TIN QUAN TRỌNG</h4>
-                        <p class="warning-desc">Việc tắt một đơn vị vận chuyển có thể ảnh hưởng đến các đơn hàng đang trong trạng thái xử lý. Vui lòng kiểm tra kỹ danh sách đơn hàng trước khi thực hiện thay đổi. Hệ thống sẽ cập nhật phương thức vận chuyển mới cho người mua trong vòng 5 phút sau khi lưu.</p>
-                    </div>
-                </div>
             </main>
 
             <!-- FOOTER -->
             <footer class="profile-footer">
                 <div class="footer-left">
                     <span>© 2024 SELLER PORTAL ADMIN</span>
-                </div>
-                <div class="footer-right">
-                    <a href="#" class="footer-link">CHÍNH SÁCH</a>
-                    <span class="footer-divider">|</span>
-                    <a href="#" class="footer-link">HỖ TRỢ</a>
                 </div>
             </footer>
         </div>

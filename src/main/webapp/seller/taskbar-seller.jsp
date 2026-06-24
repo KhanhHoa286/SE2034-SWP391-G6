@@ -114,12 +114,4 @@
       </li>
     </ul>
   </div>
-
-  <!-- Sidebar Footer -->
-  <div class="sidebar-footer">
-    <a href="#" class="logout-link">
-      <i data-lucide="help-circle"></i>
-      <span>Help Center</span>
-    </a>
-  </div>
-</aside>
+</aside>
