@@ -1,26 +1,452 @@
-.seller-page-shell {
-    display: flex;
-    min-height: 100vh;
-    background: var(--color-bg-app);
+/* ==========================================================================
+   SHIPPING CONFIGURATION PAGE STYLING (edit-shipping-settings.css)
+   ========================================================================== */
+
+/* --- Page Header Section --- */
+.page-header-section {
+    margin-bottom: 30px;
 }
 
-.seller-page-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.seller-page-content {
-    padding: 48px 44px;
-}
-
-.seller-page-content h1 {
-    margin-bottom: 8px;
+.page-title {
     font-size: 32px;
     font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
 }
 
-.seller-page-content p {
+.page-subtitle {
+    font-size: 14.5px;
     color: var(--color-text-secondary);
+}
+
+/* --- Header Search & Layout Updates --- */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex: 1;
+}
+
+.seller-center-brand {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--color-text-primary);
+}
+
+.search-box {
+    position: relative;
+    width: 320px;
+}
+
+.search-box i, .search-box svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-tertiary);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 8px 12px 8px 36px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: inherit;
+    transition: var(--transition-fast);
+    background-color: #fafafa;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    background-color: #ffffff;
+}
+
+.header-icons {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-right: 20px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    position: relative;
+    padding: 6px;
+    border-radius: 50%;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover {
+    background-color: #f4f4f5;
+    color: var(--color-text-primary);
+}
+
+.icon-btn i, .icon-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.icon-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 6px;
+    height: 6px;
+    background-color: #ef4444;
+    border-radius: 50%;
+}
+
+.profile-section {
+    border-left: 1px solid var(--color-border);
+    padding-left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-name {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--color-text-primary);
+}
+
+/* --- Shipping Carrier Layout Panel --- */
+.shipping-card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 30px;
+    margin-bottom: 24px;
+}
+
+.shipping-card-header {
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+}
+
+.shipping-card-header h2 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--color-text-primary);
+}
+
+.shipping-carriers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.carrier-item-card {
+    border: 1px solid var(--color-border);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 200px;
+    transition: var(--transition-smooth);
+    background-color: #ffffff;
+}
+
+.carrier-item-card:hover {
+    border-color: var(--color-border-hover);
+    box-shadow: var(--shadow-sm);
+}
+
+.carrier-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.carrier-logo-container {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+}
+
+.carrier-svg-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.carrier-status-toggle {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.status-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.5px;
+}
+
+/* Custom Minimalist Square Toggle Switch */
+.square-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 26px;
+}
+
+.square-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.square-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e4e4e7;
+    transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1.5px solid #e4e4e7;
+}
+
+.square-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 2.5px;
+    background-color: white;
+    transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Checked status style (Solid Black switch background) */
+input:checked + .square-slider {
+    background-color: #09090b;
+    border-color: #09090b;
+}
+
+input:checked + .square-slider:before {
+    transform: translateX(25px);
+}
+
+/* Details info inside carrier card */
+.carrier-details {
+    margin-bottom: 20px;
+    flex: 1;
+}
+
+.carrier-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--color-text-primary);
+    letter-spacing: 0.3px;
+}
+
+.carrier-description {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}
+
+.carrier-meta-row {
+    border-top: 1px dashed var(--color-border);
+    padding-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.meta-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.5px;
+}
+
+.meta-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+/* --- Action Buttons Row --- */
+.actions-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    letter-spacing: 0.5px;
+    transition: var(--transition-fast);
+}
+
+.back-link i, .back-link svg {
+    width: 16px;
+    height: 16px;
+    transition: var(--transition-fast);
+}
+
+.back-link:hover {
+    color: var(--color-text-secondary);
+}
+
+.back-link:hover i, .back-link:hover svg {
+    transform: translateX(-3px);
+}
+
+.btn-group {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-cancel {
+    background-color: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    padding: 12px 28px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition-smooth);
+    letter-spacing: 0.5px;
+}
+
+.btn-cancel:hover {
+    background-color: #fafafa;
+    border-color: var(--color-border-hover);
+}
+
+.btn-save {
+    background-color: #09090b;
+    border: 1px solid #09090b;
+    color: #ffffff;
+    padding: 12px 28px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition-smooth);
+    letter-spacing: 0.5px;
+}
+
+.btn-save:hover {
+    background-color: #27272a;
+    border-color: #27272a;
+}
+
+/* --- Warning Banner component --- */
+.warning-banner {
+    background-color: #fafafa;
+    border: 1.5px solid var(--color-border);
+    padding: 24px 28px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin-bottom: 40px;
+}
+
+.warning-icon-wrapper {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 2px;
+}
+
+.warning-icon-wrapper i, .warning-icon-wrapper svg {
+    width: 20px;
+    height: 20px;
+}
+
+.warning-text-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.warning-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--color-text-primary);
+}
+
+.warning-desc {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+}
+
+/* --- Footer Alignment Customization --- */
+.profile-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--color-border);
+    padding-top: 20px;
+    margin-top: auto;
+}
+
+.footer-left {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.footer-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.footer-link {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.8px;
+    transition: var(--transition-fast);
+}
+
+.footer-link:hover {
+    color: var(--color-text-primary);
+}
+
+.footer-divider {
+    font-size: 11px;
+    color: var(--color-border);
 }
