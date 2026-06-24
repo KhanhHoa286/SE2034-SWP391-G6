@@ -27,6 +27,7 @@ public class ProductReview {
     private Integer rating;
 
     private String comment;
+    private String reviewTitle;
 
     private String replyComment;
 

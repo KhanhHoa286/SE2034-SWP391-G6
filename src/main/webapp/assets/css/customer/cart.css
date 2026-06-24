@@ -183,8 +183,13 @@
     border: 1px solid var(--border-color);
     padding: 25px;
     position: sticky;
-    top: 100px;
+    bottom: 0;
+    width: 100%;
+    background-color: #ffffff;
+    z-index: 999;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
 }
+
 
 .order-summary__title {
     font-size: 1.2rem;
@@ -259,3 +264,4 @@
     top: 35px;
     white-space: nowrap;
 }
+
