@@ -16,6 +16,13 @@
 
   boolean isDashboardActive = activeAttr.equals("dashboard");
   boolean isAddShopActive   = activeAttr.equals("add-shop") || activeAttr.equals("view-shop") || activeAttr.equals("edit-shop");
+  boolean isProductsActive  = activeAttr.equals("products");
+  boolean isOrdersActive    = activeAttr.equals("orders");
+  boolean isCustomersActive = activeAttr.equals("customers");
+  boolean isVouchersActive  = activeAttr.equals("vouchers");
+  boolean isFinanceActive   = activeAttr.equals("finance");
+  boolean isShippingActive  = activeAttr.equals("shipping");
+  boolean isShippingSettingsActive = activeAttr.equals("shipping-settings");
 %>
 <!-- Sidebar (Thanh tác vụ Seller Center) -->
 <aside class="sidebar">
@@ -34,26 +41,24 @@
     <!-- Menu Chức năng -->
     <ul class="sidebar-menu">
 
-      <!-- Tổng quan (demo: link vô hiệu hóa) -->
       <!-- Tổng quan -->
       <li class="sidebar-item <%= isDashboardActive ? "active" : "" %>">
-        <a href="#" class="sidebar-link">
+        <a href="${pageContext.request.contextPath}/sellerDashboard" class="sidebar-link">
           <i data-lucide="layout-dashboard"></i>
           <span>Tổng quan</span>
         </a>
       </li>
 
-      <!-- Quản lý cửa hàng (demo: link vô hiệu hóa) -->
       <!-- Quản lý cửa hàng -->
       <li class="sidebar-item <%= isAddShopActive ? "active" : "" %>">
-        <a href="#" class="sidebar-link">
+        <a href="${pageContext.request.contextPath}/view-shop" class="sidebar-link">
           <i data-lucide="store"></i>
           <span>Quản lý cửa hàng</span>
         </a>
       </li>
 
       <!-- Quản lý sản phẩm -->
-      <li class="sidebar-item">
+      <li class="sidebar-item <%= isProductsActive ? "active" : "" %>">
         <a href="#" class="sidebar-link">
           <i data-lucide="package"></i>
           <span>Quản lý sản phẩm</span>
@@ -61,7 +66,7 @@
       </li>
 
       <!-- Quản lý đơn hàng -->
-      <li class="sidebar-item">
+      <li class="sidebar-item <%= isOrdersActive ? "active" : "" %>">
         <a href="#" class="sidebar-link">
           <i data-lucide="shopping-cart"></i>
           <span>Quản lý đơn hàng</span>
@@ -69,7 +74,7 @@
       </li>
 
       <!-- Khách hàng -->
-      <li class="sidebar-item">
+      <li class="sidebar-item <%= isCustomersActive ? "active" : "" %>">
         <a href="#" class="sidebar-link">
           <i data-lucide="users"></i>
           <span>Khách hàng</span>
@@ -77,7 +82,7 @@
       </li>
 
       <!-- Khuyến mãi -->
-      <li class="sidebar-item">
+      <li class="sidebar-item <%= isVouchersActive ? "active" : "" %>">
         <a href="#" class="sidebar-link">
           <i data-lucide="ticket"></i>
           <span>Khuyến mãi</span>
@@ -85,7 +90,7 @@
       </li>
 
       <!-- Tài chính -->
-      <li class="sidebar-item">
+      <li class="sidebar-item <%= isFinanceActive ? "active" : "" %>">
         <a href="#" class="sidebar-link">
           <i data-lucide="wallet"></i>
           <span>Tài chính</span>
@@ -93,12 +98,28 @@
       </li>
 
       <!-- Giao hàng -->
-      <li class="sidebar-item">
+      <li class="sidebar-item <%= isShippingActive ? "active" : "" %>">
         <a href="#" class="sidebar-link">
           <i data-lucide="truck"></i>
           <span>Giao hàng</span>
         </a>
       </li>
+
+      <!-- Cài đặt giao hàng -->
+      <li class="sidebar-item <%= isShippingSettingsActive ? "active" : "" %>">
+        <a href="${pageContext.request.contextPath}/edit-shipping-settings" class="sidebar-link">
+          <i data-lucide="settings"></i>
+          <span>Cài đặt giao hàng</span>
+        </a>
+      </li>
     </ul>
   </div>
-</aside>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <a href="#" class="logout-link">
+      <i data-lucide="help-circle"></i>
+      <span>Help Center</span>
+    </a>
+  </div>
+</aside>
