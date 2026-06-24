@@ -47,18 +47,19 @@
         <!-- Left: Rating Stats & Button -->
         <div class="col-lg-3 mb-5 text-center">
             <div class="reviews-header__rating mb-4 d-flex flex-column align-items-center" style="gap: 10px;">
-                <div class="rating-score" style="font-size: 4rem; font-weight: 700; line-height: 1;">${productReview.averageRating}</div>
-                <div class="rating-stars" style="color: #000; font-size: 1.5rem;">
-                    <i class="fa-solid fa-star"></i>
-<%--                    <i class="fa-solid fa-star"></i>--%>
-<%--                    <i class="fa-solid fa-star"></i>--%>
-<%--                    <i class="fa-solid fa-star"></i>--%>
-<%--                    <i class="fa-solid fa-star"></i>--%>
+                <div class="rating-score" style="font-size: 4rem; font-weight: 700; line-height: 1;">${productReview.averageRating} <i class="fa-solid fa-star"></i>
                 </div>
+<%--                <div class="rating-stars" style="color: #000; font-size: 1.5rem;">--%>
+<%--                    <i class="fa-solid fa-star"></i>--%>
+<%--&lt;%&ndash;                    <i class="fa-solid fa-star"></i>&ndash;%&gt;--%>
+<%--&lt;%&ndash;                    <i class="fa-solid fa-star"></i>&ndash;%&gt;--%>
+<%--&lt;%&ndash;                    <i class="fa-solid fa-star"></i>&ndash;%&gt;--%>
+<%--&lt;%&ndash;                    <i class="fa-solid fa-star"></i>&ndash;%&gt;--%>
+<%--                </div>--%>
                 <div class="rating-count" style="color: #666; font-size: 1rem;">(${productReview.totalReview} đánh giá)</div>
             </div>
 
-            <button class="moda-btn moda-btn-primary w-100 mt-2">VIẾT ĐÁNH GIÁ</button>
+<%--            <button class="moda-btn moda-btn-primary w-100 mt-2">VIẾT ĐÁNH GIÁ</button>--%>
         </div>
 
         <!-- Right: Reviews List -->
@@ -74,7 +75,7 @@
                         <c:set var="currentStar" value="${6 - starNum}"/>
                         <a href="${pageContext.request.contextPath}/product-review?pid=${productReview.productId}&page=1&star=${currentStar}"
                            class="filter-btn text-decoration-none ${param.star == currentStar ? 'active' : ''}">
-                                ${currentStar} SAO
+                                ${currentStar} <i class="fa-solid fa-star"></i>
                         </a>
                     </c:forEach>
                 </div>
@@ -99,9 +100,9 @@
                         </div>
                         <div class="col-md-9 review-content">
                             <div class="review-stars" style="font-weight: 600; font-size: 1.1rem; color: #000; margin-bottom: 10px;">
-                                ${review.rating} <i class="fa-solid fa-star" style="color: #000;"></i>
+                                ${review.rating} <i class="fa-solid fa-star"></i>
                             </div>
-<%--                            <h4 class="review-title">Chất lượng da tuyệt vời, vượt mong đợi</h4>--%>
+                            <h4 class="review-title">${review.reviewTitle}</h4>
                             <p class="review-text">${review.comment}</p>
                         </div>
                     </div>

@@ -14,6 +14,7 @@ import vn.edu.fpt.model.Product;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.SQLException;
@@ -348,7 +349,7 @@ public class ProductDAO extends DBContext {
                     response.setLogoUrl(rs.getString("logo_url"));
                     response.setGender(Gender.valueOf(rs.getString("gender")));
                     // trung binh danh gai, tong review, va tong don hang da ban
-                    response.setAverageRating(rs.getDouble("average_rating"));
+                    response.setAverageRating(Math.floor(rs.getDouble("average_rating") * 10.0) / 10.0);
                     response.setTotalReview(rs.getInt("total_reviews"));
                     response.setTotalSold(rs.getInt("total_sold"));
 

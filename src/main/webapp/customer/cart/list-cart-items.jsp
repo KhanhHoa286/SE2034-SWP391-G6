@@ -79,8 +79,7 @@
                 </c:forEach>
             </div>
         <!-- Right: Order Summary -->
-        <aside>
-            <div class="order-summary">
+        <div class="order-summary">
 <%--                <h2 class="order-summary__title">TÓM TẮT ĐƠN HÀNG</h2>--%>
 
 <%--                <div class="summary-row">--%>
@@ -96,23 +95,21 @@
 <%--                    <span>0đ</span>--%>
 <%--                </div>--%>
 
-                <div class="summary-row total">
-                    <span>TỔNG CỘNG</span>
-                    <span id="new-all-shop-total"><fmt:formatNumber value="${shopAllTotal}" type="currency" maxFractionDigits="0"/></span>
-                </div>
-
-                <button class="checkout-btn">TIẾN HÀNH THANH TOÁN</button>
-
-                <div class="payment-methods">
-                    <p>CHẤP NHẬN THANH TOÁN</p>
-                    <div class="payment-icons">
-                        <i class="fa-brands fa-cc-visa"></i>
-                        <i class="fa-brands fa-cc-mastercard"></i>
-                        <i class="fa-solid fa-money-bill-wave"></i>
-                    </div>
-                </div>
+            <div class="summary-row total">
+                <span>TỔNG CỘNG</span>
+                <span id="new-all-shop-total"><fmt:formatNumber value="${shopAllTotal}" type="currency" maxFractionDigits="0"/></span>
             </div>
-        </aside>
+
+            <button class="checkout-btn">TIẾN HÀNH THANH TOÁN</button>
+<%--                <div class="payment-methods">--%>
+<%--                    <p>CHẤP NHẬN THANH TOÁN</p>--%>
+<%--                    <div class="payment-icons">--%>
+<%--                        <i class="fa-brands fa-cc-visa"></i>--%>
+<%--                        <i class="fa-brands fa-cc-mastercard"></i>--%>
+<%--                        <i class="fa-solid fa-money-bill-wave"></i>--%>
+<%--                    </div>--%>
+            </div>
+        </div>
 
     </div>
 </main>
