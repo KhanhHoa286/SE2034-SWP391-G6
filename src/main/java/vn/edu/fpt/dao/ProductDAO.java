@@ -602,5 +602,151 @@ public class ProductDAO extends DBContext {
         }
         return 0;
     }
+
+    /**
+     * Lấy danh sách sản phẩm của shop (dành cho Seller) với thông tin category, variant, stock.
+     * Hỗ trợ tìm kiếm, lọc trạng thái, lọc danh mục, và phân trang.
+     */
+    public List<ProductResponse> getSellerProductsByShopId(int shopId, String search, String statusFilter,
+                                                            Integer categoryId, int page, int pageSize) {
+        List<ProductResponse> products = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+
+        String sql = """
+            SELECT p.product_id, s.shop_name, s.shop_id,
+                   '' AS province_name,
+                   p.product_name, p.gender, p.base_price, p.discount_percentage,
+                   p.description, p.thumbnail_url, p.created_at,
+                   c.category_name,
+                   ISNULL(stock_data.total_stock, 0) AS total_stock,
+                   ISNULL(sold_data.total_sold, 0) AS total_sold
+            FROM products p
+            JOIN shops s ON p.shop_id = s.shop_id
+            LEFT JOIN categories c ON p.category_id = c.category_id
+            LEFT JOIN (
+                SELECT product_id, SUM(stock_quantity) AS total_stock
+                FROM product_variants
+                GROUP BY product_id
+            ) stock_data ON p.product_id = stock_data.product_id
+            LEFT JOIN (
+                SELECT od.product_id, SUM(od.quantity) AS total_sold
+                FROM order_items od
+                JOIN sub_orders so ON od.sub_order_id = so.sub_order_id
+                WHERE so.status = 'DELIVERED'
+                GROUP BY od.product_id
+            ) sold_data ON p.product_id = sold_data.product_id
+            WHERE p.shop_id = ? AND p.is_deleted = 0
+            """;
+        params.add(shopId);
+
+        // Tìm kiếm theo tên sản phẩm
+        if (search != null && !search.trim().isEmpty()) {
+            sql += " AND (p.product_name LIKE ? OR CAST(p.product_id AS VARCHAR) LIKE ?) ";
+            params.add("%" + search.trim() + "%");
+            params.add("%" + search.trim() + "%");
+        }
+
+        // Lọc theo danh mục
+        if (categoryId != null) {
+            sql += " AND p.category_id = ? ";
+            params.add(categoryId);
+        }
+
+        // Lọc theo trạng thái tồn kho
+        if (statusFilter != null && !statusFilter.isEmpty()) {
+            switch (statusFilter) {
+                case "instock":
+                    sql += " AND ISNULL(stock_data.total_stock, 0) > 15 ";
+                    break;
+                case "outofstock":
+                    sql += " AND ISNULL(stock_data.total_stock, 0) = 0 ";
+                    break;
+                case "lowstock":
+                    sql += " AND ISNULL(stock_data.total_stock, 0) > 0 AND ISNULL(stock_data.total_stock, 0) <= 15 ";
+                    break;
+            }
+        }
+
+        sql += " ORDER BY p.created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
+        int offset = (page - 1) * pageSize;
+        params.add(offset);
+        params.add(pageSize);
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ProductResponse pr = buildProductResponse(rs);
+                    // Gán thêm thông tin category vào description (tạm dùng field provinceName)
+                    String catName = rs.getString("category_name");
+                    pr.setProvinceName(catName != null ? catName : "Chưa phân loại");
+                    products.add(pr);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return products;
+    }
+
+    /**
+     * Đếm tổng sản phẩm của shop (dành cho Seller) theo bộ lọc tương ứng.
+     */
+    public int countSellerProducts(int shopId, String search, String statusFilter, Integer categoryId) {
+        List<Object> params = new ArrayList<>();
+
+        String sql = """
+            SELECT COUNT(DISTINCT p.product_id)
+            FROM products p
+            LEFT JOIN (
+                SELECT product_id, SUM(stock_quantity) AS total_stock
+                FROM product_variants
+                GROUP BY product_id
+            ) stock_data ON p.product_id = stock_data.product_id
+            WHERE p.shop_id = ? AND p.is_deleted = 0
+            """;
+        params.add(shopId);
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql += " AND (p.product_name LIKE ? OR CAST(p.product_id AS VARCHAR) LIKE ?) ";
+            params.add("%" + search.trim() + "%");
+            params.add("%" + search.trim() + "%");
+        }
+
+        if (categoryId != null) {
+            sql += " AND p.category_id = ? ";
+            params.add(categoryId);
+        }
+
+        if (statusFilter != null && !statusFilter.isEmpty()) {
+            switch (statusFilter) {
+                case "instock":
+                    sql += " AND ISNULL(stock_data.total_stock, 0) > 15 ";
+                    break;
+                case "outofstock":
+                    sql += " AND ISNULL(stock_data.total_stock, 0) = 0 ";
+                    break;
+                case "lowstock":
+                    sql += " AND ISNULL(stock_data.total_stock, 0) > 0 AND ISNULL(stock_data.total_stock, 0) <= 15 ";
+                    break;
+            }
+        }
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }
 
