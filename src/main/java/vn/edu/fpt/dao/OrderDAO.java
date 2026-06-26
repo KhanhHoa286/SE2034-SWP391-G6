@@ -4,6 +4,7 @@ import vn.edu.fpt.common.DBContext;
 import vn.edu.fpt.dto.request.OrderHistoryFilterRequest;
 import vn.edu.fpt.dto.response.OrderHistoryFilterResponse;
 import vn.edu.fpt.dto.response.OrderHistoryResponse;
+import vn.edu.fpt.enums.PaymentMethod;
 import vn.edu.fpt.enums.SubOrderStatus;
 
 import java.math.BigDecimal;
@@ -191,7 +192,7 @@ public class OrderDAO extends DBContext {
      * HoaNK - Lấy ra danh sách suborder của người dùng
      */
     private final String GET_SUBORDER_BY_CUSTOMERID = """
-            select so.sub_order_id, so.created_at, so.status,so.total_amount,s.shop_name from sub_orders so
+            select so.sub_order_id, so.created_at, so.status,so.total_amount,s.shop_name,mo.payment_method,mo.master_order_id from sub_orders so
             JOIN shops s ON s.shop_id = so.shop_id
             JOIN master_orders mo ON mo.master_order_id = so.master_order_id
             WHERE mo.customer_id = ?
@@ -205,11 +206,11 @@ public class OrderDAO extends DBContext {
         List<OrderHistoryResponse> orderResponse = new ArrayList<>();
         // check điều kiện order từ ngày nào đến ngày nào
         if(orderRequest.getFromDate() != null && orderRequest.getToDate() != null && !orderRequest.getFromDate().isEmpty()  && !orderRequest.getToDate().isEmpty()) {
-            sql += " AND mo.created_at BETWEEN CAST(? AS DATETIME) + ' 00:00:00' AND CAST(? AS DATETIME) + ' 23:59:59' ";
+            sql += " AND so.created_at BETWEEN CAST(? AS DATETIME) + ' 00:00:00' AND CAST(? AS DATETIME) + ' 23:59:59' ";
         }
         // lọc theo trạng thái đơn hàng
         if(orderRequest.getStatus() != null && !orderRequest.getStatus().isEmpty()) {
-            sql += " AND so.status = ?";
+            sql += " AND so.status = ? ";
         }
         sql += PAGING;
         try(PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -233,6 +234,8 @@ public class OrderDAO extends DBContext {
                     order.setStatus(SubOrderStatus.valueOf(rs.getString("status")));
                     order.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     order.setTotalAmount(rs.getBigDecimal("total_amount"));
+                    order.setPaymentMethod(PaymentMethod.valueOf(rs.getString("payment_method")));
+                    order.setMasterOrderId(rs.getInt("master_order_id"));
                     orderResponse.add(order);
                 }
             }
@@ -284,4 +287,46 @@ public class OrderDAO extends DBContext {
         return 0;
     }
 
+    /**
+     * HoaNK - Update status của suborder khi khách nhận được hàng chuyển sang delivered
+     */
+    private final String UPDATE_STATUS_ORDER = """
+            UPDATE sub_orders SET status = 'DELIVERED' WHERE sub_order_id = ?;
+            """;
+    public boolean updateStatusOrder(int subOrderId) {
+        String sql = UPDATE_STATUS_ORDER;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, subOrderId);
+            stmt.executeUpdate();
+            return true;
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * HoaNK - Update Payment status khi khách nhận được hàng chuyển sang PAID nếu là COD
+     */
+    private final String UPDATE_PAYMENT_METHOD = """
+            UPDATE master_orders SET payment_status = 'PAID' WHERE master_order_id = ?;
+            """;
+    public boolean updatePaymentMethod(int masterOrderId) {
+        String sql = UPDATE_PAYMENT_METHOD;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, masterOrderId);
+            stmt.executeUpdate();
+            return true;
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * HoaNK - Trả về 1 đối tượng orderItemResponse chứa bên trong 1 list shopOrderResponse (chứa bên trong 1 list orderItemDetailResponse)
+     */
+    private final String GET_ORDER_ITEMS = """
+            
+            """;
 }

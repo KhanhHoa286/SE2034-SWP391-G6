@@ -67,7 +67,7 @@ public class CartServlet extends HttpServlet {
     }
 
     private BigDecimal getShopAllTotal(List<CartResponse> cartResponses) {
-        BigDecimal newShopAllTotal = new BigDecimal(BigInteger.ZERO);
+        BigDecimal newShopAllTotal = BigDecimal.ZERO;
         if(cartResponses != null) {
             for (CartResponse c : cartResponses) {
                 newShopAllTotal = newShopAllTotal.add(c.getTotalPrice());
