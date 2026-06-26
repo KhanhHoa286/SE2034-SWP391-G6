@@ -2,7 +2,12 @@ package vn.edu.fpt.util;
 
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import javax.swing.text.DateFormatter;
 import java.math.BigDecimal;
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * HoaNK - HE195013
@@ -44,4 +49,13 @@ public class ParamUtil {
             }
             return value.trim();
         }
+
+        // format Date
+    public static String getDate(LocalDateTime date) {
+        if (date == null) {
+            return "";
+        }
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        return dateTimeFormatter.format(date);
+    }
 }
