@@ -2,5 +2,5 @@ package vn.edu.fpt.enums;
 
 public enum PaymentMethod {
     COD,
-    VNPAY
+    BANK
 }

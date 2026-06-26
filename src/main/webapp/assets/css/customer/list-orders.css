@@ -94,6 +94,9 @@
     letter-spacing: 0.5px;
     border-bottom: 1px solid #e0e0e0;
 }
+.orders-table th:last-child {
+    text-align: right;
+}
 .orders-table td {
     padding: 24px 16px;
     vertical-align: middle;
@@ -121,9 +124,9 @@
 /* Status Badges */
 .status-badge {
     display: inline-block;
-    padding: 6px 12px;
+    padding: 4px 8px;
     border-radius: 2px;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 600;
     text-transform: uppercase;
 }
@@ -162,7 +165,8 @@
 .action-links {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
+    justify-content: flex-end;
 }
 .btn-repurchase {
     color: #111;
@@ -181,16 +185,46 @@
 .btn-view-details {
     background-color: #f0f0f0;
     color: #111;
-    padding: 8px 16px;
+    padding: 6px 10px;
     text-decoration: none;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     border-radius: 2px;
     transition: background-color 0.2s;
+    white-space: nowrap;
 }
 .btn-view-details:hover {
     background-color: #e0e0e0;
     color: #111;
+}
+
+.btn-received {
+    background-color: #27AE60;
+    color: #fff;
+    padding: 6px 10px;
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 2px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.btn-received:disabled,
+.btn-received.update-status-order {
+        background-color: #e0e0e0 !important;
+        border-color: #d6d6d6 !important;
+        color: #8c8c8c !important;
+        cursor: not-allowed !important;
+        pointer-events: none;
+        box-shadow: none !important;
+}
+
+.btn-received:hover {
+    background-color: #219653;
+    color: #fff;
 }
 
 /* Pagination */
@@ -236,3 +270,4 @@
 #filterBtn:disabled{
     cursor: not-allowed;
 }
+
