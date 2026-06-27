@@ -110,7 +110,7 @@
                                 <c:if test="${order.status == 'DELIVERED'}">
                                     <button class="btn-received update-status-order">Đã nhận hàng</button>
                                 </c:if>
-                        <a href="${pageContext.request.contextPath}/customer/view-order" class="btn-view-details">Xem chi tiết</a>
+                        <a href="${pageContext.request.contextPath}/customer/view-order?sub_order_id=${order.subOrderId}" class="btn-view-details">Xem chi tiết</a>
                             </div>
                         </td>
                     </tr>
