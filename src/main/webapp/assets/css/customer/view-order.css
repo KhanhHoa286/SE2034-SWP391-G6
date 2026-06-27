@@ -154,11 +154,12 @@
     font-size: 1rem;
     font-weight: 700;
     margin: 0;
-    text-transform: uppercase;
+    /*text-transform: uppercase;*/
 }
 .product-price {
     font-size: 1rem;
     font-weight: 700;
+    margin-left: 5px;
 }
 .product-meta {
     font-size: 0.8rem;
@@ -167,7 +168,7 @@
 }
 .product-meta p {
     margin: 0 0 3px 0;
-    text-transform: uppercase;
+    /*text-transform: uppercase;*/
 }
 .product-actions {
     margin-top: 15px;
@@ -186,7 +187,28 @@
 .action-link:hover {
     opacity: 0.6;
 }
+/* shop suborder*/
+.shop-subtotal {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 15px 20px;
+    border-top: 1px solid #eaeaea;
+    font-size: 0.95rem;
+    color: #333;
+    gap: 5px;
+    background-color: #ffffff;
+}
 
+.shop-subtotal span {
+    font-weight: 600;
+}
+
+.shop-subtotal .price {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #000;
+}
 /* Info Cards */
 .info-card {
     border: 1px solid #000;
@@ -198,7 +220,7 @@
     font-size: 0.85rem;
     font-weight: 700;
     margin-bottom: 20px;
-    text-transform: uppercase;
+    /*text-transform: uppercase;*/
     letter-spacing: 0.5px;
     border-bottom: 1px solid #ddd;
     padding-bottom: 10px;
@@ -214,7 +236,7 @@
     font-size: 0.7rem;
     color: #888;
     margin-bottom: 5px;
-    text-transform: uppercase;
+    /*text-transform: uppercase;*/
     letter-spacing: 0.5px;
 }
 .info-group p {

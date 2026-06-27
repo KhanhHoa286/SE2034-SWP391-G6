@@ -1,6 +1,10 @@
 package vn.edu.fpt.dto.response;
 
 import lombok.*;
+import vn.edu.fpt.enums.PaymentMethod;
+import vn.edu.fpt.enums.PaymentStatus;
+import vn.edu.fpt.enums.SubOrderStatus;
+import vn.edu.fpt.util.ParamUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,14 +19,14 @@ import java.util.List;
 public class OrderItemResponse {
     private Integer subOrderId;
     private LocalDateTime createdAt;
-    private String statusOrder;
+    private SubOrderStatus statusOrder;
 
     private String receiverName;
     private String receiverPhone;
     private String shippingAddress;
 
-    private String paymentMethod;
-    private String paymentStatus;
+    private PaymentMethod paymentMethod;
+    private PaymentStatus paymentStatus;
 
     private List<ShopOrderResponse> shopOrders = new ArrayList();
 
@@ -32,5 +36,9 @@ public class OrderItemResponse {
             total = total.add(shop.getShopTotal());
         }
         return total;
+    }
+
+    public String getDateFormatted(){
+        return ParamUtil.getDate(createdAt);
     }
 }

@@ -2,10 +2,11 @@ package vn.edu.fpt.dao;
 
 import vn.edu.fpt.common.DBContext;
 import vn.edu.fpt.dto.request.OrderHistoryFilterRequest;
-import vn.edu.fpt.dto.response.OrderHistoryFilterResponse;
-import vn.edu.fpt.dto.response.OrderHistoryResponse;
+import vn.edu.fpt.dto.response.*;
 import vn.edu.fpt.enums.PaymentMethod;
+import vn.edu.fpt.enums.PaymentStatus;
 import vn.edu.fpt.enums.SubOrderStatus;
+import vn.edu.fpt.model.Product;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
@@ -327,6 +328,78 @@ public class OrderDAO extends DBContext {
      * HoaNK - Trả về 1 đối tượng orderItemResponse chứa bên trong 1 list shopOrderResponse (chứa bên trong 1 list orderItemDetailResponse)
      */
     private final String GET_ORDER_ITEMS = """
-            
+            SELECT so.sub_order_id,p.product_id,p.product_name,p.thumbnail_url,s.shop_id,s.shop_name,c.color_name, si.size_name,
+            oi.quantity, p.discount_percentage,p.base_price,mo.created_at, so.status, mo.receiver_name, mo.receiver_phone,
+            mo.shipping_address, mo.payment_method, mo.payment_status, ISNULL(pr.review_id,0) AS reviewed
+            FROM sub_orders so
+            JOIN master_orders mo ON so.master_order_id = mo.master_order_id
+            JOIN order_items oi ON oi.sub_order_id = so.sub_order_id
+            JOIN shops s ON s.shop_id = so.shop_id
+            JOIN products p ON oi.product_id = p.product_id
+            JOIN product_variants pv ON pv.variant_id = oi.variant_id
+            JOIN colors c ON c.color_id = pv.color_id
+            JOIN sizes si ON si.size_id = pv.size_id
+            LEFT JOIN product_reviews pr ON pr.order_item_id = oi.order_item_id
+            WHERE so.sub_order_id = ?
             """;
+    public OrderItemResponse getSubOrderDetail(Integer subOrderId) {
+        String sql = GET_ORDER_ITEMS;
+
+        //
+        OrderItemResponse orderItemResponse = null;
+        Map<Integer,ShopOrderResponse> mapShopOrder = new HashMap<>();
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, subOrderId);
+            try(ResultSet rs = stmt.executeQuery()) {
+                while(rs.next()) {
+                    if(orderItemResponse == null) {
+                        orderItemResponse = new OrderItemResponse();
+                        orderItemResponse.setStatusOrder(SubOrderStatus.valueOf(rs.getString("status")));
+                        orderItemResponse.setSubOrderId(rs.getInt("sub_order_id"));
+                        orderItemResponse.setPaymentStatus(PaymentStatus.valueOf(rs.getString("payment_status")));
+                        orderItemResponse.setPaymentMethod(PaymentMethod.valueOf(rs.getString("payment_method")));
+                        orderItemResponse.setReceiverName(rs.getString("receiver_name"));
+                        orderItemResponse.setReceiverPhone(rs.getString("receiver_phone"));
+                        orderItemResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                        orderItemResponse.setShippingAddress(rs.getString("shipping_address"));
+                    }
+                    //
+                    int shopId = rs.getInt("shop_id");
+                    ShopOrderResponse shopOrderResponse = null;
+                    if(mapShopOrder.containsKey(shopId)) {
+                        shopOrderResponse = mapShopOrder.get(shopId);
+                    }else{
+                        shopOrderResponse = new ShopOrderResponse();
+                        shopOrderResponse.setShopId(rs.getInt("shop_id"));
+                        shopOrderResponse.setShopName(rs.getString("shop_name"));
+                        mapShopOrder.put(shopId,shopOrderResponse);
+                    }
+                    //
+                    OrderItemDetailResponse orderItemDetailResponse = new OrderItemDetailResponse();
+                    orderItemDetailResponse.setThumbnail(rs.getString("thumbnail_url"));
+                    orderItemDetailResponse.setProductId(rs.getInt("product_id"));
+                    orderItemDetailResponse.setProductName(rs.getString("product_name"));
+                    orderItemDetailResponse.setShopId(rs.getInt("shop_id"));
+                    orderItemDetailResponse.setColorName(rs.getString("color_name"));
+                    orderItemDetailResponse.setSizeName(rs.getString("size_name"));
+                    orderItemDetailResponse.setQuantity(rs.getInt("quantity"));
+                    orderItemDetailResponse.setReviewed((rs.getInt("reviewed") > 0 ? true : false));
+
+                    Product product = new Product();
+                    product.setDiscountPercentage(rs.getInt("discount_percentage"));
+                    product.setBasePrice(rs.getBigDecimal("base_price"));
+                    orderItemDetailResponse.setDiscountPrice(product.getDiscountedPrice());
+                    //
+                    shopOrderResponse.getItems().add(orderItemDetailResponse);
+                }
+                if(orderItemResponse != null) {
+                    List<ShopOrderResponse> listShopOrder = new ArrayList<>(mapShopOrder.values());
+                    orderItemResponse.setShopOrders(listShopOrder);
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return orderItemResponse;
+    }
 }
