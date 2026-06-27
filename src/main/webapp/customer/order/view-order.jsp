@@ -1,4 +1,9 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<fmt:setLocale value="vi_VN"/>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -29,16 +34,16 @@
     <main class="profile-main">
         <div class="profile-container">
             <!-- Back to orders -->
-            <a href="list-orders.jsp" class="back-link"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI LỊCH SỬ ĐƠN HÀNG</a>
+            <a href="javascript:history.back()" class="back-link"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI LỊCH SỬ ĐƠN HÀNG</a>
 
             <!-- Order Header -->
             <div class="order-detail-header">
                 <div class="order-title-group">
-                    <h1 class="order-id">ĐƠN HÀNG #MD-882910</h1>
-                    <p class="order-date">Đặt ngày 14 tháng 05, 2024</p>
+                    <h1 class="order-id">ĐƠN HÀNG #MODA${subOrderDetail.subOrderId}</h1>
+                    <p class="order-date">Đặt ngày ${subOrderDetail.dateFormatted}</p>
                 </div>
                 <div class="order-status-group">
-                    <span class="status-badge status-shipping">ĐANG VẬN CHUYỂN</span>
+                    <span class="status-badge status-shipping">${subOrderDetail.statusOrder.displayName}</span>
                 </div>
             </div>
 
@@ -50,54 +55,65 @@
                     <h2 class="section-title">SẢN PHẨM TRONG ĐƠN</h2>
 
                     <!-- Product 1 -->
+                    <c:forEach items="${subOrderDetail.shopOrders}" var="shopOrder">
                     <div class="product-card">
-                        <div class="product-brand"><i class="fa-solid fa-store"></i> MODA ARCHIVE</div>
+                        <div class="product-brand"><i class="fa-solid fa-store"></i> ${shopOrder.shopName}</div>
+                        <c:forEach items="${shopOrder.items}" var="item">
                         <div class="product-details-wrap">
                             <div class="product-img-box">
-                                <div class="img-placeholder"><i class="fa-regular fa-image"></i></div>
+                                <div class="img-placeholder">
+                                    <img src="${item.thumbnail}" alt="${item.productName}">
+                                    </div>
                             </div>
                             <div class="product-info">
                                 <div class="product-name-price">
-                                    <h3 class="product-name">ÁO KHOÁC WOOL OVERCOAT</h3>
-                                    <span class="product-price">12,500,000đ</span>
+                                    <h3 class="product-name">${item.productName}</h3>
+                                    <span class="product-price"><fmt:formatNumber type="currency" maxFractionDigits="0" value="${item.discountPrice}"></fmt:formatNumber> </span>
                                 </div>
                                 <div class="product-meta">
-                                    <p>MÀU SẮC: CHARCOAL GREY</p>
-                                    <p>KÍCH THƯỚC: 48 (M)</p>
-                                    <p>SỐ LƯỢNG: 1</p>
+                                    <p>Màu: ${item.colorName}</p>
+                                    <p>Kích thước: ${item.sizeName}</p>
+                                    <p>Số lượng: ${item.quantity}</p>
                                 </div>
                                 <div class="product-actions">
-                                    <a href="#" class="action-link">MUA LẠI</a>
-                                    <a href="add-review.jsp" class="action-link">VIẾT ĐÁNH GIÁ</a>
+                                    <a href="#" class="action-link">Mua lại</a>
+                                    <c:if test="${item.reviewed == false}">
+                                    <a href="add-review.jsp" class="action-link">Viết đánh giá</a>
+                                    </c:if>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Product 2 -->
-                    <div class="product-card">
-                        <div class="product-brand"><i class="fa-solid fa-wand-magic-sparkles"></i> MODA STUDIO</div>
-                        <div class="product-details-wrap">
-                            <div class="product-img-box">
-                                <div class="img-placeholder"><i class="fa-regular fa-image"></i></div>
-                            </div>
-                            <div class="product-info">
-                                <div class="product-name-price">
-                                    <h3 class="product-name">SƠ MI LỤA PREMIUM</h3>
-                                    <span class="product-price">4,200,000đ</span>
-                                </div>
-                                <div class="product-meta">
-                                    <p>MÀU SẮC: IVORY WHITE</p>
-                                    <p>KÍCH THƯỚC: 39 (S)</p>
-                                    <p>SỐ LƯỢNG: 1</p>
-                                </div>
-                                <div class="product-actions">
-                                    <a href="#" class="action-link">MUA LẠI</a>
-                                    <a href="add-review.jsp" class="action-link">VIẾT ĐÁNH GIÁ</a>
-                                </div>
-                            </div>
+                        </c:forEach>
+                        <div class="shop-subtotal">
+                            <span>Tạm tính đơn hàng:</span>
+                            <span class="price"><fmt:formatNumber type="currency" value="${shopOrder.shopTotal}" maxFractionDigits="0"></fmt:formatNumber> </span>
                         </div>
                     </div>
+                    </c:forEach>
+<%--                    <!-- Product 2 -->--%>
+<%--                    <div class="product-card">--%>
+<%--                        <div class="product-brand"><i class="fa-solid fa-wand-magic-sparkles"></i> MODA STUDIO</div>--%>
+<%--                        <div class="product-details-wrap">--%>
+<%--                            <div class="product-img-box">--%>
+<%--                                <div class="img-placeholder"><i class="fa-regular fa-image"></i></div>--%>
+<%--                            </div>--%>
+<%--                            <div class="product-info">--%>
+<%--                                <div class="product-name-price">--%>
+<%--                                    <h3 class="product-name">SƠ MI LỤA PREMIUM</h3>--%>
+<%--                                    <span class="product-price">4,200,000đ</span>--%>
+<%--                                </div>--%>
+<%--                                <div class="product-meta">--%>
+<%--                                    <p>MÀU SẮC: IVORY WHITE</p>--%>
+<%--                                    <p>KÍCH THƯỚC: 39 (S)</p>--%>
+<%--                                    <p>SỐ LƯỢNG: 1</p>--%>
+<%--                                </div>--%>
+<%--                                <div class="product-actions">--%>
+<%--                                    <a href="#" class="action-link">MUA LẠI</a>--%>
+<%--                                    <a href="add-review.jsp" class="action-link">VIẾT ĐÁNH GIÁ</a>--%>
+<%--                                </div>--%>
+<%--                            </div>--%>
+<%--                        </div>--%>
+<%--                    </div>--%>
 
                 </div>
 
@@ -108,43 +124,43 @@
                     <div class="info-card">
                         <h3 class="card-title">THÔNG TIN NHẬN HÀNG</h3>
                         <div class="info-group">
-                            <label>NGƯỜI NHẬN</label>
-                            <p><strong>NGUYEN VAN A</strong><br>(+84) 901 234 567</p>
+                            <label>Người nhận</label>
+                            <p><strong>${subOrderDetail.receiverName}</strong><br>${subOrderDetail.receiverPhone}</p>
                         </div>
                         <div class="info-group">
-                            <label>ĐỊA CHỈ</label>
-                            <p>285 Cách Mạng Tháng 8, Phường 12,<br>Quận 10, TP. Hồ Chí Minh, Việt Nam</p>
+                            <label>Địa chỉ</label>
+                            <p>${subOrderDetail.shippingAddress}</p>
                         </div>
                     </div>
 
                     <!-- Payment Info -->
                     <div class="info-card">
-                        <h3 class="card-title">THANH TOÁN</h3>
+                        <h3 class="card-title">Thanh toán</h3>
                         <div class="info-group">
-                            <label>PHƯƠNG THỨC</label>
-                            <p><i class="fa-brands fa-cc-visa"></i> Visa kết thúc bằng &bull;&bull;&bull;&bull; 4242</p>
+                            <label>Phương thức</label>
+                            <p>${subOrderDetail.paymentMethod.displayName}</p>
                         </div>
                         <div class="info-group">
-                            <label>TRẠNG THÁI</label>
-                            <p>Đã thanh toán</p>
+                            <label>Trạng thái</label>
+                            <p>${subOrderDetail.paymentStatus.displayName}</p>
                         </div>
                     </div>
 
                     <!-- Order Summary -->
                     <div class="summary-card">
                         <h3 class="card-title">TỔNG KẾT ĐƠN HÀNG</h3>
-                        <div class="summary-row">
-                            <span>Tạm tính</span>
-                            <span>16,700,000đ</span>
-                        </div>
-                        <div class="summary-row discount">
-                            <span>Giảm giá (MODA10)</span>
-                            <span>-1,670,000đ</span>
-                        </div>
+<%--                        <div class="summary-row">--%>
+<%--                            <span>Tạm tính</span>--%>
+<%--                            <span>16,700,000đ</span>--%>
+<%--                        </div>--%>
+<%--                        <div class="summary-row discount">--%>
+<%--                            <span>Giảm giá (MODA10)</span>--%>
+<%--                            <span>-1,670,000đ</span>--%>
+<%--                        </div>--%>
                         <hr class="summary-divider">
                         <div class="summary-row total">
-                            <span>TỔNG CỘNG</span>
-                            <span>15,030,000đ</span>
+                            <span>Tổng cộng</span>
+                            <span><fmt:formatNumber value="${subOrderDetail.totalAllShop}" maxFractionDigits="0" type="currency"></fmt:formatNumber></span>
                         </div>
                     </div>
                 </div>
