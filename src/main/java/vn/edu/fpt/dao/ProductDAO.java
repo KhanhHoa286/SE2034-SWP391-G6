@@ -646,9 +646,10 @@ public class ProductDAO extends DBContext {
             params.add("%" + search.trim() + "%");
         }
 
-        // Lọc theo danh mục
+        // Lọc theo danh mục (chấp nhận cả danh mục cha và danh mục con của nó)
         if (categoryId != null) {
-            sql += " AND p.category_id = ? ";
+            sql += " AND (p.category_id = ? OR p.category_id IN (SELECT category_id FROM categories WHERE parent_id = ?)) ";
+            params.add(categoryId);
             params.add(categoryId);
         }
 
@@ -716,7 +717,8 @@ public class ProductDAO extends DBContext {
         }
 
         if (categoryId != null) {
-            sql += " AND p.category_id = ? ";
+            sql += " AND (p.category_id = ? OR p.category_id IN (SELECT category_id FROM categories WHERE parent_id = ?)) ";
+            params.add(categoryId);
             params.add(categoryId);
         }
 
