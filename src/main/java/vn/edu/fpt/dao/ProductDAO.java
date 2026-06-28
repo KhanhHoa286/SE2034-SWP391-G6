@@ -11,6 +11,8 @@ import vn.edu.fpt.enums.ShopApplicationStatus;
 import vn.edu.fpt.enums.ShopStatus;
 import vn.edu.fpt.enums.SubOrderStatus;
 import vn.edu.fpt.model.Product;
+import vn.edu.fpt.model.ProductVariant;
+import vn.edu.fpt.model.ProductImage;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -749,6 +751,149 @@ public class ProductDAO extends DBContext {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    public int getOrCreateColorId(String colorName) {
+        if (colorName == null || colorName.trim().isEmpty()) {
+            return 1;
+        }
+        colorName = colorName.trim();
+        String selectSql = "SELECT color_id FROM colors WHERE LOWER(color_name) = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(selectSql)) {
+            stmt.setString(1, colorName.toLowerCase());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("color_id");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        String insertSql = "INSERT INTO colors (color_name, color_code) VALUES (?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(insertSql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, colorName);
+            stmt.setString(2, "");
+            stmt.executeUpdate();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 1;
+    }
+
+    public int getOrCreateSizeId(String sizeName) {
+        if (sizeName == null || sizeName.trim().isEmpty()) {
+            return 1;
+        }
+        sizeName = sizeName.trim();
+        String selectSql = "SELECT size_id FROM sizes WHERE LOWER(size_name) = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(selectSql)) {
+            stmt.setString(1, sizeName.toLowerCase());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("size_id");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        String insertSql = "INSERT INTO sizes (size_name) VALUES (?)";
+        try (PreparedStatement stmt = connection.prepareStatement(insertSql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, sizeName);
+            stmt.executeUpdate();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 1;
+    }
+
+    public int insertProduct(Product product) {
+        String sql = """
+            INSERT INTO products (shop_id, category_id, gender, product_name, description, base_price, discount_percentage, thumbnail_url, is_active, is_deleted, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, product.getShopId());
+            if (product.getCategoryId() != null) {
+                stmt.setInt(2, product.getCategoryId());
+            } else {
+                stmt.setNull(2, java.sql.Types.INTEGER);
+            }
+            stmt.setString(3, product.getGender() != null ? product.getGender().name() : "UNISEX");
+            stmt.setString(4, product.getProductName());
+            stmt.setString(5, product.getDescription());
+            stmt.setBigDecimal(6, product.getBasePrice());
+            stmt.setInt(7, product.getDiscountPercentage() != null ? product.getDiscountPercentage() : 0);
+            stmt.setString(8, product.getThumbnailUrl());
+            stmt.setBoolean(9, product.getIsActive() != null ? product.getIsActive() : true);
+            stmt.setBoolean(10, product.getIsDeleted() != null ? product.getIsDeleted() : false);
+            stmt.setString(11, product.getStatus() != null ? product.getStatus().name() : "ACTIVE");
+            stmt.setObject(12, product.getCreatedAt() != null ? product.getCreatedAt() : LocalDateTime.now());
+
+            stmt.executeUpdate();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public boolean insertProductVariant(ProductVariant variant) {
+        String sql = """
+            INSERT INTO product_variants (product_id, color_id, size_id, variant_name, price, stock_quantity)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, variant.getProductId());
+            if (variant.getColorId() != null) {
+                stmt.setInt(2, variant.getColorId());
+            } else {
+                stmt.setNull(2, java.sql.Types.INTEGER);
+            }
+            if (variant.getSizeId() != null) {
+                stmt.setInt(3, variant.getSizeId());
+            } else {
+                stmt.setNull(3, java.sql.Types.INTEGER);
+            }
+            stmt.setString(4, variant.getVariantName());
+            stmt.setBigDecimal(5, variant.getPrice());
+            stmt.setInt(6, variant.getStockQuantity());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean insertProductImage(ProductImage image) {
+        String sql = """
+            INSERT INTO product_images (product_id, image_url, is_primary)
+            VALUES (?, ?, ?)
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, image.getProductId());
+            stmt.setString(2, image.getImageUrl());
+            stmt.setBoolean(3, image.getIsPrimary());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
 
