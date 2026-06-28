@@ -40,7 +40,7 @@
                         <h1 class="page-title">Danh sách sản phẩm</h1>
                         <p class="page-subtitle">Quản lý và cập nhật danh mục hàng hóa của bạn.</p>
                     </div>
-                    <a href="${pageContext.request.contextPath}/seller/product/add-product.jsp" class="btn-header-action">
+                    <a href="${pageContext.request.contextPath}/add-product" class="btn-header-action">
                         THÊM SẢN PHẨM MỚI
                     </a>
                 </div>
