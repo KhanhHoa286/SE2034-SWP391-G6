@@ -1,125 +1,143 @@
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<fmt:setLocale value="vi_VN"/>
 <!DOCTYPE html>
-
-<html lang="vi"><head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Viết Đánh Giá - MODA ARCHIVE</title>
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-    <!-- Material Symbols -->
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-    <link rel="stylesheet" href="/assets/css/customer/add-product-review.css">
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MODA - Viết đánh giá</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/add-review.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css">
 </head>
 <body>
-<div class="announcement-bar">FREESHIP ĐƠN TỪ 500K - GIẢM 10% CHO KHÁCH MỚI</div>
-<header class="navbar-custom">
-    <!-- Left: Logo -->
-    <a class="brand-logo" href="#">MODA</a>
-    <!-- Center: Links -->
-    <nav class="nav-links-center d-none d-lg-flex">
-        <a class="nav-link-custom" href="#">TRANG CHỦ</a>
-        <a class="nav-link-custom" href="#">NỮ</a>
-        <a class="nav-link-custom" href="#">NAM</a>
-        <a class="nav-link-custom" href="#">PHỤ KIỆN</a>
-        <a class="nav-link-custom sale-off" href="#">SALE OFF</a>
-    </nav>
-    <!-- Right: Utilities -->
-    <div class="nav-utilities">
-        <div class="utility-search d-none d-md-flex">
-            <span class="material-symbols-outlined">search</span>
-            <input placeholder="TÌM KIẾM..." type="text"/>
+
+<!-- Include Header -->
+<jsp:include page="/common/header.jsp" />
+
+<div class="profile-layout">
+
+<jsp:include page="/common/customer-sidebar.jsp">
+    <jsp:param name="active" value="orders" />
+</jsp:include>
+
+<!-- Main Content -->
+<main class="review-container">
+    <!-- Back button -->
+    <a href="javascript:history.back()" class="review-back">
+        <i class="fa-solid fa-chevron-left"></i> QUAY LẠI
+    </a>
+
+    <!-- Titles -->
+    <h1 class="review-title">Viết đánh giá</h1>
+    <p class="review-subtitle">Chia sẻ cảm nhận chân thực của bạn để giúp cộng đồng MODA mua sắm tốt hơn.</p>
+
+    <!-- Product info -->
+    <div class="review-product-card">
+        <div class="review-product-img-wrapper">
+            <img src="${reviewResponse.thumbnail}" alt="${reviewResponse.productName}" class="review-product-img">
         </div>
-        <button class="icon-btn"><span class="material-symbols-outlined">favorite</span></button>
-        <button class="icon-btn">
-            <span class="material-symbols-outlined">shopping_bag</span>
-            <span class="cart-badge">3</span>
-        </button>
-        <button class="icon-btn"><span class="material-symbols-outlined">account_circle</span></button>
+        <div class="review-product-details">
+            <div class="review-product-label">Sản phẩm của bạn</div>
+            <div class="review-product-name">${reviewResponse.productName}</div>
+            <div class="review-product-price"><fmt:formatNumber value="${reviewResponse.discountedPrice}" type="currency" maxFractionDigits="0"></fmt:formatNumber></div>
+        </div>
     </div>
-</header>
-<main class="container py-5" style="max-width: 800px;">
-    <div class="mb-5">
-        <a class="text-decoration-none text-dark d-flex align-items-center mb-3 fw-bold" href="#" style="font-size: 12px; letter-spacing: 0.2em;">
-            <span class="material-symbols-outlined fs-6">chevron_left</span> QUAY LẠI
-        </a>
-        <h1 class="fw-bold mb-2" style="font-size: 32px;">Viết đánh giá</h1>
-        <p class="text-secondary">Chia sẻ cảm nhận chân thực của bạn để giúp cộng đồng MODA mua sắm tốt hơn.</p>
-    </div>
-    <section class="d-flex gap-4 pb-4 mb-4 border-bottom">
-        <img class="product-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAelUg_VMd2Uwn395qUe7EPSNbQqmzflZGUZVMt5ru8o39foNQKzPZGMDEzZznLGbqzd0IfKanhXEZw6EK_B_gXSwBtuSWjXViiZ2y13RNNb76l6lq_6q3tgTzVFpDjmv-1vWwmDrmR5AUthjK7o0wz9Rdm2HyC8Je5C1A6XvaNrL1pZIbOoa-pwxfFddgQxdjHYAhZphLIhoJeGVH1Z0VBx2b_MVJfBcA4mzz1KqvVquIAvGJIh7m52L74FbKvCBkcmGFldHWbPkA"/>
-        <div class="d-flex flex-column justify-content-center">
-            <span class="text-secondary text-uppercase fw-bold" style="font-size: 10px; letter-spacing: 0.1em;">Sản phẩm của bạn</span>
-            <h2 class="h5 fw-bold mb-1">ÁO KHOÁC DA WOOL TỐI GIẢN</h2>
-            <p class="fw-bold mb-0">4.250.000 VND</p>
-        </div>
-    </section>
-    <form onsubmit="event.preventDefault(); alert('Cảm ơn bạn đã gửi đánh giá!');">
-        <div class="mb-4">
-            <label class="form-label fw-bold text-uppercase" style="font-size: 12px; letter-spacing: 0.1em;">Mức độ hài lòng</label>
-            <div class="d-flex gap-2" id="starRating">
-                <button class="btn btn-star" data-index="1" type="button"><span class="fw-bold small">1</span><span class="material-symbols-outlined fs-6">star</span></button>
-                <button class="btn btn-star" data-index="2" type="button"><span class="fw-bold small">2</span><span class="material-symbols-outlined fs-6">star</span></button>
-                <button class="btn btn-star" data-index="3" type="button"><span class="fw-bold small">3</span><span class="material-symbols-outlined fs-6">star</span></button>
-                <button class="btn btn-star" data-index="4" type="button"><span class="fw-bold small">4</span><span class="material-symbols-outlined fs-6">star</span></button>
-                <button class="btn btn-star" data-index="5" type="button"><span class="fw-bold small">5</span><span class="material-symbols-outlined fs-6">star</span></button>
+
+    <hr class="review-divider">
+
+    <!-- Review Form -->
+    <form action="${pageContext.request.contextPath}/customer/add-product-review" method="POST" class="review-form">
+
+        <input type="hidden" value="${reviewResponse.productId}" name="product_id">
+        <input type="hidden" value="${reviewResponse.orderItemId}" name="order_item_id">
+        <input type="hidden" value="${reviewResponse.subOrderId}" name="sub_order_id">
+        <!-- Rating -->
+        <div class="review-form-group">
+            <label class="review-label">Mức độ hài lòng</label>
+            <div class="review-rating-group">
+                <c:forEach begin="1" end="5" var="star">
+                <label class="review-rating-item">
+                    <input type="radio" name="rating" value="${star}" ${star == oldRating ? 'checked' : ''}>
+                    <span>${star}<i class="fa-solid fa-star"></i></span>
+                </label>
+                </c:forEach>
             </div>
+            <c:if test="${not empty error.rating}">
+                <span style="color:red">${error.rating}</span>
+            </c:if>
         </div>
-        <div class="mb-4">
-            <label class="form-label fw-bold text-uppercase" style="font-size: 12px; letter-spacing: 0.1em;">Tiêu đề đánh giá</label>
-            <input class="form-control border-secondary-subtle p-3 rounded-0" placeholder="Ví dụ: Chất lượng tuyệt vờmi" type="text"/>
+
+        <!-- Review Title -->
+        <div class="review-form-group">
+            <label class="review-label">Tiêu đề đánh giá</label>
+            <input type="text" class="review-input" placeholder="Ví dụ: Chất lượng tuyệt vời" name="title_review" value="${oldTitle}">
+            <c:if test="${not empty error.titleReview}">
+                <span style="color:red">${error.titleReview}</span>
+            </c:if>
         </div>
-        <div class="mb-4">
-            <label class="form-label fw-bold text-uppercase" style="font-size: 12px; letter-spacing: 0.1em;">Chia sẻ trải nghiệm</label>
-            <textarea class="form-control border-secondary-subtle p-3 rounded-0" placeholder="Hãy chia sẻ thém về chất liệu, kích cỡ hoặc cảm giác khi mặc sản phẩm này..." rows="6"></textarea>
+
+        <!-- Review Content -->
+        <div class="review-form-group">
+            <label class="review-label">Chia sẻ trải nghiệm</label>
+            <textarea class="review-textarea" name="comment" placeholder="Hãy chia sẻ thêm về chất liệu, kích cỡ hoặc cảm giác khi mặc sản phẩm này..." >${oldComment}</textarea>
+            <c:if test="${not empty error.comment}">
+                <span style="color:red">${error.comment}</span>
+            </c:if>
         </div>
-        <div class="mb-4">
-            <label class="form-label fw-bold text-uppercase" style="font-size: 12px; letter-spacing: 0.1em;">Hình ảnh/Video thực tế</label>
-            <div class="d-flex gap-3 flex-wrap">
-                <div class="upload-box">
-                    <span class="material-symbols-outlined text-secondary">photo_camera</span>
-                    <span class="fw-bold text-secondary" style="font-size: 9px; margin-top: 5px;">THÊM ẢNH</span>
-                </div>
-                <div class="position-relative" style="width: 96px; height: 96px;">
-                    <img class="w-100 h-100 object-fit-cover border" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdKwPDib-UEq0IP70ohbVduuh87BM_zeYBPSSHfjKMYXXO_O67LUJ0ulYMPXYXqa-LqJT0uyTPYvQXSnMRQWrRjlXe2JrKkSm3lbEkU5ONchJNBAyF7R5Z-R96BAtErnPJbVw89o_8acptUpnL2Jeq1OcP4QhupfoWh4PLm7_Bw7P6ZXfrN2b5wFpdEV_Ao9BU_-cvzsFvdeYkJCXuS8-YylLjYvOH_sMzQD4D543nMIPI7ihAMw-fZ_kbCqwoFC6La-83giP_YkY"/>
-                </div>
-            </div>
-            <p class="text-secondary small mt-2">Tối đa 5 ảnh hoặc video. Định dạng: JPG, PNG, MP4.</p>
+
+        <!-- Media Upload -->
+<%--        <div class="review-form-group">--%>
+<%--            <label class="review-label">Hình ảnh/Video thực tế</label>--%>
+<%--            <div class="review-media-group">--%>
+<%--                <label class="review-upload-btn">--%>
+<%--                    <i class="fa-solid fa-camera"></i>--%>
+<%--                    <span>Thêm ảnh</span>--%>
+<%--                    <input type="file" class="review-upload-input" accept="image/*,video/mp4" multiple>--%>
+<%--                </label>--%>
+<%--                <img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=200&auto=format&fit=crop" class="review-media-preview" alt="Preview Image">--%>
+<%--            </div>--%>
+<%--            <p class="review-media-helper">Tối đa 5 ảnh hoặc video. Định dạng: JPG, PNG, MP4.</p>--%>
+<%--        </div>--%>
+
+        <!-- Submit Button -->
+        <div class="review-submit-wrapper">
+            <button type="submit" class="review-submit-btn ${sessionScope.addSuccess != null ? 'disabled active' : ''}">Gửi đánh giá</button>
         </div>
-        <div class="d-flex justify-content-end pt-4">
-            <button class="btn-submit" type="submit">Gửi đánh giá</button>
+        <c:if test="${sessionScope.addFail != null}">
+        <div class="text-end">
+            <span style="color:red;font-weight: bold" class="text-end">${addFail}</span>
         </div>
+            <c:remove var="addFail" scope="session"></c:remove>
+        </c:if>
+        <c:if test="${sessionScope.addSuccess != null}">
+        <div class="text-end">
+            <span style="color:green;font-weight: bold" class="text-end">${addSuccess}</span>
+        </div>
+            <c:remove var="addSuccess" scope="session"></c:remove>
+        </c:if>
     </form>
 </main>
-<footer>
-    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-4">
-        <div>
-            <span class="h4 fw-bold mb-1 d-block">MODA</span>
-            <span class="text-secondary small text-uppercase" style="letter-spacing: -0.02em;">© 2024 MODA ARCHIVE. ALL RIGHTS RESERVED.</span>
-        </div>
-        <div class="d-flex gap-4">
-            <a class="text-secondary text-decoration-none small" href="#">Privacy Policy</a>
-            <a class="text-secondary text-decoration-none small" href="#">Terms of Service</a>
-            <a class="text-secondary text-decoration-none small" href="#">Shipping</a>
-            <a class="text-secondary text-decoration-none small" href="#">Returns</a>
-            <a class="text-secondary text-decoration-none small" href="#">Contact</a>
-        </div>
-    </div>
-</footer>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    const stars = document.querySelectorAll('.btn-star');
-    let currentRating = 0;
-    stars.forEach(star => {
-        star.addEventListener('click', () => {
-            currentRating = parseInt(star.getAttribute('data-index'));
-            stars.forEach((s, idx) => {
-                if (idx < currentRating) s.classList.add('active');
-                else s.classList.remove('active');
-            });
-        });
-    });
-</script>
-</body></html>
+</div>
+<!-- Include Footer -->
+<%--<jsp:include page="footer.jsp" />--%>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<%--<script>--%>
+<%--    window.addEventListener('pageshow', function (event) {--%>
+<%--        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {--%>
+<%--            window.location.reload();--%>
+<%--        }--%>
+<%--    });--%>
+<%--</script>--%>
+</body>
+</html>
