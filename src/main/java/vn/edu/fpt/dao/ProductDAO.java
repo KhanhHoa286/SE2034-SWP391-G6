@@ -7,6 +7,10 @@ import vn.edu.fpt.enums.ShopApplicationStatus;
 import vn.edu.fpt.enums.ShopStatus;
 import vn.edu.fpt.enums.SubOrderStatus;
 import vn.edu.fpt.model.Product;
+import vn.edu.fpt.model.ProductVariant;
+import vn.edu.fpt.model.ProductImage;
+import vn.edu.fpt.model.Color;
+import vn.edu.fpt.model.Size;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -600,6 +604,342 @@ public class ProductDAO extends DBContext {
     }
 
     /**
+     * Lấy danh sách sản phẩm của shop (dành cho Seller) với thông tin category, variant, stock.
+     * Hỗ trợ tìm kiếm, lọc trạng thái, lọc danh mục, và phân trang.
+     */
+    public List<ProductResponse> getSellerProductsByShopId(int shopId, String search, String statusFilter,
+                                                            Integer categoryId, int page, int pageSize) {
+        List<ProductResponse> products = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+
+        String sql = """
+            SELECT p.product_id, s.shop_name, s.shop_id,
+                   '' AS province_name,
+                   p.product_name, p.gender, p.base_price, p.discount_percentage,
+                   p.description, p.thumbnail_url, p.created_at,
+                   c.category_name,
+                   ISNULL(stock_data.total_stock, 0) AS total_stock,
+                   ISNULL(sold_data.total_sold, 0) AS total_sold
+            FROM products p
+            JOIN shops s ON p.shop_id = s.shop_id
+            LEFT JOIN categories c ON p.category_id = c.category_id
+            LEFT JOIN (
+                SELECT product_id, SUM(stock_quantity) AS total_stock
+                FROM product_variants
+                GROUP BY product_id
+            ) stock_data ON p.product_id = stock_data.product_id
+            LEFT JOIN (
+                SELECT od.product_id, SUM(od.quantity) AS total_sold
+                FROM order_items od
+                JOIN sub_orders so ON od.sub_order_id = so.sub_order_id
+                WHERE so.status = 'DELIVERED'
+                GROUP BY od.product_id
+            ) sold_data ON p.product_id = sold_data.product_id
+            WHERE p.shop_id = ? AND p.is_deleted = 0
+            """;
+        params.add(shopId);
+
+        // Tìm kiếm theo tên sản phẩm
+        if (search != null && !search.trim().isEmpty()) {
+            sql += " AND (p.product_name LIKE ? OR CAST(p.product_id AS VARCHAR) LIKE ?) ";
+            params.add("%" + search.trim() + "%");
+            params.add("%" + search.trim() + "%");
+        }
+
+        // Lọc theo danh mục (chấp nhận cả danh mục cha và danh mục con của nó)
+        if (categoryId != null) {
+            sql += " AND (p.category_id = ? OR p.category_id IN (SELECT category_id FROM categories WHERE parent_id = ?)) ";
+            params.add(categoryId);
+            params.add(categoryId);
+        }
+
+        // Lọc theo trạng thái tồn kho
+        if (statusFilter != null && !statusFilter.isEmpty()) {
+            switch (statusFilter) {
+                case "instock":
+                    sql += " AND ISNULL(stock_data.total_stock, 0) > 15 ";
+                    break;
+                case "outofstock":
+                    sql += " AND ISNULL(stock_data.total_stock, 0) = 0 ";
+                    break;
+                case "lowstock":
+                    sql += " AND ISNULL(stock_data.total_stock, 0) > 0 AND ISNULL(stock_data.total_stock, 0) <= 15 ";
+                    break;
+            }
+        }
+
+        sql += " ORDER BY p.created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
+        int offset = (page - 1) * pageSize;
+        params.add(offset);
+        params.add(pageSize);
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ProductResponse pr = buildProductResponse(rs);
+                    // Gán thêm thông tin category vào description (tạm dùng field provinceName)
+                    String catName = rs.getString("category_name");
+                    pr.setProvinceName(catName != null ? catName : "Chưa phân loại");
+                    products.add(pr);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return products;
+    }
+
+    /**
+     * Đếm tổng sản phẩm của shop (dành cho Seller) theo bộ lọc tương ứng.
+     */
+    public int countSellerProducts(int shopId, String search, String statusFilter, Integer categoryId) {
+        List<Object> params = new ArrayList<>();
+
+        String sql = """
+            SELECT COUNT(DISTINCT p.product_id)
+            FROM products p
+            LEFT JOIN (
+                SELECT product_id, SUM(stock_quantity) AS total_stock
+                FROM product_variants
+                GROUP BY product_id
+            ) stock_data ON p.product_id = stock_data.product_id
+            WHERE p.shop_id = ? AND p.is_deleted = 0
+            """;
+        params.add(shopId);
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql += " AND (p.product_name LIKE ? OR CAST(p.product_id AS VARCHAR) LIKE ?) ";
+            params.add("%" + search.trim() + "%");
+            params.add("%" + search.trim() + "%");
+        }
+
+        if (categoryId != null) {
+            sql += " AND (p.category_id = ? OR p.category_id IN (SELECT category_id FROM categories WHERE parent_id = ?)) ";
+            params.add(categoryId);
+            params.add(categoryId);
+        }
+
+        if (statusFilter != null && !statusFilter.isEmpty()) {
+            switch (statusFilter) {
+                case "instock":
+                    sql += " AND ISNULL(stock_data.total_stock, 0) > 15 ";
+                    break;
+                case "outofstock":
+                    sql += " AND ISNULL(stock_data.total_stock, 0) = 0 ";
+                    break;
+                case "lowstock":
+                    sql += " AND ISNULL(stock_data.total_stock, 0) > 0 AND ISNULL(stock_data.total_stock, 0) <= 15 ";
+                    break;
+            }
+        }
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public int getOrCreateColorId(String colorName) {
+        if (colorName == null || colorName.trim().isEmpty()) {
+            return 1;
+        }
+        colorName = colorName.trim();
+        String selectSql = "SELECT color_id FROM colors WHERE LOWER(color_name) = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(selectSql)) {
+            stmt.setString(1, colorName.toLowerCase());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("color_id");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        String insertSql = "INSERT INTO colors (color_name, color_code) VALUES (?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(insertSql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, colorName);
+            stmt.setString(2, "");
+            stmt.executeUpdate();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 1;
+    }
+
+    public int getOrCreateSizeId(String sizeName) {
+        if (sizeName == null || sizeName.trim().isEmpty()) {
+            return 1;
+        }
+        sizeName = sizeName.trim();
+        String selectSql = "SELECT size_id FROM sizes WHERE LOWER(size_name) = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(selectSql)) {
+            stmt.setString(1, sizeName.toLowerCase());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("size_id");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        String insertSql = "INSERT INTO sizes (size_name) VALUES (?)";
+        try (PreparedStatement stmt = connection.prepareStatement(insertSql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, sizeName);
+            stmt.executeUpdate();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 1;
+    }
+
+    public int insertProduct(Product product) {
+        String sql = """
+            INSERT INTO products (shop_id, category_id, gender, product_name, description, base_price, discount_percentage, thumbnail_url, is_active, is_deleted, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, product.getShopId());
+            if (product.getCategoryId() != null) {
+                stmt.setInt(2, product.getCategoryId());
+            } else {
+                stmt.setNull(2, java.sql.Types.INTEGER);
+            }
+            stmt.setString(3, product.getGender() != null ? product.getGender().name() : "UNISEX");
+            stmt.setString(4, product.getProductName());
+            stmt.setString(5, product.getDescription());
+            stmt.setBigDecimal(6, product.getBasePrice());
+            stmt.setInt(7, product.getDiscountPercentage() != null ? product.getDiscountPercentage() : 0);
+            stmt.setString(8, product.getThumbnailUrl());
+            stmt.setBoolean(9, product.getIsActive() != null ? product.getIsActive() : true);
+            stmt.setBoolean(10, product.getIsDeleted() != null ? product.getIsDeleted() : false);
+            stmt.setString(11, product.getStatus() != null ? product.getStatus().name() : "ACTIVE");
+            stmt.setObject(12, product.getCreatedAt() != null ? product.getCreatedAt() : LocalDateTime.now());
+
+            stmt.executeUpdate();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public boolean insertProductVariant(ProductVariant variant) {
+        String sql = """
+            INSERT INTO product_variants (product_id, color_id, size_id, variant_name, stock_quantity)
+            VALUES (?, ?, ?, ?, ?)
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, variant.getProductId());
+            if (variant.getColorId() != null) {
+                stmt.setInt(2, variant.getColorId());
+            } else {
+                stmt.setNull(2, java.sql.Types.INTEGER);
+            }
+            if (variant.getSizeId() != null) {
+                stmt.setInt(3, variant.getSizeId());
+            } else {
+                stmt.setNull(3, java.sql.Types.INTEGER);
+            }
+            stmt.setString(4, variant.getVariantName());
+            stmt.setInt(5, variant.getStockQuantity());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean insertProductImage(ProductImage image) {
+        String sql = """
+            INSERT INTO product_images (product_id, image_url, is_primary)
+            VALUES (?, ?, ?)
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, image.getProductId());
+            stmt.setString(2, image.getImageUrl());
+            stmt.setBoolean(3, image.getIsPrimary());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public List<Color> getAllColors() {
+        List<Color> list = new ArrayList<>();
+        String sql = "SELECT color_id, color_name, color_code FROM colors ORDER BY color_name";
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Color(
+                    rs.getInt("color_id"),
+                    rs.getString("color_name"),
+                    rs.getString("color_code")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Size> getAllSizes() {
+        List<Size> list = new ArrayList<>();
+        String sql = "SELECT size_id, size_name FROM sizes ORDER BY size_name";
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Size(
+                    rs.getInt("size_id"),
+                    rs.getString("size_name")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public boolean deleteProduct(int productId, int shopId) {
+        String sql = "UPDATE products SET is_deleted = 1 WHERE product_id = ? AND shop_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            stmt.setInt(2, shopId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    /**
      * HoaNK - Lấy các thuộc tính hiển thị cho trang add-product-review
      */
     private final String GET_FIELDS_RESPONSE_ADD_REVIEW = """
@@ -618,17 +958,17 @@ public class ProductDAO extends DBContext {
             stmt.setInt(2,orderItemId);
             try(ResultSet rs = stmt.executeQuery()) {
                 if(rs.next()) {
-                  addReviewResponse.setProductId(rs.getInt("product_id"));
-                  addReviewResponse.setOrderItemId(rs.getInt("order_item_id"));
-                  addReviewResponse.setSubOrderId(rs.getInt("sub_order_id"));
-                  addReviewResponse.setProductName(rs.getString("product_name"));
-                  addReviewResponse.setThumbnail(rs.getString("thumbnail_url"));
+                    addReviewResponse.setProductId(rs.getInt("product_id"));
+                    addReviewResponse.setOrderItemId(rs.getInt("order_item_id"));
+                    addReviewResponse.setSubOrderId(rs.getInt("sub_order_id"));
+                    addReviewResponse.setProductName(rs.getString("product_name"));
+                    addReviewResponse.setThumbnail(rs.getString("thumbnail_url"));
 
-                  Product product = new Product();
-                  product.setBasePrice(rs.getBigDecimal("base_price"));
-                  product.setDiscountPercentage(rs.getInt("discount_percentage"));
+                    Product product = new Product();
+                    product.setBasePrice(rs.getBigDecimal("base_price"));
+                    product.setDiscountPercentage(rs.getInt("discount_percentage"));
 
-                  addReviewResponse.setDiscountedPrice(product.getDiscountedPrice());
+                    addReviewResponse.setDiscountedPrice(product.getDiscountedPrice());
                 }
             }
         }catch (Exception e) {

@@ -6,7 +6,7 @@
 :root {
     --profile-primary: #000000;
     --profile-secondary: #5c5f60;
-    --profile-background: #f8f9ff;
+    --profile-background: #ffffff;
     --profile-surface: #ffffff;
     --profile-border: #e0e0e0;
     --profile-text-main: #121c28;
@@ -145,7 +145,7 @@
 .profile-container {
     width: 100%;
     max-width: 1000px;
-    margin: 0;
+    margin: 0 auto;
 }
 
 /* ================================
