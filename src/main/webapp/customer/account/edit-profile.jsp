@@ -7,6 +7,7 @@
 <c:set var="fallbackFullName" value="${profileUser.firstName} ${profileUser.lastName}" />
 <c:set var="fullNameInput" value="${not empty requestScope.fullNameValue ? requestScope.fullNameValue : fallbackFullName}" />
 <c:set var="dateOfBirthInput" value="${not empty requestScope.dateOfBirthValue ? requestScope.dateOfBirthValue : profileUser.dateOfBirth}" />
+<c:set var="genderInput" value="${not empty requestScope.genderValue ? requestScope.genderValue : profileUser.gender}" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -80,7 +81,7 @@
 
                     <div class="edit-profile-avatar-controls">
                         <h4>Ảnh đại diện</h4>
-                        <p>JPG, GIF hoặc PNG. Tối đa 2MB.</p>
+                        <p>JPG, GIF hoặc PNG. Tối đa 5MB.</p>
 
                         <div class="edit-profile-avatar-actions">
                             <label class="edit-profile-btn-outline" for="avatarInput">Thay đổi</label>
@@ -137,14 +138,17 @@
                     <div class="edit-profile-field edit-profile-field--full">
                         <label class="edit-profile-label" for="phone">Số điện thoại</label>
 
-                        <input id="phone"
-                               class="edit-profile-control"
-                               type="tel"
-                               name="phone"
-                               value="${profileUser.phone}"
-                               placeholder="Nhập số điện thoại"
-                               autocomplete="tel"
-                               required>
+                        <input
+                                class="edit-profile-control"
+                                type="tel"
+                                id="phone"
+                                name="phone"
+                                value="${profileUser.phone}"
+                                required
+                                maxlength="10"
+                                inputmode="numeric"
+                                pattern="(03|05|07|08|09)[0-9]{8}"
+                            >
                     </div>
 
                     <div class="edit-profile-field">
@@ -155,7 +159,7 @@
                                 <input name="gender"
                                        type="radio"
                                        value="NAM"
-                                       ${profileUser.gender == 'NAM' ? 'checked' : ''}>
+                                       ${genderInput == 'NAM' ? 'checked' : ''}>
                                 <span>Nam</span>
                             </label>
 
@@ -163,7 +167,7 @@
                                 <input name="gender"
                                        type="radio"
                                        value="NU"
-                                       ${profileUser.gender == 'NU' ? 'checked' : ''}>
+                                       ${genderInput == 'NU' ? 'checked' : ''}>
                                 <span>Nữ</span>
                             </label>
 
@@ -171,7 +175,7 @@
                                 <input name="gender"
                                        type="radio"
                                        value="UNISEX"
-                                       ${profileUser.gender == 'UNISEX' ? 'checked' : ''}>
+                                       ${genderInput == 'UNISEX' ? 'checked' : ''}>
                                 <span>Khác</span>
                             </label>
                         </div>
@@ -216,22 +220,47 @@
     const removeAvatarInput = document.getElementById('removeAvatarInput');
     const defaultAvatar = '${defaultAvatar}';
 
-    avatarInput.addEventListener('change', function () {
-        const file = this.files && this.files[0];
+ avatarInput.addEventListener('change', function () {
+     const file = this.files && this.files[0];
 
-        if (!file) {
-            return;
-        }
+     if (!file) {
+         return;
+     }
 
-        avatarPreview.src = URL.createObjectURL(file);
-        removeAvatarInput.value = 'false';
-    });
+     const maxSize = 5 * 1024 * 1024; // 5MB
+
+     if (file.size > maxSize) {
+         alert('Ảnh quá lớn. Vui lòng chọn ảnh dưới 5MB.');
+         avatarInput.value = '';
+         return;
+     }
+
+     if (!file.type.startsWith('image/')) {
+         alert('Vui lòng chọn đúng file hình ảnh.');
+         avatarInput.value = '';
+         return;
+     }
+
+     avatarPreview.src = URL.createObjectURL(file);
+     removeAvatarInput.value = 'false';
+ });
 
     removeAvatarButton.addEventListener('click', function () {
         avatarInput.value = '';
         avatarPreview.src = defaultAvatar;
         removeAvatarInput.value = 'true';
     });
+    const phoneInput = document.getElementById('phone');
+
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '');
+
+            if (this.value.length > 10) {
+                this.value = this.value.slice(0, 10);
+            }
+        });
+    }
 </script>
 
 </body>
