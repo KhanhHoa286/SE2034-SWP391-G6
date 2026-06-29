@@ -9,7 +9,11 @@ import vn.edu.fpt.dao.OrderDAO;
 import vn.edu.fpt.util.ParamUtil;
 
 import java.io.IOException;
-
+/**
+ * HoaNK - HE195013
+ * Date:
+ * Description: Khi đã nhận được hàng thì cập nhật trạng thái giao và thanh toán
+ */
 @WebServlet("/api/customer/update-status-order")
 public class UpdateStatusOrder extends HttpServlet {
     private final OrderDAO orderDAO = new OrderDAO();
