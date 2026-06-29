@@ -59,7 +59,7 @@
 
       <!-- Quản lý sản phẩm -->
       <li class="sidebar-item <%= isProductsActive ? "active" : "" %>">
-        <a href="${pageContext.request.contextPath}/list-seller-products" class="sidebar-link">
+        <a href="#" class="sidebar-link">
           <i data-lucide="package"></i>
           <span>Quản lý sản phẩm</span>
         </a>
