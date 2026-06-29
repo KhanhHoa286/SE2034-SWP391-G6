@@ -1,11 +1,7 @@
 package vn.edu.fpt.dao;
 import vn.edu.fpt.common.DBContext;
 import vn.edu.fpt.dto.request.ProductFilterRequest;
-import vn.edu.fpt.dto.response.ProductDetailResponse;
-import vn.edu.fpt.dto.response.ProductResponse;
-import vn.edu.fpt.dto.response.SizeResponse;
-import vn.edu.fpt.dto.response.ColorResponse;
-import vn.edu.fpt.dto.response.ImageResponse;
+import vn.edu.fpt.dto.response.*;
 import vn.edu.fpt.enums.Gender;
 import vn.edu.fpt.enums.ShopApplicationStatus;
 import vn.edu.fpt.enums.ShopStatus;
@@ -601,6 +597,44 @@ public class ProductDAO extends DBContext {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    /**
+     * HoaNK - Lấy các thuộc tính hiển thị cho trang add-product-review
+     */
+    private final String GET_FIELDS_RESPONSE_ADD_REVIEW = """
+            SELECT p.product_id,p.thumbnail_url,p.product_name,p.base_price,p.discount_percentage, oi.order_item_id,so.sub_order_id
+            FROM products p
+            JOIN order_items oi ON oi.product_id = p.product_id
+            JOIN sub_orders so ON so.sub_order_id = oi.sub_order_id
+            WHERE p.product_id = ? AND oi.order_item_id = ? 
+            """;
+    public AddReviewResponse getFieldsResponseAddReview(int productId, int orderItemId) {
+        String sql = GET_FIELDS_RESPONSE_ADD_REVIEW;
+
+        AddReviewResponse addReviewResponse = new AddReviewResponse();
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            stmt.setInt(2,orderItemId);
+            try(ResultSet rs = stmt.executeQuery()) {
+                if(rs.next()) {
+                  addReviewResponse.setProductId(rs.getInt("product_id"));
+                  addReviewResponse.setOrderItemId(rs.getInt("order_item_id"));
+                  addReviewResponse.setSubOrderId(rs.getInt("sub_order_id"));
+                  addReviewResponse.setProductName(rs.getString("product_name"));
+                  addReviewResponse.setThumbnail(rs.getString("thumbnail_url"));
+
+                  Product product = new Product();
+                  product.setBasePrice(rs.getBigDecimal("base_price"));
+                  product.setDiscountPercentage(rs.getInt("discount_percentage"));
+
+                  addReviewResponse.setDiscountedPrice(product.getDiscountedPrice());
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return addReviewResponse;
     }
 }
 

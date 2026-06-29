@@ -24,7 +24,7 @@ public class ProductReviewsServlet extends HttpServlet {
      @Override
          protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
          //
-         Integer productId = ParamUtil.getInteger(request, "pid");
+         Integer productId = ParamUtil.getInteger(request, "product_id");
          Integer page = ParamUtil.getInteger(request, "page");
          Integer star = ParamUtil.getInteger(request, "star");
          // nếu id không tồn tại đá ra lỗi 404 kèm message
