@@ -15,6 +15,15 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
+<c:if test="${not empty sessionScope.toastMessage}">
+    <div id="toastNotification" class="toast-notification ${sessionScope.toastType}">
+        <span class="toast-text">${sessionScope.toastMessage}</span>
+    </div>
+    <%
+        session.removeAttribute("toastMessage");
+        session.removeAttribute("toastType");
+    %>
+</c:if>
 <div class="app-container">
     <div class="main-layout">
         <%-- NHÚNG SIDEBAR TỪ FILE TÁCH BIỆT (taskbar-seller.jsp) --%>
@@ -246,8 +255,7 @@
 
     function deleteProduct(productId) {
         if (confirm("Bạn có chắc chắn muốn xóa sản phẩm #" + productId + " không?")) {
-            // TODO: Gọi servlet xóa sản phẩm
-            alert("Đã yêu cầu xóa sản phẩm: " + productId);
+            window.location.href = "${pageContext.request.contextPath}/delete-product?id=" + productId;
         }
         return false;
     }

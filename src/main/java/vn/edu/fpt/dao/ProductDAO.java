@@ -13,6 +13,8 @@ import vn.edu.fpt.enums.SubOrderStatus;
 import vn.edu.fpt.model.Product;
 import vn.edu.fpt.model.ProductVariant;
 import vn.edu.fpt.model.ProductImage;
+import vn.edu.fpt.model.Color;
+import vn.edu.fpt.model.Size;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -855,8 +857,8 @@ public class ProductDAO extends DBContext {
 
     public boolean insertProductVariant(ProductVariant variant) {
         String sql = """
-            INSERT INTO product_variants (product_id, color_id, size_id, variant_name, price, stock_quantity)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO product_variants (product_id, color_id, size_id, variant_name, stock_quantity)
+            VALUES (?, ?, ?, ?, ?)
         """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, variant.getProductId());
@@ -871,8 +873,7 @@ public class ProductDAO extends DBContext {
                 stmt.setNull(3, java.sql.Types.INTEGER);
             }
             stmt.setString(4, variant.getVariantName());
-            stmt.setBigDecimal(5, variant.getPrice());
-            stmt.setInt(6, variant.getStockQuantity());
+            stmt.setInt(5, variant.getStockQuantity());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -889,6 +890,53 @@ public class ProductDAO extends DBContext {
             stmt.setInt(1, image.getProductId());
             stmt.setString(2, image.getImageUrl());
             stmt.setBoolean(3, image.getIsPrimary());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public List<Color> getAllColors() {
+        List<Color> list = new ArrayList<>();
+        String sql = "SELECT color_id, color_name, color_code FROM colors ORDER BY color_name";
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Color(
+                    rs.getInt("color_id"),
+                    rs.getString("color_name"),
+                    rs.getString("color_code")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Size> getAllSizes() {
+        List<Size> list = new ArrayList<>();
+        String sql = "SELECT size_id, size_name FROM sizes ORDER BY size_name";
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Size(
+                    rs.getInt("size_id"),
+                    rs.getString("size_name")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public boolean deleteProduct(int productId, int shopId) {
+        String sql = "UPDATE products SET is_deleted = 1 WHERE product_id = ? AND shop_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            stmt.setInt(2, shopId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

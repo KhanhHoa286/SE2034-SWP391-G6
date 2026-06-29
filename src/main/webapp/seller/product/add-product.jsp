@@ -1,12 +1,24 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%
+    @SuppressWarnings("unchecked")
+    java.util.Map<String, String> errors = (java.util.Map<String, String>) request.getAttribute("errors");
+    @SuppressWarnings("unchecked")
+    java.util.Map<String, String> oldInput = (java.util.Map<String, String>) request.getAttribute("oldInput");
+
+    java.util.function.Function<String, String> old = key ->
+            (oldInput != null && oldInput.get(key) != null) ? oldInput.get(key) : "";
+
+    java.util.function.Function<String, String> err = key ->
+            (errors != null && errors.get(key) != null) ? errors.get(key) : "";
+%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thêm sản phẩm mới - SELLER PORTAL</title>
+    <title>Thêm sản phẩm mới - MODA</title>
     <!-- Nhúng CSS dùng chung để đồng bộ font Outfit và layout chính -->
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260628">
     <!-- Nhúng CSS riêng của trang add-product -->
@@ -38,6 +50,16 @@
         }
         request.setAttribute("shop", shop);
     }
+    // Dự phòng tải danh sách màu sắc nếu không đi qua Servlet
+    if (request.getAttribute("colors") == null) {
+        vn.edu.fpt.dao.ProductDAO productDAO = new vn.edu.fpt.dao.ProductDAO();
+        request.setAttribute("colors", productDAO.getAllColors());
+    }
+    // Dự phòng tải danh sách kích thước nếu không đi qua Servlet
+    if (request.getAttribute("sizes") == null) {
+        vn.edu.fpt.dao.ProductDAO productDAO = new vn.edu.fpt.dao.ProductDAO();
+        request.setAttribute("sizes", productDAO.getAllSizes());
+    }
 %>
 
 <div class="app-container">
@@ -51,23 +73,11 @@
         <div class="content-container">
             <!-- HEADER -->
             <header class="top-header">
-                <div class="header-left">
-                    <span class="seller-center-brand">SELLER CENTER</span>
-                </div>
                 <div class="header-right">
-                    <div class="header-icons">
-                        <button class="icon-btn" title="Thông báo">
-                            <i data-lucide="bell"></i>
-                            <span class="icon-badge"></span>
-                        </button>
-                        <button class="icon-btn" title="Trợ giúp">
-                            <i data-lucide="help-circle"></i>
-                        </button>
-                    </div>
                     <div class="profile-section">
+                        <span class="profile-name">${not empty shop ? shop.shopName : 'ADMIN'}</span>
                         <img src="${not empty shop && not empty shop.logoUrl ? shop.logoUrl : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}"
                              alt="Profile Avatar" class="profile-avatar">
-                        <span class="profile-name">${not empty shop ? shop.shopName : 'ADMIN'}</span>
                     </div>
                 </div>
             </header>
@@ -80,7 +90,7 @@
                 </div>
 
                 <!-- Form Thêm Sản Phẩm -->
-                <form id="addProductForm" action="${pageContext.request.contextPath}/seller/product/add" method="post" enctype="multipart/form-data">
+                <form id="addProductForm" action="${pageContext.request.contextPath}/add-product" method="post" enctype="multipart/form-data">
                     <div class="add-product-grid">
                         
                         <!-- Cột Trái (Thông tin sản phẩm & Biến thể) -->
@@ -95,13 +105,21 @@
                                     <div class="form-group">
                                         <label class="form-label" for="productName">TÊN SẢN PHẨM</label>
                                         <input type="text" id="productName" name="productName" required
-                                               class="form-control" placeholder="Ví dụ: Áo sơ mi lụa cao cấp">
+                                               class="form-control <%= !err.apply("productName").isEmpty() ? "input-error" : "" %>"
+                                               placeholder="Ví dụ: Áo sơ mi lụa cao cấp"
+                                               value="<%= old.apply("productName") %>">
+                                        <% if (!err.apply("productName").isEmpty()) { %>
+                                            <span class="field-error"><%= err.apply("productName") %></span>
+                                        <% } %>
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label" for="description">MÔ TẢ SẢN PHẨM</label>
                                         <textarea id="description" name="description" required rows="6"
-                                                  class="form-control text-area-control" 
-                                                  placeholder="Mô tả chi tiết về sản phẩm, chất liệu, kiểu dáng..."></textarea>
+                                                  class="form-control text-area-control <%= !err.apply("description").isEmpty() ? "input-error" : "" %>" 
+                                                  placeholder="Mô tả chi tiết về sản phẩm, chất liệu, kiểu dáng..."><%= old.apply("description") %></textarea>
+                                        <% if (!err.apply("description").isEmpty()) { %>
+                                            <span class="field-error"><%= err.apply("description") %></span>
+                                        <% } %>
                                     </div>
                                 </div>
                             </div>
@@ -126,57 +144,28 @@
                                             <tbody id="variantsBody">
                                                 <!-- Row 1 mặc định -->
                                                 <tr class="variant-row">
+                                                     <td>
+                                                         <select name="variantColor" class="form-control form-control-sm" required>
+                                                             <option value="" disabled selected>Chọn màu</option>
+                                                             <c:forEach var="c" items="${colors}">
+                                                                 <option value="${c.colorName}">${c.colorName}</option>
+                                                             </c:forEach>
+                                                         </select>
+                                                     </td>
+                                                     <td>
+                                                         <select name="variantSize" class="form-control form-control-sm" required>
+                                                             <option value="" disabled selected>Chọn kích thước</option>
+                                                             <c:forEach var="s" items="${sizes}">
+                                                                 <option value="${s.sizeName}">${s.sizeName}</option>
+                                                             </c:forEach>
+                                                         </select>
+                                                     </td>
                                                     <td>
-                                                        <input type="text" name="variantColor" class="form-control form-control-sm" placeholder="Đen" required>
+                                                        <input type="text" name="variantPrice" class="form-control form-control-sm price-input" placeholder="Giá bán" required>
+                                                        <input type="hidden" name="variantPriceRaw" value="">
                                                     </td>
                                                     <td>
-                                                        <input type="text" name="variantSize" class="form-control form-control-sm" placeholder="S" required>
-                                                    </td>
-                                                    <td>
-                                                        <input type="number" name="variantPrice" class="form-control form-control-sm" placeholder="250000" min="0" required>
-                                                    </td>
-                                                    <td>
-                                                        <input type="number" name="variantStock" class="form-control form-control-sm" placeholder="10" min="0" required>
-                                                    </td>
-                                                    <td>
-                                                        <button type="button" class="btn-delete-row" onclick="deleteVariantRow(this)" title="Xóa">
-                                                            <i data-lucide="trash-2"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <!-- Row 2 mặc định -->
-                                                <tr class="variant-row">
-                                                    <td>
-                                                        <input type="text" name="variantColor" class="form-control form-control-sm" value="Đen" required>
-                                                    </td>
-                                                    <td>
-                                                        <input type="text" name="variantSize" class="form-control form-control-sm" value="M" required>
-                                                    </td>
-                                                    <td>
-                                                        <input type="number" name="variantPrice" class="form-control form-control-sm" value="250000" min="0" required>
-                                                    </td>
-                                                    <td>
-                                                        <input type="number" name="variantStock" class="form-control form-control-sm" value="15" min="0" required>
-                                                    </td>
-                                                    <td>
-                                                        <button type="button" class="btn-delete-row" onclick="deleteVariantRow(this)" title="Xóa">
-                                                            <i data-lucide="trash-2"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <!-- Row 3 mặc định -->
-                                                <tr class="variant-row">
-                                                    <td>
-                                                        <input type="text" name="variantColor" class="form-control form-control-sm" value="Trắng" required>
-                                                    </td>
-                                                    <td>
-                                                        <input type="text" name="variantSize" class="form-control form-control-sm" value="S" required>
-                                                    </td>
-                                                    <td>
-                                                        <input type="number" name="variantPrice" class="form-control form-control-sm" value="250000" min="0" required>
-                                                    </td>
-                                                    <td>
-                                                        <input type="number" name="variantStock" class="form-control form-control-sm" value="8" min="0" required>
+                                                        <input type="number" name="variantStock" class="form-control form-control-sm" placeholder="Số lượng" min="0" required>
                                                     </td>
                                                     <td>
                                                         <button type="button" class="btn-delete-row" onclick="deleteVariantRow(this)" title="Xóa">
@@ -200,55 +189,86 @@
                             <!-- Ảnh sản phẩm -->
                             <div class="form-card">
                                 <div class="card-header">
-                                    <h2 class="card-title">ẢNH SẢN PHẨM</h2>
+                                    <h2 class="card-title">03. ẢNH SẢN PHẨM</h2>
                                 </div>
                                 <div class="card-body">
                                     <div class="images-grid">
-                                        <!-- Ô Tải Ảnh -->
-                                        <div class="image-slot upload-slot active" onclick="triggerFileInput()" id="uploadSlot">
+                                        <!-- Ô 1: Main Product Image -->
+                                        <div class="image-slot upload-slot" onclick="document.getElementById('imgInput0').click()" id="slot0">
                                             <i data-lucide="camera"></i>
-                                            <span>TẢI ẢNH</span>
+                                            <span>ẢNH CHÍNH</span>
                                         </div>
-                                        <!-- 3 Ô Preview rỗng tiếp theo -->
-                                        <div class="image-slot preview-slot" id="preview1">
-                                            <i data-lucide="image" class="placeholder-icon"></i>
+                                        <input type="file" id="imgInput0" name="productImages" accept="image/jpeg,image/png" style="display:none;" onchange="handleSlotImage(this, 0)">
+
+                                        <!-- Ô 2: Sub Image 1 -->
+                                        <div class="image-slot upload-slot" onclick="document.getElementById('imgInput1').click()" id="slot1">
+                                            <i data-lucide="image-plus"></i>
+                                            <span>ẢNH PHỤ</span>
                                         </div>
-                                        <div class="image-slot preview-slot" id="preview2">
-                                            <i data-lucide="image" class="placeholder-icon"></i>
+                                        <input type="file" id="imgInput1" name="productImages" accept="image/jpeg,image/png" style="display:none;" onchange="handleSlotImage(this, 1)">
+
+                                        <!-- Ô 3: Sub Image 2 -->
+                                        <div class="image-slot upload-slot" onclick="document.getElementById('imgInput2').click()" id="slot2">
+                                            <i data-lucide="image-plus"></i>
+                                            <span>ẢNH PHỤ</span>
                                         </div>
-                                        <div class="image-slot preview-slot" id="preview3">
-                                            <i data-lucide="image" class="placeholder-icon"></i>
+                                        <input type="file" id="imgInput2" name="productImages" accept="image/jpeg,image/png" style="display:none;" onchange="handleSlotImage(this, 2)">
+
+                                        <!-- Ô 4: Sub Image 3 -->
+                                        <div class="image-slot upload-slot" onclick="document.getElementById('imgInput3').click()" id="slot3">
+                                            <i data-lucide="image-plus"></i>
+                                            <span>ẢNH PHỤ</span>
                                         </div>
+                                        <input type="file" id="imgInput3" name="productImages" accept="image/jpeg,image/png" style="display:none;" onchange="handleSlotImage(this, 3)">
                                     </div>
                                     <p class="image-help-text">
                                         Định dạng .JPG, .PNG. Tối đa 5MB mỗi ảnh. Nên sử dụng ảnh tỉ lệ 1:1.
                                     </p>
-                                    <!-- Input File ẩn để người dùng chọn ảnh -->
-                                    <input type="file" id="productImages" name="productImages" accept="image/*" multiple
-                                           style="display: none;" onchange="handleImageSelection(this)">
+                                    <% if (!err.apply("images").isEmpty()) { %>
+                                        <span class="field-error" style="margin-top: 8px;"><%= err.apply("images") %></span>
+                                    <% } %>
                                 </div>
                             </div>
 
-                            <!-- Danh mục -->
+                            <!-- Danh mục & Giới tính -->
                             <div class="form-card">
                                 <div class="card-header">
-                                    <h2 class="card-title">DANH MỤC</h2>
+                                    <h2 class="card-title">04. DANH MỤC & GIỚI TÍNH</h2>
                                 </div>
                                 <div class="card-body">
-                                    <div class="form-group margin-bottom-none">
+                                    <div class="form-group">
                                         <label class="form-label" for="categorySelect">DANH MỤC SẢN PHẨM</label>
                                         <div class="category-select-container">
-                                            <select id="categorySelect" name="categoryId" required class="form-control select-control">
+                                            <select id="categorySelect" name="categoryId" required class="form-control select-control <%= !err.apply("categoryId").isEmpty() ? "input-error" : "" %>">
                                                 <option value="" disabled selected>Chọn danh mục</option>
                                                 <c:forEach var="cat" items="${categories}">
-                                                    <option value="${cat.categoryId}">${cat.categoryName}</option>
+                                                    <option value="${cat.categoryId}" ${oldInput.categoryId == cat.categoryId ? 'selected' : ''}>${cat.categoryName}</option>
                                                     <c:forEach var="child" items="${cat.listChildCategory}">
-                                                        <option value="${child.categoryId}">&nbsp;&nbsp;└ ${child.categoryName}</option>
+                                                        <option value="${child.categoryId}" ${oldInput.categoryId == child.categoryId ? 'selected' : ''}>&nbsp;&nbsp;└ ${child.categoryName}</option>
                                                     </c:forEach>
                                                 </c:forEach>
                                             </select>
                                             <i data-lucide="chevron-down" class="select-arrow-icon"></i>
                                         </div>
+                                        <% if (!err.apply("categoryId").isEmpty()) { %>
+                                            <span class="field-error" style="margin-top: 8px;"><%= err.apply("categoryId") %></span>
+                                        <% } %>
+                                    </div>
+
+                                    <div class="form-group margin-bottom-none">
+                                        <label class="form-label" for="genderSelect">GIỚI TÍNH</label>
+                                        <div class="category-select-container">
+                                            <select id="genderSelect" name="gender" required class="form-control select-control <%= !err.apply("gender").isEmpty() ? "input-error" : "" %>">
+                                                <option value="" disabled selected>Chọn giới tính</option>
+                                                <option value="NAM" ${oldInput.gender == 'NAM' ? 'selected' : ''}>Nam</option>
+                                                <option value="NU" ${oldInput.gender == 'NU' ? 'selected' : ''}>Nữ</option>
+                                                <option value="UNISEX" ${oldInput.gender == 'UNISEX' ? 'selected' : ''}>Unisex</option>
+                                            </select>
+                                            <i data-lucide="chevron-down" class="select-arrow-icon"></i>
+                                        </div>
+                                        <% if (!err.apply("gender").isEmpty()) { %>
+                                            <span class="field-error" style="margin-top: 8px;"><%= err.apply("gender") %></span>
+                                        <% } %>
                                     </div>
                                 </div>
                             </div>
@@ -277,84 +297,330 @@
     // Khởi tạo Lucide Icons
     lucide.createIcons();
 
-    // Trigger input file click
-    function triggerFileInput() {
-        document.getElementById('productImages').click();
-    }
+    // Lưu các danh sách màu và size từ JSTL sang JS arrays để dùng cho addVariantRow
+    const dbColors = [
+        <c:forEach var="c" items="${colors}">
+            "${c.colorName}",
+        </c:forEach>
+    ];
+    const dbSizes = [
+        <c:forEach var="s" items="${sizes}">
+            "${s.sizeName}",
+        </c:forEach>
+    ];
 
-    // Xử lý khi tải nhiều ảnh lên và hiển thị preview
-    function handleImageSelection(input) {
-        const files = input.files;
-        if (!files) return;
+    /* ===== XỬ LÝ TẢI ẢNH TỪNG Ô RIÊNG BIỆT ===== */
+    function handleSlotImage(input, slotIndex) {
+        const file = input.files[0];
+        if (!file) return;
 
-        // Cho phép tối đa hiển thị 4 ảnh bao gồm cả ảnh chính ở ô đầu tiên
-        let limit = Math.min(files.length, 4);
-
-        for (let i = 0; i < limit; i++) {
-            const file = files[i];
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-                if (i === 0) {
-                    // Đặt ảnh chính vào ô Upload Slot
-                    const uploadSlot = document.getElementById('uploadSlot');
-                    uploadSlot.innerHTML = `<img src="${e.target.result}" class="preview-img" alt="Main Product Image">`;
-                    uploadSlot.classList.remove('active');
-                } else {
-                    // Đặt các ảnh phụ vào 3 ô preview kế tiếp
-                    const previewSlot = document.getElementById('preview' + i);
-                    if (previewSlot) {
-                        previewSlot.innerHTML = `<img src="${e.target.result}" class="preview-img" alt="Sub Image ${i}">`;
-                        previewSlot.classList.add('has-image');
-                    }
-                }
-            };
-            reader.readAsDataURL(file);
+        // Kiểm tra định dạng
+        if (!file.type.match('image/jpeg') && !file.type.match('image/png') && !file.type.match('image/jpg')) {
+            alert('Chỉ hỗ trợ định dạng JPG, PNG.');
+            input.value = '';
+            return;
         }
+        // Kiểm tra dung lượng
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Dung lượng ảnh tối đa 5MB.');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const slot = document.getElementById('slot' + slotIndex);
+            const label = (slotIndex === 0) ? 'ẢNH CHÍNH' : 'ẢNH PHỤ ' + slotIndex;
+            const labelClass = (slotIndex === 0) ? 'img-label-main' : 'img-label-sub';
+
+            // Dung string concatenation de tranh JSP hieu lam template literal
+            slot.innerHTML = 
+                '<img src="' + e.target.result + '" class="preview-img" alt="' + label + '">' +
+                '<span class="img-label ' + labelClass + '">' + label + '</span>' +
+                '<button type="button" class="btn-remove-img" onclick="event.stopPropagation(); removeSlotImage(' + slotIndex + ')" title="Xóa ảnh">&times;</button>';
+            
+            slot.classList.add('has-image');
+        };
+        reader.readAsDataURL(file);
     }
 
-    // Xóa dòng biến thể trong bảng
+    function removeSlotImage(slotIndex) {
+        const slot = document.getElementById('slot' + slotIndex);
+        const input = document.getElementById('imgInput' + slotIndex);
+        input.value = '';
+
+        if (slotIndex === 0) {
+            slot.innerHTML = '<i data-lucide="camera"></i><span>ẢNH CHÍNH</span>';
+        } else {
+            slot.innerHTML = '<i data-lucide="image-plus"></i><span>ẢNH PHỤ</span>';
+        }
+        slot.classList.remove('has-image');
+        lucide.createIcons();
+    }
+
+    /* ===== XỬ LÝ ĐỊNH DẠNG GIÁ BÁN (.000) ===== */
+    function formatPriceDisplay(value) {
+        // Loại bỏ tất cả ký tự không phải số
+        let raw = value.replace(/[^0-9]/g, '');
+        if (raw === '') return '';
+        // Thêm dấu chấm phân cách hàng nghìn
+        return raw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function parsePriceRaw(formattedValue) {
+        // Trả về giá trị số thuần (bỏ dấu chấm)
+        return formattedValue.replace(/\./g, '');
+    }
+
+    function initPriceInput(input) {
+        input.addEventListener('input', function() {
+            const cursorPos = this.selectionStart;
+            const oldLen = this.value.length;
+            this.value = formatPriceDisplay(this.value);
+            const newLen = this.value.length;
+            // Giữ con trỏ đúng vị trí
+            this.setSelectionRange(cursorPos + (newLen - oldLen), cursorPos + (newLen - oldLen));
+
+            // Cập nhật giá trị ẩn (raw) cho hidden input
+            const hiddenInput = this.parentElement.querySelector('input[name="variantPriceRaw"]');
+            if (hiddenInput) {
+                hiddenInput.value = parsePriceRaw(this.value);
+            }
+        });
+
+        // Khi blur: nếu giá trị < 1000, tự động nhân 1000 (ví dụ: 200 -> 200.000)
+        input.addEventListener('blur', function() {
+            let raw = parsePriceRaw(this.value);
+            if (raw === '') return;
+            let num = parseInt(raw);
+            if (num > 0 && num < 1000) {
+                num = num * 1000;
+            }
+            this.value = formatPriceDisplay(num.toString());
+            const hiddenInput = this.parentElement.querySelector('input[name="variantPriceRaw"]');
+            if (hiddenInput) {
+                hiddenInput.value = num.toString();
+            }
+        });
+    }
+
+    // Khởi tạo price input cho các dòng có sẵn
+    document.querySelectorAll('.price-input').forEach(initPriceInput);
+
+    /* ===== XỬ LÝ BIẾN THỂ ===== */
     function deleteVariantRow(button) {
         const row = button.closest('.variant-row');
         const tbody = document.getElementById('variantsBody');
-        
-        // Đảm bảo giữ lại ít nhất 1 dòng
+
         if (tbody.querySelectorAll('.variant-row').length > 1) {
             row.remove();
         } else {
-            alert("Sản phẩm phải có ít nhất 1 biến thể.");
+            alert('Sản phẩm phải có ít nhất 1 biến thể.');
         }
     }
 
-    // Thêm dòng biến thể mới
     function addVariantRow() {
         const tbody = document.getElementById('variantsBody');
         const newRow = document.createElement('tr');
         newRow.className = 'variant-row';
-        newRow.innerHTML = `
-            <td>
-                <input type="text" name="variantColor" class="form-control form-control-sm" placeholder="Màu sắc" required>
-            </td>
-            <td>
-                <input type="text" name="variantSize" class="form-control form-control-sm" placeholder="Kích thước" required>
-            </td>
-            <td>
-                <input type="number" name="variantPrice" class="form-control form-control-sm" placeholder="Giá bán" min="0" required>
-            </td>
-            <td>
-                <input type="number" name="variantStock" class="form-control form-control-sm" placeholder="Số lượng" min="0" required>
-            </td>
-            <td>
-                <button type="button" class="btn-delete-row" onclick="deleteVariantRow(this)" title="Xóa">
-                    <i data-lucide="trash-2"></i>
-                </button>
-            </td>
-        `;
+
+        // Tạo chuỗi HTML cho option màu
+        let colorOptions = '<option value="" disabled selected>Chọn màu</option>';
+        dbColors.forEach(color => {
+            colorOptions += '<option value="' + color + '">' + color + '</option>';
+        });
+
+        // Tạo chuỗi HTML cho option size
+        let sizeOptions = '<option value="" disabled selected>Chọn kích thước</option>';
+        dbSizes.forEach(size => {
+            sizeOptions += '<option value="' + size + '">' + size + '</option>';
+        });
+
+        newRow.innerHTML = 
+            '<td>' +
+            '    <select name="variantColor" class="form-control form-control-sm" required>' +
+            colorOptions +
+            '    </select>' +
+            '</td>' +
+            '<td>' +
+            '    <select name="variantSize" class="form-control form-control-sm" required>' +
+            sizeOptions +
+            '    </select>' +
+            '</td>' +
+            '<td>' +
+            '    <input type="text" name="variantPrice" class="form-control form-control-sm price-input" placeholder="200.000" required>' +
+            '    <input type="hidden" name="variantPriceRaw" value="">' +
+            '</td>' +
+            '<td>' +
+            '    <input type="number" name="variantStock" class="form-control form-control-sm" placeholder="Số lượng" min="0" required>' +
+            '</td>' +
+            '<td>' +
+            '    <button type="button" class="btn-delete-row" onclick="deleteVariantRow(this)" title="Xóa">' +
+            '        <i data-lucide="trash-2"></i>' +
+            '    </button>' +
+            '</td>';
+
         tbody.appendChild(newRow);
-        
-        // Cập nhật lại Lucide icons cho hàng vừa sinh ra
+
+        // Khởi tạo price input formatting cho dòng mới
+        newRow.querySelectorAll('.price-input').forEach(initPriceInput);
         lucide.createIcons();
     }
+
+    /* ===== TRƯỚC KHI SUBMIT: đồng bộ giá trị thực vào hidden inputs & VALIDATE ===== */
+    function clearAllErrors() {
+        document.querySelectorAll('.field-error').forEach(el => el.remove());
+        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+        document.querySelectorAll('.input-error-border').forEach(el => el.classList.remove('input-error-border'));
+    }
+
+    function showFieldError(element, message) {
+        if (!element) return;
+        element.classList.add('input-error');
+        
+        const errorSpan = document.createElement('span');
+        errorSpan.className = 'field-error';
+        errorSpan.textContent = message;
+        errorSpan.style.marginTop = '4px';
+        
+        const formGroup = element.closest('.form-group');
+        if (formGroup) {
+            formGroup.appendChild(errorSpan);
+        }
+    }
+
+    function showImageError(message) {
+        const grid = document.querySelector('.images-grid');
+        grid.classList.add('input-error-border');
+        
+        const errorSpan = document.createElement('span');
+        errorSpan.className = 'field-error';
+        errorSpan.textContent = message;
+        errorSpan.style.marginTop = '8px';
+        
+        const helpText = document.querySelector('.image-help-text');
+        if (helpText) {
+            helpText.parentNode.insertBefore(errorSpan, helpText.nextSibling);
+        }
+    }
+
+    function showCategoryError(message) {
+        const select = document.getElementById('categorySelect');
+        select.classList.add('input-error');
+        
+        const errorSpan = document.createElement('span');
+        errorSpan.className = 'field-error';
+        errorSpan.textContent = message;
+        errorSpan.style.marginTop = '8px';
+        
+        const formGroup = select.closest('.form-group');
+        if (formGroup) {
+            formGroup.appendChild(errorSpan);
+        }
+    }
+
+    function showGenderError(message) {
+        const select = document.getElementById('genderSelect');
+        select.classList.add('input-error');
+        
+        const errorSpan = document.createElement('span');
+        errorSpan.className = 'field-error';
+        errorSpan.textContent = message;
+        errorSpan.style.marginTop = '8px';
+        
+        const formGroup = select.closest('.form-group');
+        if (formGroup) {
+            formGroup.appendChild(errorSpan);
+        }
+    }
+
+    document.getElementById('addProductForm').addEventListener('submit', function(e) {
+        let isValid = true;
+        clearAllErrors();
+
+        // 1. Validate Product Name
+        const productName = document.getElementById('productName');
+        if (!productName.value.trim()) {
+            showFieldError(productName, 'Tên sản phẩm không được để trống.');
+            isValid = false;
+        }
+
+        // 2. Validate Description
+        const description = document.getElementById('description');
+        if (!description.value.trim()) {
+            showFieldError(description, 'Mô tả sản phẩm không được để trống.');
+            isValid = false;
+        }
+
+        // 3. Validate Main Image (slot0)
+        const slot0 = document.getElementById('slot0');
+        if (!slot0.classList.contains('has-image')) {
+            showImageError('Vui lòng tải lên ít nhất ảnh chính của sản phẩm.');
+            isValid = false;
+        }
+
+        // 4. Validate Category
+        const categorySelect = document.getElementById('categorySelect');
+        if (!categorySelect.value) {
+            showCategoryError('Vui lòng chọn danh mục sản phẩm.');
+            isValid = false;
+        }
+
+        // 4.5 Validate Gender
+        const genderSelect = document.getElementById('genderSelect');
+        if (!genderSelect.value) {
+            showGenderError('Vui lòng chọn giới tính.');
+            isValid = false;
+        }
+
+        // 5. Validate Variants
+        const rows = document.querySelectorAll('.variant-row');
+        if (rows.length === 0) {
+            alert('Sản phẩm phải có ít nhất 1 biến thể.');
+            isValid = false;
+        } else {
+            rows.forEach((row, index) => {
+                const colorSelect = row.querySelector('select[name="variantColor"]');
+                const sizeSelect = row.querySelector('select[name="variantSize"]');
+                const priceInput = row.querySelector('input[name="variantPrice"]');
+                const stockInput = row.querySelector('input[name="variantStock"]');
+
+                if (!colorSelect.value) {
+                    colorSelect.classList.add('input-error');
+                    isValid = false;
+                }
+                if (!sizeSelect.value) {
+                    sizeSelect.classList.add('input-error');
+                    isValid = false;
+                }
+                if (!priceInput.value.trim()) {
+                    priceInput.classList.add('input-error');
+                    isValid = false;
+                }
+                if (!stockInput.value.trim() || parseInt(stockInput.value) < 0) {
+                    stockInput.classList.add('input-error');
+                    isValid = false;
+                }
+            });
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            // Scroll to the first error
+            const firstError = document.querySelector('.input-error, .input-error-border');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        } else {
+            // Đồng bộ giá trị price raw
+            document.querySelectorAll('.price-input').forEach(function(input) {
+                const hiddenInput = input.parentElement.querySelector('input[name="variantPriceRaw"]');
+                if (hiddenInput) {
+                    hiddenInput.value = parsePriceRaw(input.value);
+                }
+            });
+        }
+    });
 </script>
 </body>
 </html>

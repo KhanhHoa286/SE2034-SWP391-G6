@@ -63,6 +63,8 @@ public class AddProductServlet extends HttpServlet {
 
         request.setAttribute("shop", shop);
         request.setAttribute("categories", categoryDAO.getAllCategory());
+        request.setAttribute("colors", productDAO.getAllColors());
+        request.setAttribute("sizes", productDAO.getAllSizes());
         request.setAttribute("activePage", "products");
 
         request.getRequestDispatcher("/seller/product/add-product.jsp").forward(request, response);
@@ -97,22 +99,41 @@ public class AddProductServlet extends HttpServlet {
             return;
         }
 
-        try {
-            // 1. Đọc các tham số cơ bản
-            String productName = request.getParameter("productName");
-            String description = request.getParameter("description");
-            String categoryIdStr = request.getParameter("categoryId");
+        java.util.Map<String, String> errors = new java.util.HashMap<>();
+        java.util.Map<String, String> oldInput = new java.util.HashMap<>();
 
-            if (productName == null || productName.trim().isEmpty() ||
-                    description == null || description.trim().isEmpty() ||
-                    categoryIdStr == null || categoryIdStr.trim().isEmpty()) {
-                throw new Exception("Vui lòng nhập đầy đủ các trường bắt buộc.");
+        String productName = request.getParameter("productName");
+        String description = request.getParameter("description");
+        String categoryIdStr = request.getParameter("categoryId");
+        String genderStr = request.getParameter("gender");
+
+        oldInput.put("productName", productName);
+        oldInput.put("description", description);
+        oldInput.put("categoryId", categoryIdStr);
+        oldInput.put("gender", genderStr);
+
+        if (productName == null || productName.trim().isEmpty()) {
+            errors.put("productName", "Tên sản phẩm không được để trống.");
+        }
+        if (description == null || description.trim().isEmpty()) {
+            errors.put("description", "Mô tả sản phẩm không được để trống.");
+        }
+        if (categoryIdStr == null || categoryIdStr.trim().isEmpty()) {
+            errors.put("categoryId", "Vui lòng chọn danh mục sản phẩm.");
+        }
+        if (genderStr == null || genderStr.trim().isEmpty()) {
+            errors.put("gender", "Vui lòng chọn giới tính.");
+        } else {
+            try {
+                Gender.valueOf(genderStr);
+            } catch (Exception e) {
+                errors.put("gender", "Giới tính không hợp lệ.");
             }
+        }
 
-            Integer categoryId = Integer.parseInt(categoryIdStr);
-
-            // 2. Xử lý các file ảnh tải lên Cloudinary
-            List<String> imageUrls = new ArrayList<>();
+        // 2. Xử lý các file ảnh tải lên Cloudinary
+        List<String> imageUrls = new ArrayList<>();
+        try {
             Collection<Part> parts = request.getParts();
             for (Part part : parts) {
                 if (part.getName().equals("productImages") && part.getSize() > 0) {
@@ -123,34 +144,88 @@ public class AddProductServlet extends HttpServlet {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        // Bỏ qua ảnh lỗi hoặc ném ra exception tùy thiết kế
                     }
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-            // Nếu không có ảnh nào -> sử dụng ảnh mặc định
-            if (imageUrls.isEmpty()) {
-                imageUrls.add("https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500");
+        if (imageUrls.isEmpty()) {
+            errors.put("images", "Vui lòng tải lên ít nhất ảnh chính của sản phẩm.");
+        }
+
+        // 3. Đọc dữ liệu biến thể
+        String[] variantColors = request.getParameterValues("variantColor");
+        String[] variantSizes = request.getParameterValues("variantSize");
+        String[] variantPricesRaw = request.getParameterValues("variantPriceRaw");
+        String[] variantStocks = request.getParameterValues("variantStock");
+
+        if (variantColors == null || variantColors.length == 0 ||
+            variantSizes == null || variantSizes.length == 0 ||
+            variantPricesRaw == null || variantPricesRaw.length == 0 ||
+            variantStocks == null || variantStocks.length == 0) {
+            errors.put("variants", "Sản phẩm phải chứa ít nhất 1 biến thể.");
+        } else {
+            for (int i = 0; i < variantColors.length; i++) {
+                if (variantColors[i] == null || variantColors[i].trim().isEmpty()) {
+                    errors.put("variants", "Vui lòng chọn màu sắc cho tất cả biến thể.");
+                    break;
+                }
+                if (i >= variantSizes.length || variantSizes[i] == null || variantSizes[i].trim().isEmpty()) {
+                    errors.put("variants", "Vui lòng chọn kích thước cho tất cả biến thể.");
+                    break;
+                }
+                if (i >= variantPricesRaw.length || variantPricesRaw[i] == null || variantPricesRaw[i].trim().isEmpty()) {
+                    errors.put("variants", "Giá bán biến thể không được để trống.");
+                    break;
+                }
+                if (i >= variantStocks.length || variantStocks[i] == null || variantStocks[i].trim().isEmpty()) {
+                    errors.put("variants", "Số lượng biến thể không được để trống.");
+                    break;
+                }
+                try {
+                    new BigDecimal(variantPricesRaw[i]);
+                } catch (Exception e) {
+                    errors.put("variants", "Giá bán biến thể không hợp lệ.");
+                    break;
+                }
+                try {
+                    int stock = Integer.parseInt(variantStocks[i]);
+                    if (stock < 0) {
+                        errors.put("variants", "Số lượng biến thể không được âm.");
+                        break;
+                    }
+                } catch (Exception e) {
+                    errors.put("variants", "Số lượng biến thể không hợp lệ.");
+                    break;
+                }
             }
+        }
 
-            // 3. Đọc dữ liệu biến thể
-            String[] variantColors = request.getParameterValues("variantColor");
-            String[] variantSizes = request.getParameterValues("variantSize");
-            String[] variantPrices = request.getParameterValues("variantPrice");
-            String[] variantStocks = request.getParameterValues("variantStock");
+        if (!errors.isEmpty()) {
+            request.setAttribute("errors", errors);
+            request.setAttribute("oldInput", oldInput);
+            request.setAttribute("shop", shop);
+            request.setAttribute("categories", categoryDAO.getAllCategory());
+            request.setAttribute("colors", productDAO.getAllColors());
+            request.setAttribute("sizes", productDAO.getAllSizes());
+            request.setAttribute("activePage", "products");
+            request.getRequestDispatcher("/seller/product/add-product.jsp").forward(request, response);
+            return;
+        }
 
-            if (variantColors == null || variantColors.length == 0) {
-                throw new Exception("Sản phẩm phải chứa ít nhất 1 biến thể.");
-            }
+        try {
+            Integer categoryId = Integer.parseInt(categoryIdStr);
 
-            // Tính giá bán cơ sở (basePrice) làm giá trị của biến thể đầu tiên
-            BigDecimal basePrice = new BigDecimal(variantPrices[0]);
+            // Tính giá bán cơ sở (basePrice) là giá trị của biến thể đầu tiên
+            BigDecimal basePrice = new BigDecimal(variantPricesRaw[0]);
 
             // 4. Khởi tạo và lưu sản phẩm
             Product product = Product.builder()
                     .shopId(shop.getShopId())
                     .categoryId(categoryId)
-                    .gender(Gender.UNISEX)
+                    .gender(Gender.valueOf(genderStr))
                     .productName(productName.trim())
                     .description(description.trim())
                     .basePrice(basePrice)
@@ -182,7 +257,7 @@ public class AddProductServlet extends HttpServlet {
             for (int i = 0; i < variantColors.length; i++) {
                 String colorName = variantColors[i].trim();
                 String sizeName = variantSizes[i].trim();
-                BigDecimal price = new BigDecimal(variantPrices[i]);
+                BigDecimal price = new BigDecimal(variantPricesRaw[i]);
                 int stock = Integer.parseInt(variantStocks[i]);
 
                 int colorId = productDAO.getOrCreateColorId(colorName);
@@ -208,6 +283,8 @@ public class AddProductServlet extends HttpServlet {
             request.setAttribute("error", e.getMessage());
             request.setAttribute("shop", shop);
             request.setAttribute("categories", categoryDAO.getAllCategory());
+            request.setAttribute("colors", productDAO.getAllColors());
+            request.setAttribute("sizes", productDAO.getAllSizes());
             request.setAttribute("activePage", "products");
             request.getRequestDispatcher("/seller/product/add-product.jsp").forward(request, response);
         }
