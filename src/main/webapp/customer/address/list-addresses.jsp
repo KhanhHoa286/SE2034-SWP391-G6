@@ -117,7 +117,7 @@
                     </c:otherwise>
                 </c:choose>
 
-                <a class="address-add-card" href="javascript:void(0);">
+                <a class="address-add-card" href="${pageContext.request.contextPath}/customer/addresses/add">
                     <span class="address-add-icon">
                         <span class="material-symbols-outlined">add</span>
                     </span>

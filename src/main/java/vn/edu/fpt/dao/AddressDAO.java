@@ -7,6 +7,7 @@ import vn.edu.fpt.model.Ward;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -128,5 +129,116 @@ public class AddressDAO extends DBContext {
          * trả về list rỗng để JSP hiển thị empty state.
          */
         return addresses;
+    }
+    /*
+     * Đếm số địa chỉ hiện có của customer.
+     *
+     * Dùng cho màn thêm địa chỉ:
+     * - Nếu customer chưa có địa chỉ nào
+     * - Thì địa chỉ đầu tiên sẽ tự động là địa chỉ mặc định
+     */
+    public int countAddressesByUserId(int userId) {
+        String sql = "SELECT COUNT(*) AS total "
+                + "FROM addresses "
+                + "WHERE user_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    /*
+     * Thêm địa chỉ giao hàng mới cho customer.
+     *
+     * Nếu địa chỉ mới được chọn làm mặc định:
+     * - Update tất cả địa chỉ cũ của user về is_default = 0
+     * - Insert địa chỉ mới với is_default = 1
+     *
+     * Dùng transaction để đảm bảo dữ liệu không bị lỗi trạng thái mặc định.
+     */
+    public boolean addAddress(Address address) {
+        String updateOldDefaultSql = "UPDATE addresses "
+                + "SET is_default = 0 "
+                + "WHERE user_id = ?";
+
+        String insertSql = "INSERT INTO addresses ("
+                + "user_id, "
+                + "receiver_name, "
+                + "receiver_phone, "
+                + "street_address, "
+                + "ward_id, "
+                + "is_default, "
+                + "created_at"
+                + ") VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
+
+        boolean oldAutoCommit = true;
+
+        try {
+            oldAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            /*
+             * Vì field trong Address là Boolean isDefault,
+             * dùng Boolean.TRUE.equals để tránh NullPointerException.
+             */
+            boolean newAddressIsDefault = Boolean.TRUE.equals(address.getIsDefault());
+
+            /*
+             * Nếu địa chỉ mới là mặc định,
+             * bỏ mặc định của các địa chỉ cũ trước.
+             */
+            if (newAddressIsDefault) {
+                try (PreparedStatement psUpdate = connection.prepareStatement(updateOldDefaultSql)) {
+                    psUpdate.setInt(1, address.getUserId());
+                    psUpdate.executeUpdate();
+                }
+            }
+
+            /*
+             * Insert địa chỉ mới.
+             */
+            try (PreparedStatement psInsert = connection.prepareStatement(insertSql)) {
+                psInsert.setInt(1, address.getUserId());
+                psInsert.setString(2, address.getReceiverName());
+                psInsert.setString(3, address.getReceiverPhone());
+                psInsert.setString(4, address.getStreetAddress());
+                psInsert.setInt(5, address.getWardId());
+                psInsert.setBoolean(6, newAddressIsDefault);
+
+                psInsert.executeUpdate();
+            }
+
+            connection.commit();
+            return true;
+
+        } catch (Exception e) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackException) {
+                rollbackException.printStackTrace();
+            }
+
+            e.printStackTrace();
+
+        } finally {
+            try {
+                connection.setAutoCommit(oldAutoCommit);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return false;
     }
 }
