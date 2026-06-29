@@ -6,11 +6,10 @@
     </div>
 
     <nav class="profile-sidebar__nav">
-
-        <a class="profile-side-link ${param.active == 'dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/customer/profile">
+<a class="profile-side-link ${param.active == 'dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/customer/dashboard">
 <%--            <span class="material-symbols-outlined">dashboard</span>--%>
-            <span>Bảng điều khiển</span>
-        </a>
+    <span>Bảng điều khiển</span>
+</a>
 
         <a class="profile-side-link ${param.active == 'profile' ? 'active' : ''}" href="${pageContext.request.contextPath}/customer/profile">
 <%--            <span class="material-symbols-outlined">person</span>--%>
