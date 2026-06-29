@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Properties;
 
 @WebServlet(urlPatterns = {"/seller/order/view", "/view-seller-order"})
-public class ViewSellerOrderSeverlet extends HttpServlet {
+public class ViewSellerOrderServlet extends HttpServlet {
 
     private static final String ORDER_DETAIL_PAGE = "/seller/order/view-seller-order.jsp";
 

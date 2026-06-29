@@ -10,7 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260630a">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/list-seller-orders.css?v=20260630a">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/list-seller-orders.css?v=20260630c">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -115,7 +115,11 @@
                 <c:choose>
                     <c:when test="${not empty sellerOrders}">
                         <c:forEach var="order" items="${sellerOrders}">
-                            <tr>
+                            <tr class="seller-orders-clickable-row"
+                                data-href="${pageContext.request.contextPath}/seller/order/view?subOrderId=${order.subOrderId}"
+                                tabindex="0"
+                                role="link"
+                                aria-label="Xem chi tiet don hang #SUB-${order.subOrderId}">
                                 <td>
                                     <strong class="seller-orders-code">#SUB-${order.subOrderId}</strong>
                                     <small>#MO-${order.masterOrderId}</small>
@@ -165,7 +169,8 @@
                                 <td>
                                     <a class="seller-orders-open-link"
                                        href="${pageContext.request.contextPath}/seller/order/view?subOrderId=${order.subOrderId}">
-                                        Xem
+                                        <i data-lucide="eye"></i>
+                                        <span>Xem</span>
                                     </a>
                                 </td>
                             </tr>
@@ -189,6 +194,23 @@
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+
+    document.querySelectorAll('.seller-orders-clickable-row').forEach(function (row) {
+        row.addEventListener('click', function (event) {
+            if (event.target.closest('a, button, input, select, textarea, label')) {
+                return;
+            }
+
+            window.location.href = row.dataset.href;
+        });
+
+        row.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                window.location.href = row.dataset.href;
+            }
+        });
+    });
 </script>
 </body>
 </html>
