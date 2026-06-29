@@ -404,4 +404,157 @@ public class OrderDAO extends DBContext {
         }
         return orderItemResponse;
     }
+    /*
+     * Đếm tổng số đơn hàng con (sub_order) của một customer.
+     *
+     * Vì hệ thống MODA là multi-vendor:
+     * - 1 master_order là đơn tổng của khách hàng.
+     * - 1 master_order có thể tách thành nhiều sub_orders theo từng shop.
+     *
+     * Dashboard customer đang hiển thị đơn theo sub_order,
+     * nên ở đây đếm sub_orders chứ không đếm master_orders.
+     */
+    public int countAllSubOrdersByCustomerId(int customerId) {
+        String sql = "SELECT COUNT(*) AS total "
+                + "FROM sub_orders so "
+                + "JOIN master_orders mo ON mo.master_order_id = so.master_order_id "
+                + "WHERE mo.customer_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            /*
+             * customerId lấy từ session userId của customer đang đăng nhập.
+             * Không lấy từ request parameter để tránh user tự sửa id trên URL.
+             */
+            ps.setInt(1, customerId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        /*
+         * Nếu có lỗi DB hoặc không lấy được dữ liệu,
+         * trả về 0 để dashboard vẫn hiển thị được thay vì bị chết trang.
+         */
+        return 0;
+    }
+    /*
+     * Đếm số đơn hàng đang giao của customer.
+     *
+     * Trạng thái đơn hàng được lưu trong bảng sub_orders.status.
+     * Với dashboard, "Đang giao" tương ứng status = 'SHIPPING'.
+     */
+    public int countShippingSubOrdersByCustomerId(int customerId) {
+        String sql = "SELECT COUNT(*) AS total "
+                + "FROM sub_orders so "
+                + "JOIN master_orders mo ON mo.master_order_id = so.master_order_id "
+                + "WHERE mo.customer_id = ? "
+                + "AND so.status = 'SHIPPING'";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+    /*
+     * Lấy danh sách đơn hàng gần nhất của customer để hiển thị trên dashboard.
+     *
+     * Dashboard chỉ cần xem nhanh nên không lấy toàn bộ đơn hàng.
+     * Số lượng đơn được truyền qua biến limit, ví dụ limit = 5.
+     *
+     * Dữ liệu lấy từ:
+     * - sub_orders: mã đơn con, trạng thái, tổng tiền, ngày tạo
+     * - master_orders: xác định đơn thuộc customer nào
+     * - shops: lấy tên cửa hàng
+     *
+     * Trả về List<OrderHistoryResponse> để tận dụng DTO có sẵn của màn order-list.
+     */
+    public List<OrderHistoryResponse> getRecentSubOrdersByCustomerId(int customerId, int limit) {
+        List<OrderHistoryResponse> orders = new ArrayList<>();
+
+        /*
+         * Chặn limit quá nhỏ hoặc quá lớn.
+         * Tránh việc truyền limit bất thường làm query lấy quá nhiều dữ liệu.
+         */
+        int safeLimit = Math.max(1, Math.min(limit, 20));
+
+        /*
+         * SQL Server không cho bind parameter trực tiếp cho TOP bằng dấu ?
+         * nên safeLimit được nối vào SQL.
+         * safeLimit đã được giới hạn từ 1 đến 20 nên an toàn.
+         */
+        String sql = "SELECT TOP " + safeLimit + " "
+                + "so.sub_order_id, "
+                + "so.created_at, "
+                + "so.status, "
+                + "so.total_amount, "
+                + "s.shop_name, "
+                + "mo.payment_method, "
+                + "mo.master_order_id "
+                + "FROM sub_orders so "
+                + "JOIN shops s ON s.shop_id = so.shop_id "
+                + "JOIN master_orders mo ON mo.master_order_id = so.master_order_id "
+                + "WHERE mo.customer_id = ? "
+                + "ORDER BY so.created_at DESC, so.sub_order_id DESC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    OrderHistoryResponse order = new OrderHistoryResponse();
+
+                    /*
+                     * Map dữ liệu từ ResultSet sang DTO.
+                     * DTO này sẽ được Servlet truyền sang JSP để hiển thị.
+                     */
+                    order.setSubOrderId(rs.getInt("sub_order_id"));
+                    order.setShopName(rs.getString("shop_name"));
+                    order.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+
+                    /*
+                     * status trong DB là VARCHAR, ví dụ: SHIPPING.
+                     * Trong Java chuyển về enum SubOrderStatus để JSP có thể gọi displayName.
+                     */
+                    order.setStatus(SubOrderStatus.valueOf(rs.getString("status")));
+
+                    order.setTotalAmount(rs.getBigDecimal("total_amount"));
+
+                    /*
+                     * payment_method trong DB là COD hoặc BANK.
+                     * Chuyển về enum PaymentMethod để đồng bộ với các màn order khác.
+                     */
+                    order.setPaymentMethod(PaymentMethod.valueOf(rs.getString("payment_method")));
+
+                    order.setMasterOrderId(rs.getInt("master_order_id"));
+
+                    orders.add(order);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        /*
+         * Nếu không có đơn hoặc lỗi query,
+         * trả về list rỗng để JSP hiển thị "Bạn chưa có đơn hàng nào."
+         */
+        return orders;
+    }
 }
