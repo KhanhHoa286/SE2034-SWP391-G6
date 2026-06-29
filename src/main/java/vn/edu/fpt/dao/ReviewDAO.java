@@ -1,5 +1,6 @@
 package vn.edu.fpt.dao;
 import vn.edu.fpt.common.DBContext;
+import vn.edu.fpt.dto.request.AddReviewRequest;
 import vn.edu.fpt.dto.response.ProductReviewResponse;
 import vn.edu.fpt.dto.response.ReviewDetailResponse;
 import vn.edu.fpt.model.Product;
@@ -15,9 +16,7 @@ public class ReviewDAO extends DBContext {
      */
     private final String GET_INFO_REVIEW_PRODUCT = """
     SELECT 
-        p.product_id, p.product_name, p.base_price, p.discount_percentage, 
-        pr.created_at, pr.rating,pr.review_title, pr.comment, u.avatar_url, 
-        (u.first_name + ' ' + u.last_name) AS user_name,
+        p.product_id, p.product_name, p.base_price, p.discount_percentage,pr.created_at, pr.rating,pr.review_title, pr.comment, u.avatar_url, (u.first_name + ' ' + u.last_name) AS user_name,
         
         -- Đếm tổng số review của bộ lọc hiện tại
         COUNT(pr.review_id) OVER() AS total_review,
@@ -101,5 +100,52 @@ public class ReviewDAO extends DBContext {
             e.printStackTrace();
         }
         return productReviewResponse;
+    }
+
+    /**
+     * HoaNK - Thêm 1 review vào bảng product review
+     */
+    private final String ADD_REVIEW_PRODUCT = """
+            INSERT INTO product_reviews (product_id, user_id, order_item_id, rating, review_title, comment)VALUES
+            (?,?,?,?,?,?)
+            """;
+    public boolean addReviewProduct(AddReviewRequest addReviewRequest, int userId) {
+        String sql = ADD_REVIEW_PRODUCT;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1,addReviewRequest.getProductId());
+            stmt.setInt(2,userId);
+            stmt.setInt(3,addReviewRequest.getOrderItemId());
+            stmt.setInt(4,addReviewRequest.getRatingStar());
+            stmt.setString(5,addReviewRequest.getTitleReview());
+            stmt.setString(6,addReviewRequest.getCommentReview());
+            stmt.executeUpdate();
+            return true;
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        //
+        return false;
+    }
+
+    /**
+     * HoaNK - Kiểm tra sản phẩm đã được đánh giá hay chưa
+     */
+    private final String CHECK_REVIEW_PRODUCT = """
+            SELECT 1 FROM product_reviews WHERE product_id = ? AND order_item_id = ?
+            """;
+    public boolean checkReviewProduct(int productId,int orderItemId){
+        String sql = CHECK_REVIEW_PRODUCT;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1,productId);
+            stmt.setInt(2,orderItemId);
+            try(ResultSet rs = stmt.executeQuery()) {
+                if(rs.next()) {
+                    return true;
+                }
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

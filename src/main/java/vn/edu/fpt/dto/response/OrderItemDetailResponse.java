@@ -10,6 +10,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Builder
 public class OrderItemDetailResponse {
+    private Integer orderItemId;
+    private Integer subOrderId;
+
     private String thumbnail;
 
     private Integer productId;

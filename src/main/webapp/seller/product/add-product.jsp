@@ -92,10 +92,10 @@
                 <!-- Form Thêm Sản Phẩm -->
                 <form id="addProductForm" action="${pageContext.request.contextPath}/add-product" method="post" enctype="multipart/form-data">
                     <div class="add-product-grid">
-                        
+
                         <!-- Cột Trái (Thông tin sản phẩm & Biến thể) -->
                         <div class="grid-left-col">
-                            
+
                             <!-- 01. Thông tin cơ bản -->
                             <div class="form-card">
                                 <div class="card-header">
@@ -115,7 +115,7 @@
                                     <div class="form-group">
                                         <label class="form-label" for="description">MÔ TẢ SẢN PHẨM</label>
                                         <textarea id="description" name="description" required rows="6"
-                                                  class="form-control text-area-control <%= !err.apply("description").isEmpty() ? "input-error" : "" %>" 
+                                                  class="form-control text-area-control <%= !err.apply("description").isEmpty() ? "input-error" : "" %>"
                                                   placeholder="Mô tả chi tiết về sản phẩm, chất liệu, kiểu dáng..."><%= old.apply("description") %></textarea>
                                         <% if (!err.apply("description").isEmpty()) { %>
                                             <span class="field-error"><%= err.apply("description") %></span>
@@ -185,7 +185,7 @@
 
                         <!-- Cột Phải (Ảnh sản phẩm & Danh mục) -->
                         <div class="grid-right-col">
-                            
+
                             <!-- Ảnh sản phẩm -->
                             <div class="form-card">
                                 <div class="card-header">
@@ -334,11 +334,11 @@
             const labelClass = (slotIndex === 0) ? 'img-label-main' : 'img-label-sub';
 
             // Dung string concatenation de tranh JSP hieu lam template literal
-            slot.innerHTML = 
+            slot.innerHTML =
                 '<img src="' + e.target.result + '" class="preview-img" alt="' + label + '">' +
                 '<span class="img-label ' + labelClass + '">' + label + '</span>' +
                 '<button type="button" class="btn-remove-img" onclick="event.stopPropagation(); removeSlotImage(' + slotIndex + ')" title="Xóa ảnh">&times;</button>';
-            
+
             slot.classList.add('has-image');
         };
         reader.readAsDataURL(file);
@@ -436,7 +436,7 @@
             sizeOptions += '<option value="' + size + '">' + size + '</option>';
         });
 
-        newRow.innerHTML = 
+        newRow.innerHTML =
             '<td>' +
             '    <select name="variantColor" class="form-control form-control-sm" required>' +
             colorOptions +
@@ -477,12 +477,12 @@
     function showFieldError(element, message) {
         if (!element) return;
         element.classList.add('input-error');
-        
+
         const errorSpan = document.createElement('span');
         errorSpan.className = 'field-error';
         errorSpan.textContent = message;
         errorSpan.style.marginTop = '4px';
-        
+
         const formGroup = element.closest('.form-group');
         if (formGroup) {
             formGroup.appendChild(errorSpan);
@@ -492,12 +492,12 @@
     function showImageError(message) {
         const grid = document.querySelector('.images-grid');
         grid.classList.add('input-error-border');
-        
+
         const errorSpan = document.createElement('span');
         errorSpan.className = 'field-error';
         errorSpan.textContent = message;
         errorSpan.style.marginTop = '8px';
-        
+
         const helpText = document.querySelector('.image-help-text');
         if (helpText) {
             helpText.parentNode.insertBefore(errorSpan, helpText.nextSibling);
@@ -507,12 +507,12 @@
     function showCategoryError(message) {
         const select = document.getElementById('categorySelect');
         select.classList.add('input-error');
-        
+
         const errorSpan = document.createElement('span');
         errorSpan.className = 'field-error';
         errorSpan.textContent = message;
         errorSpan.style.marginTop = '8px';
-        
+
         const formGroup = select.closest('.form-group');
         if (formGroup) {
             formGroup.appendChild(errorSpan);
@@ -522,12 +522,12 @@
     function showGenderError(message) {
         const select = document.getElementById('genderSelect');
         select.classList.add('input-error');
-        
+
         const errorSpan = document.createElement('span');
         errorSpan.className = 'field-error';
         errorSpan.textContent = message;
         errorSpan.style.marginTop = '8px';
-        
+
         const formGroup = select.closest('.form-group');
         if (formGroup) {
             formGroup.appendChild(errorSpan);

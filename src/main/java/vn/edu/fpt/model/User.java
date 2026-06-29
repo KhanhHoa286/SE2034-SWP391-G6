@@ -34,6 +34,4 @@ public class User {
     private UserStatus status;
     private LocalDateTime createdAt;
 
-
-
 }
