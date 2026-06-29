@@ -1,0 +1,313 @@
+/* ================================
+   MODA - Add Address
+   Không dùng Tailwind
+================================ */
+
+:root {
+    --add-primary: #000000;
+    --add-background: #f8f9ff;
+    --add-text: #121c28;
+    --add-muted: #4c4546;
+    --add-outline: #7e7576;
+    --add-outline-light: #cfc4c5;
+    --add-danger: #ba1a1a;
+}
+
+.add-address-body {
+    background: var(--add-background);
+}
+
+.add-address-main {
+    background: var(--add-background);
+}
+
+.add-address-content {
+    width: 100%;
+    max-width: 900px;
+    margin: 0;
+}
+
+/* ================================
+   Header
+================================ */
+
+.add-address-header {
+    margin-bottom: 32px;
+}
+
+.add-address-header h1 {
+    margin: 0;
+    color: var(--add-primary);
+    font-size: 34px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+}
+
+.add-address-title-line {
+    width: 48px;
+    height: 1px;
+    margin-top: 18px;
+    background: var(--add-primary);
+}
+
+/* ================================
+   Alert
+================================ */
+
+.add-address-alert {
+    margin-bottom: 24px;
+    padding: 14px 16px;
+    border: 1px solid var(--add-danger);
+    background: #fff5f5;
+    color: var(--add-danger);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ================================
+   Form layout
+================================ */
+
+.add-address-form {
+    width: 100%;
+}
+
+.add-address-grid {
+    display: grid;
+    gap: 32px;
+    margin-bottom: 28px;
+}
+
+.add-address-grid--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.add-address-field {
+    min-width: 0;
+}
+
+.add-address-field--full {
+    margin-bottom: 28px;
+}
+
+.add-address-field label {
+    display: block;
+    margin-bottom: 12px;
+    color: var(--add-primary);
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.add-address-field input,
+.add-address-field select,
+.add-address-field textarea {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--add-outline);
+    background: transparent;
+    color: var(--add-text);
+    font-family: Inter, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    outline: none;
+}
+
+.add-address-field input,
+.add-address-field select {
+    height: 44px;
+    padding: 8px 0;
+}
+
+.add-address-field textarea {
+    min-height: 46px;
+    height: 46px;
+    padding: 8px 0 4px;
+    resize: none;
+}
+.add-address-field input::placeholder,
+.add-address-field textarea::placeholder {
+    color: var(--add-outline-light);
+}
+
+.add-address-field input:focus,
+.add-address-field select:focus,
+.add-address-field textarea:focus {
+    border-bottom-color: var(--add-primary);
+}
+
+.add-address-field select {
+    appearance: none;
+    cursor: pointer;
+    padding-right: 32px;
+}
+
+.add-address-field select:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* ================================
+   Custom select icon
+================================ */
+
+.add-address-select-wrap {
+    position: relative;
+}
+
+.add-address-select-wrap .material-symbols-outlined {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--add-muted);
+    font-size: 22px;
+    pointer-events: none;
+}
+
+/* ================================
+   Error / note
+================================ */
+
+.add-address-error {
+    margin: 8px 0 0;
+    color: var(--add-danger);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.add-address-note {
+    margin: 8px 0 0 29px;
+    color: var(--add-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* ================================
+   Default checkbox
+================================ */
+
+.add-address-default-row {
+    margin-bottom: 36px;
+}
+
+.add-address-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    color: var(--add-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    cursor: pointer;
+}
+
+.add-address-checkbox input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 1px solid var(--add-primary);
+    border-radius: 0;
+    accent-color: #000000;
+    cursor: pointer;
+}
+
+.add-address-checkbox input:disabled {
+    cursor: not-allowed;
+}
+
+.add-address-checkbox span {
+    user-select: none;
+}
+
+/* ================================
+   Buttons
+================================ */
+
+.add-address-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.add-address-btn {
+    min-width: 140px;
+    min-height: 48px;
+    padding: 16px 38px;
+    border: 1px solid var(--add-primary);
+    font-family: Inter, sans-serif;
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    text-decoration: none !important;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.add-address-btn--save {
+    background: var(--add-primary);
+    color: #ffffff;
+}
+
+.add-address-btn--save:hover {
+    background: #ffffff;
+    color: var(--add-primary);
+}
+
+.add-address-btn--cancel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--add-primary) !important;
+}
+
+.add-address-btn--cancel:hover {
+    background: var(--add-primary);
+    color: #ffffff !important;
+}
+
+/* ================================
+   Responsive
+================================ */
+
+@media (max-width: 991px) {
+    .add-address-content {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 767px) {
+    .add-address-main {
+        padding: 32px 20px;
+    }
+
+    .add-address-header h1 {
+        font-size: 28px;
+    }
+
+    .add-address-grid--two {
+        grid-template-columns: 1fr;
+    }
+
+    .add-address-grid {
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .add-address-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .add-address-btn {
+        width: 100%;
+    }
+}

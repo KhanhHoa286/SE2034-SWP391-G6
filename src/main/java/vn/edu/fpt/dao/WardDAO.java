@@ -47,4 +47,38 @@ public class WardDAO extends DBContext {
 
         return list;
     }
+
+    /*
+     * Kiểm tra phường/xã có thật sự thuộc tỉnh/thành phố đã chọn không.
+     *
+     * Lý do cần check:
+     * - User có thể sửa HTML trên trình duyệt
+     * - Ví dụ chọn provinceId = 11 nhưng tự sửa wardId của tỉnh khác
+     *
+     * Nếu không check, dữ liệu địa chỉ có thể bị lệch.
+     */
+    public boolean isWardInProvince(int wardId, int provinceId) {
+        String sql = """
+            SELECT COUNT(*) AS total
+            FROM wards
+            WHERE id = ?
+              AND province_id = ?
+            """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, wardId);
+            ps.setInt(2, provinceId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total") > 0;
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }
