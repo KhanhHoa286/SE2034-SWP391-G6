@@ -16,7 +16,11 @@ import vn.edu.fpt.util.ParamUtil;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
+/**
+ * HoaNK - HE195013
+ * Date:
+ * Description: Thêm mới đánh giá sản phẩm nếu đã đánh giá điều hướng về lại order-list
+ */
 @WebServlet("/customer/add-product-review")
 public class AddProductReviewServlet extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
