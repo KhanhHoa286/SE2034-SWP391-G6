@@ -34,7 +34,7 @@
     <main class="profile-main">
         <div class="profile-container">
             <!-- Back to orders -->
-            <a href="javascript:history.back()" class="back-link"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI LỊCH SỬ ĐƠN HÀNG</a>
+            <a href="javascript:history.back()" class="back-link"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
 
             <!-- Order Header -->
             <div class="order-detail-header">
@@ -76,9 +76,12 @@
                                     <p>Số lượng: ${item.quantity}</p>
                                 </div>
                                 <div class="product-actions">
-                                    <a href="#" class="action-link">Mua lại</a>
+                                    <a href="${pageContext.request.contextPath}/product-detail?pid=${item.productId}" class="action-link">Mua lại</a>
                                     <c:if test="${item.reviewed == false}">
-                                    <a href="add-review.jsp" class="action-link">Viết đánh giá</a>
+                                    <a href="${pageContext.request.contextPath}/customer/add-product-review?product_id=${item.productId}&order_item_id=${item.orderItemId}&sub_order_id=${item.subOrderId}" class="action-link">Viết đánh giá</a>
+                                    </c:if>
+                                    <c:if test="${item.reviewed == true}">
+                                        <a href="${pageContext.request.contextPath}/product-review?product_id=${item.productId}" class="action-link">Xem đánh giá</a>
                                     </c:if>
                                 </div>
                             </div>

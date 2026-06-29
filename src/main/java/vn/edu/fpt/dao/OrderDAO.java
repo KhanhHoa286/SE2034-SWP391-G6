@@ -329,7 +329,7 @@ public class OrderDAO extends DBContext {
      */
     private final String GET_ORDER_ITEMS = """
             SELECT so.sub_order_id,p.product_id,p.product_name,p.thumbnail_url,s.shop_id,s.shop_name,c.color_name, si.size_name,
-            oi.quantity, p.discount_percentage,p.base_price,mo.created_at, so.status, mo.receiver_name, mo.receiver_phone,
+            oi.quantity,oi.order_item_id, p.discount_percentage,p.base_price,mo.created_at, so.status, mo.receiver_name, mo.receiver_phone,
             mo.shipping_address, mo.payment_method, mo.payment_status, ISNULL(pr.review_id,0) AS reviewed
             FROM sub_orders so
             JOIN master_orders mo ON so.master_order_id = mo.master_order_id
@@ -376,6 +376,8 @@ public class OrderDAO extends DBContext {
                     }
                     //
                     OrderItemDetailResponse orderItemDetailResponse = new OrderItemDetailResponse();
+                    orderItemDetailResponse.setOrderItemId(rs.getInt("order_item_id"));
+                    orderItemDetailResponse.setSubOrderId(rs.getInt("sub_order_id"));
                     orderItemDetailResponse.setThumbnail(rs.getString("thumbnail_url"));
                     orderItemDetailResponse.setProductId(rs.getInt("product_id"));
                     orderItemDetailResponse.setProductName(rs.getString("product_name"));
