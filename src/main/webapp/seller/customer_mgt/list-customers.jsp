@@ -51,11 +51,6 @@
                 <small>C&#243; t&#7915; 2 &#273;&#417;n tr&#7903; l&#234;n</small>
             </article>
             <article class="seller-customers-metric-card card shadow-sm">
-                <span>Gi&#225; tr&#7883; trung b&#236;nh</span>
-                <strong><fmt:formatNumber value="${averageCustomerValue}" type="number" maxFractionDigits="0"/>&#273;</strong>
-                <small>Trung b&#236;nh m&#7895;i kh&#225;ch</small>
-            </article>
-            <article class="seller-customers-metric-card card shadow-sm">
                 <span>Doanh thu</span>
                 <strong><fmt:formatNumber value="${totalCustomerRevenue}" type="number" maxFractionDigits="0"/>&#273;</strong>
                 <small>Kh&#244;ng t&#237;nh &#273;&#417;n &#273;&#227; h&#7911;y</small>

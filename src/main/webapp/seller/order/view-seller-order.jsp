@@ -75,12 +75,12 @@
                         <small>Commission theo database</small>
                     </article>
                     <article class="seller-order-detail-metric card shadow-sm">
-                        <span>Doanh thu sau ph&#237;</span>
+                        <span>Doanh thu</span>
                         <strong><fmt:formatNumber value="${orderDetail.sellerReceivable}" type="number" maxFractionDigits="0"/>&#273;</strong>
                         <small>S&#7889; ti&#7873;n sau khi tr&#7915; ph&#237; n&#7873;n t&#7843;ng</small>
                     </article>
                     <article class="seller-order-detail-metric card shadow-sm">
-                        <span>Thanh to&#225;n</span>
+                        <span>Ph&#432;&#417;ng th&#7913;c thanh to&#225;n</span>
                         <strong>${orderDetail.paymentMethod}</strong>
                         <small>
                             <c:choose>

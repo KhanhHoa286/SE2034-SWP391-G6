@@ -90,8 +90,7 @@ public class ListCustomersServlet extends HttpServlet {
                 WITH customer_stats AS (
                     SELECT mo.customer_id,
                            COUNT(*) AS total_orders,
-                           SUM(CASE WHEN so.status <> 'CANCELLED' THEN so.total_amount ELSE 0 END) AS total_spent,
-                           SUM(CASE WHEN so.status IN ('PENDING', 'CONFIRMED', 'PREPARING', 'SHIPPING') THEN 1 ELSE 0 END) AS active_orders
+                           SUM(CASE WHEN so.status <> 'CANCELLED' THEN so.total_amount ELSE 0 END) AS total_spent
                     FROM sub_orders so
                     INNER JOIN master_orders mo ON mo.master_order_id = so.master_order_id
                     WHERE so.shop_id = ?
@@ -99,8 +98,6 @@ public class ListCustomersServlet extends HttpServlet {
                 )
                 SELECT COUNT(*) AS total_customers,
                        COALESCE(SUM(total_spent), 0) AS total_revenue,
-                       COALESCE(AVG(CAST(total_spent AS DECIMAL(18,2))), 0) AS average_customer_value,
-                       COALESCE(SUM(CASE WHEN active_orders > 0 THEN 1 ELSE 0 END), 0) AS active_customers,
                        COALESCE(SUM(CASE WHEN total_orders > 1 THEN 1 ELSE 0 END), 0) AS returning_customers
                 FROM customer_stats
                 """;
@@ -111,8 +108,6 @@ public class ListCustomersServlet extends HttpServlet {
                 if (rs.next()) {
                     request.setAttribute("totalCustomers", rs.getInt("total_customers"));
                     request.setAttribute("totalCustomerRevenue", rs.getBigDecimal("total_revenue"));
-                    request.setAttribute("averageCustomerValue", rs.getBigDecimal("average_customer_value"));
-                    request.setAttribute("activeCustomers", rs.getInt("active_customers"));
                     request.setAttribute("returningCustomers", rs.getInt("returning_customers"));
                     return;
                 }
@@ -121,8 +116,6 @@ public class ListCustomersServlet extends HttpServlet {
 
         request.setAttribute("totalCustomers", 0);
         request.setAttribute("totalCustomerRevenue", BigDecimal.ZERO);
-        request.setAttribute("averageCustomerValue", BigDecimal.ZERO);
-        request.setAttribute("activeCustomers", 0);
         request.setAttribute("returningCustomers", 0);
     }
 
@@ -295,8 +288,6 @@ public class ListCustomersServlet extends HttpServlet {
         request.setAttribute("customers", List.of());
         request.setAttribute("totalCustomers", 0);
         request.setAttribute("totalCustomerRevenue", BigDecimal.ZERO);
-        request.setAttribute("averageCustomerValue", BigDecimal.ZERO);
-        request.setAttribute("activeCustomers", 0);
         request.setAttribute("returningCustomers", 0);
     }
 
