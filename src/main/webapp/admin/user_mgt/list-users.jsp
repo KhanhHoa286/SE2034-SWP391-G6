@@ -172,8 +172,8 @@
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/seller_mgt/view-seller-list.jsp">
-                            <i data-lucide="home" class="menu-icon"></i>
+                        <a href="${pageContext.request.contextPath}/admin/seller-applications">
+                            <i data-lucide="store" class="menu-icon"></i>
                             <span class="menu-text">Người bán</span>
                         </a>
                     </li>
@@ -268,17 +268,7 @@
                                                 </c:choose>
                                             </div>
                                             <div>
-                                                <c:choose>
-                                                    <c:when test="${fn:contains(u.roleNames, 'CUSTOMER')}">
-                                                        <a href="${pageContext.request.contextPath}/admin/user_mgt/view-customer?id=${u.userId}"
-                                                           class="user-name" style="color:var(--sidebar-item-active);">
-                                                            <c:out value="${u.fullName}"/>
-                                                        </a>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <span class="user-name"><c:out value="${u.fullName}"/></span>
-                                                    </c:otherwise>
-                                                </c:choose>
+                                                <span class="user-name"><c:out value="${u.fullName}"/></span>
                                                 <span class="user-id">#<c:out value="${u.userId}"/></span>
                                             </div>
                                         </div>
@@ -298,7 +288,18 @@
                                     </td>
                                     <td>
                                         <div class="actions-cell">
-                                            <button class="btn-icon" title="Chỉnh sửa"><i data-lucide="edit-3" class="action-icon"></i></button>
+                                            <c:choose>
+                                                <c:when test="${fn:contains(u.roleNames, 'SELLER')}">
+                                                    <a href="${pageContext.request.contextPath}/admin/seller-applications/detail?userId=${u.userId}" class="btn-icon" title="Xem chi tiết người bán">
+                                                        <i data-lucide="eye" class="action-icon"></i>
+                                                    </a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a href="${pageContext.request.contextPath}/admin/user_mgt/view-customer?id=${u.userId}" class="btn-icon" title="Xem chi tiết khách hàng">
+                                                        <i data-lucide="eye" class="action-icon"></i>
+                                                    </a>
+                                                </c:otherwise>
+                                            </c:choose>
                                             <form action="${pageContext.request.contextPath}/admin/user-management" method="POST" style="display:inline;">
                                                 <input type="hidden" name="id" value="${u.userId}">
                                                 <input type="hidden" name="action" value="${u.status == 'BANNED' ? 'unban' : 'ban'}">
@@ -317,14 +318,14 @@
                                 <td>admin@moda.com</td>
                                 <td><span class="badge role-admin">ADMIN</span></td>
                                 <td><span class="badge status-active">Hoạt động</span></td>
-                                <td><div class="actions-cell"><button class="btn-icon"><i data-lucide="edit-3" class="action-icon"></i></button><button class="btn-icon delete"><i data-lucide="shield-alert" class="action-icon"></i></button></div></td>
+                                <td><div class="actions-cell"><a href="${pageContext.request.contextPath}/admin/user_mgt/view-customer?id=1" class="btn-icon" title="Xem chi tiết khách hàng"><i data-lucide="eye" class="action-icon"></i></a><button class="btn-icon delete" title="Khóa"><i data-lucide="shield-alert" class="action-icon"></i></button></div></td>
                             </tr>
                             <tr>
                                 <td><div class="user-cell"><div class="avatar-circle" style="background-color:#8b5cf6">N</div><div><span class="user-name">Nguyễn Văn Seller</span><span class="user-id">#2</span></div></div></td>
                                 <td>seller1@gmail.com</td>
                                 <td><span class="badge role-seller">SELLER</span></td>
                                 <td><span class="badge status-active">Hoạt động</span></td>
-                                <td><div class="actions-cell"><button class="btn-icon"><i data-lucide="edit-3" class="action-icon"></i></button><button class="btn-icon delete"><i data-lucide="shield-alert" class="action-icon"></i></button></div></td>
+                                <td><div class="actions-cell"><a href="${pageContext.request.contextPath}/admin/seller-applications/detail?userId=2" class="btn-icon" title="Xem chi tiết người bán"><i data-lucide="eye" class="action-icon"></i></a><button class="btn-icon delete" title="Khóa"><i data-lucide="shield-alert" class="action-icon"></i></button></div></td>
                             </tr>
                         </c:otherwise>
                     </c:choose>

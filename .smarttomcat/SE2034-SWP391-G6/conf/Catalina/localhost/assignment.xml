@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context docBase="C:\Users\Admin\Documents\NetBeansProjects\ASG_PRJ301-master _25_3\ASG_PRJ301-master_25_3\build\web" path="/assignment">
+  <!-- Tomcat DBCP Connection Pool - built-in, no extra JAR needed -->
+  <Resource auth="Container" driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" initialSize="2" logAbandoned="false" maxIdle="5" maxTotal="10" maxWaitMillis="8000" minIdle="2" name="jdbc/ChungCuDB" password="123" removeAbandonedOnBorrow="true" removeAbandonedTimeout="30" testOnBorrow="true" testWhileIdle="true" timeBetweenEvictionRunsMillis="30000" type="javax.sql.DataSource" url="jdbc:sqlserver://localhost:1433;databaseName=ChungCuDB;encrypt=false;trustServerCertificate=true;loginTimeout=5;" username="sa" validationQuery="SELECT 1"/>
+</Context>
