@@ -34,6 +34,9 @@ public class ViewSellerOrderServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         request.setAttribute("activePage", "orders");
+        if ("1".equals(trim(request.getParameter("statusUpdated")))) {
+            request.setAttribute("successMessage", "Cập nhật trạng thái đơn hàng thành công.");
+        }
 
         Shop shop = resolveSellerShop(request);
         if (shop == null) {

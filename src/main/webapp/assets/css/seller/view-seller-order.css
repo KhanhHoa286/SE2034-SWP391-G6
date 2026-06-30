@@ -51,6 +51,12 @@ body {
     font-weight: 700;
 }
 
+.seller-order-detail-alert-success {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+}
+
 .seller-order-detail-alert svg {
     width: 18px;
     height: 18px;
@@ -367,6 +373,7 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     min-width: 210px;
     min-height: 46px;
     padding: 0 22px;
@@ -382,6 +389,13 @@ body {
     background: #000000;
     color: #ffffff !important;
     border: 1px solid #000000;
+}
+
+.seller-order-detail-primary svg {
+    width: 16px;
+    height: 16px;
+    color: #ffffff;
+    stroke: #ffffff;
 }
 
 .seller-order-detail-secondary {
