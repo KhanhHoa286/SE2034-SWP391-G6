@@ -67,7 +67,7 @@
 
       <!-- Quản lý đơn hàng -->
       <li class="sidebar-item <%= isOrdersActive ? "active" : "" %>">
-        <a href="#" class="sidebar-link">
+        <a href="${pageContext.request.contextPath}/seller/orders" class="sidebar-link">
           <i data-lucide="shopping-cart"></i>
           <span>Quản lý đơn hàng</span>
         </a>

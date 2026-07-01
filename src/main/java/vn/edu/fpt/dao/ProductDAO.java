@@ -976,5 +976,27 @@ public class ProductDAO extends DBContext {
         }
         return addReviewResponse;
     }
+
+    public List<Integer> getDiscountPercentages() {
+        List<Integer> list = new ArrayList<>();
+        String sql = "SELECT DISTINCT discount_percentage FROM products ORDER BY discount_percentage";
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(rs.getInt("discount_percentage"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Fallback to standard discount rates if database has none
+        if (list.isEmpty()) {
+            list.add(0);
+            list.add(5);
+            list.add(10);
+            list.add(15);
+            list.add(20);
+        }
+        return list;
+    }
 }
 
