@@ -60,6 +60,11 @@
         vn.edu.fpt.dao.ProductDAO productDAO = new vn.edu.fpt.dao.ProductDAO();
         request.setAttribute("sizes", productDAO.getAllSizes());
     }
+    // Dự phòng tải danh sách phần trăm giảm giá nếu không đi qua Servlet
+    if (request.getAttribute("discounts") == null) {
+        vn.edu.fpt.dao.ProductDAO productDAO = new vn.edu.fpt.dao.ProductDAO();
+        request.setAttribute("discounts", productDAO.getDiscountPercentages());
+    }
 %>
 
 <div class="app-container">
@@ -121,6 +126,31 @@
                                             <span class="field-error"><%= err.apply("description") %></span>
                                         <% } %>
                                     </div>
+                                    
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                        <div class="form-group">
+                                            <label class="form-label" for="basePrice">GIÁ BÁN (đ)</label>
+                                            <input type="text" id="basePrice" name="basePrice" required
+                                                   class="form-control price-input <%= !err.apply("basePrice").isEmpty() ? "input-error" : "" %>"
+                                                   placeholder="Giá bán"
+                                                   value="<%= old.apply("basePriceRaw") %>">
+                                            <input type="hidden" id="basePriceRaw" name="basePriceRaw" value="<%= old.apply("basePriceRaw") %>">
+                                            <% if (!err.apply("basePrice").isEmpty()) { %>
+                                                <span class="field-error"><%= err.apply("basePrice") %></span>
+                                            <% } %>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label" for="discountPercentage">PHẦN TRĂM GIẢM GIÁ (%)</label>
+                                            <div class="category-select-container">
+                                                <select id="discountPercentage" name="discountPercentage" class="form-control select-control">
+                                                    <c:forEach var="d" items="${discounts}">
+                                                        <option value="${d}" ${oldInput.discountPercentage == d ? 'selected' : ''}>${d}%</option>
+                                                    </c:forEach>
+                                                </select>
+                                                <i data-lucide="chevron-down" class="select-arrow-icon"></i>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -136,7 +166,6 @@
                                                 <tr>
                                                     <th>MÀU SẮC</th>
                                                     <th>KÍCH THƯỚC</th>
-                                                    <th>GIÁ BÁN (đ)</th>
                                                     <th>SỐ LƯỢNG KHO</th>
                                                     <th></th>
                                                 </tr>
@@ -146,7 +175,7 @@
                                                 <tr class="variant-row">
                                                      <td>
                                                          <select name="variantColor" class="form-control form-control-sm" required>
-                                                             <option value="" disabled selected>Chọn màu</option>
+                                                             <option value="" selected>Chọn màu</option>
                                                              <c:forEach var="c" items="${colors}">
                                                                  <option value="${c.colorName}">${c.colorName}</option>
                                                              </c:forEach>
@@ -154,16 +183,12 @@
                                                      </td>
                                                      <td>
                                                          <select name="variantSize" class="form-control form-control-sm" required>
-                                                             <option value="" disabled selected>Chọn kích thước</option>
+                                                             <option value="" selected>Chọn kích thước</option>
                                                              <c:forEach var="s" items="${sizes}">
                                                                  <option value="${s.sizeName}">${s.sizeName}</option>
                                                              </c:forEach>
                                                          </select>
                                                      </td>
-                                                    <td>
-                                                        <input type="text" name="variantPrice" class="form-control form-control-sm price-input" placeholder="Giá bán" required>
-                                                        <input type="hidden" name="variantPriceRaw" value="">
-                                                    </td>
                                                     <td>
                                                         <input type="number" name="variantStock" class="form-control form-control-sm" placeholder="Số lượng" min="0" required>
                                                     </td>
@@ -171,7 +196,7 @@
                                                         <button type="button" class="btn-delete-row" onclick="deleteVariantRow(this)" title="Xóa">
                                                             <i data-lucide="trash-2"></i>
                                                         </button>
-                                                    </td>
+                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -373,6 +398,11 @@
     }
 
     function initPriceInput(input) {
+        // format initial value if present
+        if (input.value) {
+            input.value = formatPriceDisplay(input.value);
+        }
+
         input.addEventListener('input', function() {
             const cursorPos = this.selectionStart;
             const oldLen = this.value.length;
@@ -382,7 +412,7 @@
             this.setSelectionRange(cursorPos + (newLen - oldLen), cursorPos + (newLen - oldLen));
 
             // Cập nhật giá trị ẩn (raw) cho hidden input
-            const hiddenInput = this.parentElement.querySelector('input[name="variantPriceRaw"]');
+            const hiddenInput = this.parentElement.querySelector('input[name="variantPriceRaw"], input[name="basePriceRaw"]');
             if (hiddenInput) {
                 hiddenInput.value = parsePriceRaw(this.value);
             }
@@ -397,7 +427,7 @@
                 num = num * 1000;
             }
             this.value = formatPriceDisplay(num.toString());
-            const hiddenInput = this.parentElement.querySelector('input[name="variantPriceRaw"]');
+            const hiddenInput = this.parentElement.querySelector('input[name="variantPriceRaw"], input[name="basePriceRaw"]');
             if (hiddenInput) {
                 hiddenInput.value = num.toString();
             }
@@ -425,13 +455,13 @@
         newRow.className = 'variant-row';
 
         // Tạo chuỗi HTML cho option màu
-        let colorOptions = '<option value="" disabled selected>Chọn màu</option>';
+        let colorOptions = '<option value="" selected>Chọn màu</option>';
         dbColors.forEach(color => {
             colorOptions += '<option value="' + color + '">' + color + '</option>';
         });
 
         // Tạo chuỗi HTML cho option size
-        let sizeOptions = '<option value="" disabled selected>Chọn kích thước</option>';
+        let sizeOptions = '<option value="" selected>Chọn kích thước</option>';
         dbSizes.forEach(size => {
             sizeOptions += '<option value="' + size + '">' + size + '</option>';
         });
@@ -448,10 +478,6 @@
             '    </select>' +
             '</td>' +
             '<td>' +
-            '    <input type="text" name="variantPrice" class="form-control form-control-sm price-input" placeholder="200.000" required>' +
-            '    <input type="hidden" name="variantPriceRaw" value="">' +
-            '</td>' +
-            '<td>' +
             '    <input type="number" name="variantStock" class="form-control form-control-sm" placeholder="Số lượng" min="0" required>' +
             '</td>' +
             '<td>' +
@@ -461,9 +487,6 @@
             '</td>';
 
         tbody.appendChild(newRow);
-
-        // Khởi tạo price input formatting cho dòng mới
-        newRow.querySelectorAll('.price-input').forEach(initPriceInput);
         lucide.createIcons();
     }
 
@@ -552,6 +575,13 @@
             isValid = false;
         }
 
+        // 2.5 Validate Base Price
+        const basePrice = document.getElementById('basePrice');
+        if (!basePrice.value.trim()) {
+            showFieldError(basePrice, 'Giá bán sản phẩm không được để trống.');
+            isValid = false;
+        }
+
         // 3. Validate Main Image (slot0)
         const slot0 = document.getElementById('slot0');
         if (!slot0.classList.contains('has-image')) {
@@ -582,7 +612,6 @@
             rows.forEach((row, index) => {
                 const colorSelect = row.querySelector('select[name="variantColor"]');
                 const sizeSelect = row.querySelector('select[name="variantSize"]');
-                const priceInput = row.querySelector('input[name="variantPrice"]');
                 const stockInput = row.querySelector('input[name="variantStock"]');
 
                 if (!colorSelect.value) {
@@ -591,10 +620,6 @@
                 }
                 if (!sizeSelect.value) {
                     sizeSelect.classList.add('input-error');
-                    isValid = false;
-                }
-                if (!priceInput.value.trim()) {
-                    priceInput.classList.add('input-error');
                     isValid = false;
                 }
                 if (!stockInput.value.trim() || parseInt(stockInput.value) < 0) {
@@ -614,7 +639,7 @@
         } else {
             // Đồng bộ giá trị price raw
             document.querySelectorAll('.price-input').forEach(function(input) {
-                const hiddenInput = input.parentElement.querySelector('input[name="variantPriceRaw"]');
+                const hiddenInput = input.parentElement.querySelector('input[name="variantPriceRaw"], input[name="basePriceRaw"]');
                 if (hiddenInput) {
                     hiddenInput.value = parsePriceRaw(input.value);
                 }
