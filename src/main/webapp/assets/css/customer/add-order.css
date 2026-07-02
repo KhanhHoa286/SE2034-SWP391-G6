@@ -1,0 +1,676 @@
+/* ===== Add Order Page ===== */
+
+.add-order-page {
+    padding: 40px 0 80px;
+    background-color: var(--secondary-color);
+    min-height: calc(100vh - 80px);
+}
+
+/* ===== Back Link ===== */
+.add-order__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    transition: color 0.2s ease;
+    cursor: pointer;
+}
+
+.add-order__back:hover {
+    color: var(--primary-color);
+}
+
+/* ===== Layout ===== */
+.add-order__layout {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 40px;
+    align-items: start;
+}
+
+/* ===== Section Titles ===== */
+.add-order__section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+/* ===== Form Section ===== */
+.add-order__form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+}
+
+.add-order__block {
+    background-color: var(--secondary-color);
+}
+
+/* ===== Nút Thêm địa chỉ mới ===== */
+.add-address-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+.add-address-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: none;
+    border: 1.5px solid var(--primary-color);
+    border-radius: 4px;
+    padding: 9px 18px;
+    font-family: var(--font-main);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.add-address-btn i {
+    font-size: 0.75rem;
+    transition: transform 0.2s ease;
+}
+
+.add-address-btn:hover {
+    background-color: var(--bg-light);
+    color: black;
+    transform: translateY(-1px);
+}
+
+.add-address-btn:hover i {
+    transform: rotate(90deg);
+}
+
+.add-address-btn:active {
+    transform: translateY(0);
+}
+
+/* ===== Form Fields ===== */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+}
+
+.form-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.form-control-custom {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    font-family: var(--font-main);
+    color: var(--text-main);
+    background-color: var(--secondary-color);
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    appearance: auto;
+}
+
+.form-control-custom:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.06);
+}
+
+.form-control-custom::placeholder {
+    color: #bbb;
+    font-size: 0.88rem;
+}
+
+select.form-control-custom {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23777' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* ===== Payment Methods ===== */
+.payment-method-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.payment-method-card {
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    padding: 18px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    background-color: var(--secondary-color);
+    position: relative;
+}
+
+.payment-method-card:hover {
+    border-color: var(--primary-color);
+    background-color: var(--bg-light);
+}
+
+.payment-method-card.selected {
+    border-color: var(--primary-color);
+    background-color: var(--bg-light);
+}
+
+.payment-method-card.selected::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+}
+
+.payment-method-card input[type="radio"] {
+    display: none;
+}
+
+.payment-method-card i {
+    font-size: 1.6rem;
+    color: var(--primary-color);
+}
+
+.payment-method-card__name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--primary-color);
+}
+
+.payment-method-card__desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ===== Bank Transfer Info Box ===== */
+.bank-info-box {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    transition: max-height 0.4s ease, opacity 0.35s ease, margin-top 0.3s ease;
+}
+
+.bank-info-box.active {
+    max-height: 320px;
+    opacity: 1;
+    margin-top: 20px;
+}
+
+.bank-info-box__inner {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    background-color: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+/* QR */
+.bank-info-box__qr-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.bank-info-box__qr {
+    width: 130px;
+    height: 130px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: #fff;
+}
+
+.bank-info-box__qr-label {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    text-align: center;
+    letter-spacing: 0.3px;
+}
+
+/* Details */
+.bank-info-box__details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bank-info-box__bank-name {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.bank-info-box__bank-name i {
+    font-size: 0.9rem;
+}
+
+.bank-info-box__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.bank-info-box__label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.bank-info-box__value {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    letter-spacing: 0.3px;
+}
+
+.bank-info-box__value--accent {
+    color: #b45309;
+    background: #fef3c7;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+}
+
+/* STK + copy button */
+.bank-info-box__stk-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bank-info-box__copy-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.bank-info-box__copy-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background-color: var(--bg-light);
+}
+
+/* Note */
+.bank-info-box__note {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 0.73rem;
+    color: var(--text-muted);
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-top: 4px;
+    line-height: 1.5;
+}
+
+.bank-info-box__note i {
+    font-size: 0.8rem;
+    color: #1d6fa5;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+/* ===== Order Summary Panel ===== */
+.order-summary-panel {
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 28px;
+    position: sticky;
+    top: 100px;
+    /* Đảm bảo panel không cao hơn viewport */
+    max-height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.order-summary-panel__title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--primary-color);
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--primary-color);
+    flex-shrink: 0;
+}
+
+/* ===== Scrollable products list ===== */
+.summary-products-scroll {
+    overflow-y: auto;
+    flex: 1;
+    /* Giới hạn chiều cao tối đa để scroll hoạt động */
+    max-height: 290px;
+    /* Hiệu ứng fade-out mờ dần ở đáy gợi ý có thể scroll */
+    -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
+    padding-right: 4px;
+    padding-bottom: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: #ddd transparent;
+}
+
+.summary-products-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.summary-products-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.summary-products-scroll::-webkit-scrollbar-thumb {
+    background-color: #ddd;
+    border-radius: 10px;
+}
+
+.summary-products-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: #bbb;
+}
+
+/* Khi không còn nội dung để scroll thì bỏ fade */
+.summary-products-scroll.no-overflow {
+    -webkit-mask-image: none;
+    mask-image: none;
+}
+
+/* ===== Shop Group in Summary ===== */
+.summary-shop-group {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.summary-shop-group:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+/* ===== Summary footer (totals + button) — không bị scroll đẩy ===== */
+.summary-footer {
+    flex-shrink: 0;
+}
+
+.summary-shop-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.summary-shop-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--primary-color);
+}
+
+.summary-shop-name i {
+    font-size: 0.85rem;
+}
+
+.summary-shop-link {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-decoration: underline !important;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+}
+
+/* ===== Summary Product Item ===== */
+.summary-product-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.summary-product-item:last-child {
+    margin-bottom: 0;
+}
+
+.summary-product-img {
+    width: 54px;
+    height: 68px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+    border: 1px solid var(--border-color);
+}
+
+.summary-product-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.summary-product-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.summary-product-variant {
+    font-size: 0.73rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.summary-product-qty {
+    font-size: 0.73rem;
+    color: var(--text-muted);
+}
+
+.summary-product-price {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+/* ===== Summary Totals ===== */
+.summary-totals {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.88rem;
+}
+
+.summary-row span:first-child {
+    color: var(--text-muted);
+}
+
+.summary-row span:last-child {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.summary-row--total {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 2px solid var(--primary-color);
+    margin-bottom: 0;
+}
+
+.summary-row--total span:first-child {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--primary-color);
+}
+
+.summary-row--total span:last-child {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* ===== Checkout Button ===== */
+.add-order__checkout-btn {
+    width: 100%;
+    padding: 16px;
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border: none;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 20px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+    font-family: var(--font-main);
+}
+
+.add-order__checkout-btn:hover {
+    background-color: #222;
+    transform: translateY(-1px);
+}
+
+.add-order__checkout-btn:active {
+    transform: translateY(0);
+}
+
+/* ===== Terms Note ===== */
+.summary-terms {
+    margin-top: 14px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.6;
+}
+
+.summary-terms a {
+    color: var(--text-muted) !important;
+    text-decoration: underline !important;
+}
+
+/* ===== Divider ===== */
+.add-order__divider {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 4px 0 28px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 992px) {
+    .add-order__layout {
+        grid-template-columns: 1fr;
+    }
+
+    .order-summary-panel {
+        position: static;
+        order: -1;
+        max-height: none;
+    }
+
+    .summary-products-scroll {
+        max-height: 260px;
+    }
+
+    .form-row-3 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .form-row,
+    .form-row-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .payment-method-grid {
+        grid-template-columns: 1fr;
+    }
+}
