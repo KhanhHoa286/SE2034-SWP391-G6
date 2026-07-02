@@ -70,7 +70,9 @@ public class CartServlet extends HttpServlet {
         BigDecimal newShopAllTotal = BigDecimal.ZERO;
         if(cartResponses != null) {
             for (CartResponse c : cartResponses) {
-                newShopAllTotal = newShopAllTotal.add(c.getTotalPrice());
+                if(c.isSelected() == true) {
+                    newShopAllTotal = newShopAllTotal.add(c.getTotalPrice());
+                }
             }
         }
         return newShopAllTotal;
