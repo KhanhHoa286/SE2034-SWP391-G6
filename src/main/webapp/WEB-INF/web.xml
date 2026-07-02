@@ -6,4 +6,19 @@
 
   <display-name>Vina Fashion Studio Web Application</display-name>
 
+  <servlet>
+    <servlet-name>EditSellerStatusServlet</servlet-name>
+    <servlet-class>vn.edu.fpt.controller.seller.EditSellerStatusServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>EditSellerStatusServlet</servlet-name>
+    <url-pattern>/seller/order/status</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>EditSellerStatusServlet</servlet-name>
+    <url-pattern>/edit-seller-status</url-pattern>
+  </servlet-mapping>
+
 </web-app>

@@ -75,7 +75,7 @@
 
       <!-- Khách hàng -->
       <li class="sidebar-item <%= isCustomersActive ? "active" : "" %>">
-        <a href="#" class="sidebar-link">
+        <a href="${pageContext.request.contextPath}/seller/customers" class="sidebar-link">
           <i data-lucide="users"></i>
           <span>Khách hàng</span>
         </a>

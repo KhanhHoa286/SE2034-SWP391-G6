@@ -11,7 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260630a">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/view-seller-order.css?v=20260630a">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/view-seller-order.css?v=20260630b">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -32,6 +32,13 @@
             <div class="seller-order-detail-alert alert alert-danger d-flex align-items-center" role="alert">
                 <i data-lucide="alert-triangle"></i>
                 <span>${errorMessage}</span>
+            </div>
+        </c:if>
+
+        <c:if test="${not empty successMessage}">
+            <div class="seller-order-detail-alert seller-order-detail-alert-success alert d-flex align-items-center" role="alert">
+                <i data-lucide="check-circle-2"></i>
+                <span>${successMessage}</span>
             </div>
         </c:if>
 
@@ -68,12 +75,12 @@
                         <small>Commission theo database</small>
                     </article>
                     <article class="seller-order-detail-metric card shadow-sm">
-                        <span>Doanh thu sau ph&#237;</span>
+                        <span>Doanh thu</span>
                         <strong><fmt:formatNumber value="${orderDetail.sellerReceivable}" type="number" maxFractionDigits="0"/>&#273;</strong>
                         <small>S&#7889; ti&#7873;n sau khi tr&#7915; ph&#237; n&#7873;n t&#7843;ng</small>
                     </article>
                     <article class="seller-order-detail-metric card shadow-sm">
-                        <span>Thanh to&#225;n</span>
+                        <span>Ph&#432;&#417;ng th&#7913;c thanh to&#225;n</span>
                         <strong>${orderDetail.paymentMethod}</strong>
                         <small>
                             <c:choose>
@@ -209,6 +216,13 @@
                     <a class="seller-order-detail-secondary btn btn-outline-dark" href="${pageContext.request.contextPath}/seller/orders">
                         Quay l&#7841;i danh s&#225;ch
                     </a>
+                    <c:if test="${orderDetail.status == 'PENDING' || orderDetail.status == 'CONFIRMED' || orderDetail.status == 'PREPARING'}">
+                        <a class="seller-order-detail-primary btn btn-dark"
+                           href="${pageContext.request.contextPath}/seller/order/status?subOrderId=${orderDetail.subOrderId}">
+                            <i data-lucide="refresh-cw"></i>
+                            <span>Chuy&#7875;n tr&#7841;ng th&#225;i</span>
+                        </a>
+                    </c:if>
                 </div>
             </c:when>
             <c:otherwise>

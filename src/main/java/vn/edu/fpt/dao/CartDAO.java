@@ -108,9 +108,7 @@ public class CartDAO extends DBContext {
             try(ResultSet rs = stmt.executeQuery()) {
                 while(rs.next()) {
                     CartResponse cartResponse = buildCartResponse(rs);
-                    cartResponse.setSelected(rs.getBoolean("is_selected"));
-                    cartResponse.setCartItemId(rs.getInt("cart_item_id"));
-                    cartResponse.setQuantity(rs.getInt("quantity"));
+
                     cartResponses.add(cartResponse);
                 }
             }
@@ -136,7 +134,9 @@ public class CartDAO extends DBContext {
         item.setColorName(rs.getNString("color_name"));
         item.setSizeName(rs.getString("size_name"));
         item.setStockQuantity(rs.getInt("stock_quantity"));
-
+        item.setSelected(rs.getBoolean("is_selected"));
+        item.setCartItemId(rs.getInt("cart_item_id"));
+        item.setQuantity(rs.getInt("quantity"));
         // Sử dụng hàm tính giá sau giảm từ product model
         Product p = new Product();
         p.setBasePrice(rs.getBigDecimal("variant_price"));
@@ -180,6 +180,28 @@ public class CartDAO extends DBContext {
             stmt.executeUpdate();
             return true;
         }catch(Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * HoaNK - update selected của checkbox
+     */
+    private final String UPDATE_CHECKBOX = """
+            UPDATE cart_items SET is_selected = ? WHERE cart_item_id = ?
+            """;
+    public boolean updateCheckbox(String isSelected, int cartItemId) {
+        String sql = UPDATE_CHECKBOX;
+
+        int selected = ("true".equals(isSelected) ? 1 : 0);
+
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1,selected);
+            stmt.setInt(2,cartItemId);
+            stmt.executeUpdate();
+            return true;
+        }catch (Exception e) {
             e.printStackTrace();
         }
         return false;
