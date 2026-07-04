@@ -12,8 +12,6 @@ import vn.edu.fpt.dto.request.CartRequest;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * HoaNK - HE195013
@@ -24,65 +22,87 @@ import java.util.List;
 public class AddToCart extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     private final CartDAO cartDAO = new CartDAO();
+
     @Override
-         protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-             CartRequest cartRequest = new CartRequest();
-             cartRequest.setQuantity(Integer.parseInt(request.getParameter("quantity")));
-             cartRequest.setProductId(Integer.parseInt(request.getParameter("productId")));
-             cartRequest.setColorId(Integer.parseInt(request.getParameter("colorId")));
-             cartRequest.setSizeId(Integer.parseInt(request.getParameter("sizeId")));
-             // lấy ra variant id
-        int variantId = productDAO.getVariantById(cartRequest.getProductId(), cartRequest.getSizeId(), cartRequest.getColorId());
-        if(variantId == 0) { // lỗi hoặc ko có variant id ném về trang details
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Đặt content type trước khi write bất kỳ response nào
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
+
+        // JS gửi params với tên: product_id, color_id, size_id, quantity
+        String rawProductId = request.getParameter("product_id");
+        String rawColorId   = request.getParameter("color_id");
+        String rawSizeId    = request.getParameter("size_id");
+        String rawQuantity  = request.getParameter("quantity");
+
+        // Kiểm tra đầu vào trước khi parse để tránh NullPointerException
+        if (rawProductId == null || rawColorId == null || rawSizeId == null || rawQuantity == null) {
             response.getWriter().write("INVALID_VARIANT");
             return;
         }
-        // thêm vào giỏ hàng
-        boolean checkAddItemCart = handleMemberCart(request,response, cartRequest,variantId);
 
-        // gửi về cho js
-        response.setContentType("text/plain");
-        response.setCharacterEncoding("UTF-8");
-        // kiểm tra thêm giỏ hàng thành công hay bị vượt quá không
-        if(!checkAddItemCart) {
+        CartRequest cartRequest = new CartRequest();
+        try {
+            cartRequest.setQuantity(Integer.parseInt(rawQuantity.trim()));
+            cartRequest.setProductId(Integer.parseInt(rawProductId.trim()));
+            cartRequest.setColorId(Integer.parseInt(rawColorId.trim()));
+            cartRequest.setSizeId(Integer.parseInt(rawSizeId.trim()));
+        } catch (NumberFormatException e) {
+            response.getWriter().write("INVALID_VARIANT");
+            return;
+        }
+
+        // Lấy ra variant id tương ứng với combination màu + cỡ + sản phẩm
+        int variantId = productDAO.getVariantById(cartRequest.getProductId(), cartRequest.getSizeId(), cartRequest.getColorId());
+        if (variantId == 0) { // không tìm thấy variant hợp lệ
+            response.getWriter().write("INVALID_VARIANT");
+            return;
+        }
+
+        // Thêm vào giỏ hàng — kiểm tra kho trong hàm này
+        boolean checkAddItemCart = handleMemberCart(request, response, cartRequest, variantId);
+
+        // Vượt quá tồn kho — báo lỗi về JS để hiển thị thông báo
+        if (!checkAddItemCart) {
             response.getWriter().write("OVER_STOCK");
             return;
         }
-        // lấy số lượng hiển thị trên giỏ hàng
+
+        // Thành công — trả số lượng sản phẩm hiện có trong giỏ để JS cập nhật badge
         int numberProductCart = getNumberProductCart(request);
         response.getWriter().write(String.valueOf(numberProductCart));
     }
 
-    // kiểm tra người dùng đã đăng nhập chưa và lưu vào giỏ hàng
-    private boolean handleMemberCart(HttpServletRequest request,HttpServletResponse response, CartRequest cartRequest, int variantId) throws IOException {
+    // Kiểm tra người dùng đã đăng nhập chưa và lưu vào giỏ hàng
+    private boolean handleMemberCart(HttpServletRequest request, HttpServletResponse response, CartRequest cartRequest, int variantId) throws IOException {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-        // đã đăng nhập
-        if(user != null) {
-            // lấy ra số lượng hiện tại của biến thể đang định thêm
-            int currentStock = productDAO.getVariantStock(variantId);
-            // lấy ra số lượng variant trong giỏ ở database
-            int quantityDb = cartDAO.getQuantityAVariantCart(variantId, user.getUserId());
-            // số lượng muốn thêm + số lượng trong giỏ
-            int targetQuantity = quantityDb + cartRequest.getQuantity();
-            // nếu nó lớn hơn so lượng trong kho đang có
-            if (targetQuantity > currentStock) {
-                return false;
-            }
-            // nếu không lớn hơn thì thêm vào giỏ hàng
-            cartDAO.addToCart(user.getUserId(), variantId, cartRequest.getQuantity());
-            return true;
+        // chưa đăng nhập thì không thêm được
+        if (user == null) {
+            return false;
         }
-        return false;
+        // lấy ra số lượng hiện tại của biến thể trong kho
+        int currentStock = productDAO.getVariantStock(variantId);
+        // lấy ra số lượng variant đang có trong giỏ ở database
+        int quantityDb = cartDAO.getQuantityAVariantCart(variantId, user.getUserId());
+        // số lượng muốn thêm + số lượng đã có trong giỏ
+        int targetQuantity = quantityDb + cartRequest.getQuantity();
+        // nếu tổng vượt quá tồn kho thì từ chối
+        if (targetQuantity > currentStock) {
+            return false;
+        }
+        // đủ hàng — thêm vào giỏ
+        cartDAO.addToCart(user.getUserId(), variantId, cartRequest.getQuantity());
+        return true;
     }
 
-    //  trả về số lượng để hiện thị động trên icon giỏ hàng
+    // Trả về số lượng để hiển thị động trên icon giỏ hàng
     private int getNumberProductCart(HttpServletRequest request) {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-        if(user != null) {
+        if (user != null) {
             return cartDAO.getNumberOfProductCart(user.getUserId());
         }
-            return 0;
+        return 0;
     }
 }

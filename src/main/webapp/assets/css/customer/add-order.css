@@ -28,7 +28,7 @@
 /* ===== Layout ===== */
 .add-order__layout {
     display: grid;
-    grid-template-columns: 1fr 420px;
+    grid-template-columns: 1fr 500px;
     gap: 40px;
     align-items: start;
 }
@@ -385,10 +385,10 @@ select.form-control-custom {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 28px;
+    padding-bottom: 36px;
     position: sticky;
     top: 100px;
-    /* Đảm bảo panel không cao hơn viewport */
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - 80px);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -410,9 +410,7 @@ select.form-control-custom {
 .summary-products-scroll {
     overflow-y: auto;
     flex: 1;
-    /* Giới hạn chiều cao tối đa để scroll hoạt động */
-    max-height: 290px;
-    /* Hiệu ứng fade-out mờ dần ở đáy gợi ý có thể scroll */
+    max-height: 420px;
     -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
     mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
     padding-right: 4px;
@@ -597,10 +595,13 @@ select.form-control-custom {
 
 /* ===== Checkout Button ===== */
 .add-order__checkout-btn {
+    display: block;
+    text-align: center;
+    text-decoration: none !important;
     width: 100%;
     padding: 16px;
     background-color: var(--primary-color);
-    color: var(--secondary-color);
+    color: #fff !important;
     border: none;
     font-size: 0.82rem;
     font-weight: 700;
@@ -673,4 +674,14 @@ select.form-control-custom {
     .payment-method-grid {
         grid-template-columns: 1fr;
     }
+}
+
+
+.add-order__checkout-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    background-color: #f1f1f4 !important;
+    color: #a1a5b7 !important;
+    border-color: #e4e6ef !important;
 }

@@ -14,7 +14,6 @@ import vn.edu.fpt.model.Size;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.SQLException;
@@ -85,8 +84,7 @@ public class ProductDAO extends DBContext {
     }
 
     /**
-     * HoaNK - Lấy top sản phẩm bán chạy nhất (JOIN product với shops, wards, provinces, order_details, orders)
-     * Gom nhóm và tính tổng các sản phẩm đã được giao và đơn đã hoàn thành và sắp xếp tổng theo thứ tự giảm dần
+     * HoaNK - Lấy top sản phẩm bán chạy nhất
      */
 
     public List<ProductResponse> getTopBestSellingProducts() {
@@ -997,6 +995,49 @@ public class ProductDAO extends DBContext {
             list.add(20);
         }
         return list;
+    }
+
+        /**
+     * HoaNK - Lấy sản phẩm mua ngay ở trang details
+     */
+    private final String GET_VARIANT_PRODUCT_DETAILS = """
+                SELECT pv.variant_id,p.thumbnail_url,p.product_name,p.product_id,p.base_price,p.discount_percentage,s.size_name, c.color_name, sh.shop_name,sh.shop_id
+                FROM product_variants pv
+                JOIN products p ON p.product_id = pv.product_id
+                JOIN sizes s ON s.size_id = pv.size_id
+                JOIN colors c ON c.color_id = pv.color_id
+                JOIN shops sh ON sh.shop_id = p.shop_id
+                WHERE variant_id = ?
+                """;
+    public SummaryOrderCheckoutResponse getVariantInfoForCheckout(int variantId) {
+        String sql = GET_VARIANT_PRODUCT_DETAILS;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)){
+            stmt.setInt(1, variantId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    SummaryOrderCheckoutResponse summary = new SummaryOrderCheckoutResponse();
+                    summary.setVariantId(rs.getInt("variant_id"));
+                    summary.setColorName(rs.getString("color_name"));
+                    summary.setSizeName(rs.getString("size_name"));
+                    summary.setProductName(rs.getString("product_name"));
+                    summary.setShopName(rs.getString("shop_name"));
+                    summary.setShopId(rs.getInt("shop_id"));
+                    summary.setProductId(rs.getInt("product_id"));
+                    summary.setThumbnail(rs.getString("thumbnail_url"));
+                    //
+                    Product product = new Product();
+                    product.setBasePrice(rs.getBigDecimal("base_price"));
+                    product.setDiscountPercentage(rs.getInt("discount_percentage"));
+                    summary.setPrice(product.getDiscountedPrice());
+                    //
+                    return summary;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
 
