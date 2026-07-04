@@ -81,9 +81,10 @@
                 <span>TỔNG CỘNG</span>
                 <span id="new-all-shop-total"><fmt:formatNumber value="${shopAllTotal}" type="currency" maxFractionDigits="0"/></span>
             </div>
-
-            <a href="${pageContext.request.contextPath}/customer/add-order" class="checkout-btn">TIẾN HÀNH THANH TOÁN</a>
+            <div class="text-end mb-2">
+                <span id="checkout-error" class="text-danger" style="font-size: 13px; font-weight: 500;"></span>
             </div>
+            <a href="javascript:void(0)" onclick="goToCheckout('${pageContext.request.contextPath}')" class="checkout-btn">TIẾN HÀNH THANH TOÁN</a>            </div>
         </div>
 
     </div>

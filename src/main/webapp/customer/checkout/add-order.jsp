@@ -1,4 +1,8 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<fmt:setLocale value="vi_VN"/>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -23,7 +27,7 @@
     <a href="javascript:history.back()" class="add-order__back">
         <i class="fa-solid fa-arrow-left"></i> Quay lại
     </a>
-
+        <form action="${pageContext.request.contextPath}/customer/add-order" method="post">
     <div class="add-order__layout">
 
         <%-- ============================
@@ -38,69 +42,35 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Họ và tên</label>
-                        <input
-                                type="text"
-                                class="form-control-custom"
-                                placeholder="Nhập tên đầy đủ của bạn"
-                                id="fullName"
-                        >
+                        <input type="text" class="form-control-custom" placeholder="Nhập tên đầy đủ của bạn" id="fullName" value="${checkoutResponse.addressResponse.fullName}" readonly>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Số điện thoại</label>
-                        <input
-                                type="tel"
-                                class="form-control-custom"
-                                placeholder="090 000 0000"
-                                id="phone"
-                        >
+                        <input type="tel" class="form-control-custom" placeholder="090 000 0000" id="phone" value="${checkoutResponse.addressResponse.phone}" readonly>
                     </div>
                 </div>
 
                 <div class="form-row-3">
                     <div class="form-group">
                         <label class="form-label">Tỉnh / Thành phố</label>
-                        <select class="form-control-custom" id="province">
-                            <option value="">Hồ Chí Minh</option>
-                            <option value="hn">Hà Nội</option>
-                            <option value="dn">Đà Nẵng</option>
-                            <option value="ct">Cần Thơ</option>
-                            <option value="bd">Bình Dương</option>
-                            <option value="br">Bà Rịa - Vũng Tàu</option>
-                        </select>
+                        <input type="tel" class="form-control-custom" placeholder="Tỉnh / Thành phố" id="phone" value="${checkoutResponse.addressResponse.provinceName}" readonly>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Quận / Huyện</label>
-                        <select class="form-control-custom" id="district">
-                            <option value="">Quận 1</option>
-                            <option value="q2">Quận 2</option>
-                            <option value="q3">Quận 3</option>
-                            <option value="q4">Quận 4</option>
-                            <option value="tb">Tân Bình</option>
-                            <option value="pn">Phú Nhuận</option>
-                        </select>
+                        <input type="tel" class="form-control-custom" placeholder="Quận / Huyện" id="phone" value="${checkoutResponse.addressResponse.wardName}" readonly>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Chi tiết địa chỉ</label>
-                        <input
-                                type="tel"
-                                class="form-control-custom"
-                                placeholder="Số nhà..."
-                                id="phone"
-                        >
+                        <input type="tel" class="form-control-custom" placeholder="Số nhà..." id="phone" value="${checkoutResponse.addressResponse.localDetail}" readonly>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Địa chỉ chi tiết</label>
-                    <input
-                            type="text"
-                            class="form-control-custom"
-                            placeholder="Số nhà, tên đường..."
-                            id="addressDetail"
-                    >
-                </div>
-
                 <%-- Nút thêm địa chỉ mới — căn phải --%>
+                <c:if test="${empty checkoutResponse.addressResponse}">
+                <div class="text-end">
+                    <p class="text-danger">* Vui lòng thêm địa chỉ để đặt hàng</p>
+                </div>
+                </c:if>
                 <div class="add-address-row">
                     <a href="${pageContext.request.contextPath}/customer/addresses/add" class="add-address-btn" id="btn-add-address">
                         <i class="fa-solid fa-plus"></i>
@@ -120,7 +90,7 @@
 
                     <%-- COD --%>
                     <label class="payment-method-card selected" id="pm-cod" for="radio-cod" onclick="selectPayment('cod')">
-                        <input type="radio" name="paymentMethod" id="radio-cod" value="cod" checked>
+                        <input type="radio" name="payment_method" id="radio-cod" value="COD" checked>
                         <i class="fa-solid fa-box-open"></i>
                         <span class="payment-method-card__name">COD</span>
                         <span class="payment-method-card__desc">Thanh toán khi nhận hàng</span>
@@ -128,7 +98,7 @@
 
                     <%-- CHUYỂN KHOẢN --%>
                     <label class="payment-method-card" id="pm-bank" for="radio-bank" onclick="selectPayment('bank_transfer')">
-                        <input type="radio" name="paymentMethod" id="radio-bank" value="bank_transfer">
+                        <input type="radio" name="payment_method" id="radio-bank" value="BANK">
                         <i class="fa-solid fa-building-columns"></i>
                         <span class="payment-method-card__name">Chuyển khoản</span>
                         <span class="payment-method-card__desc">Xác nhận thủ công</span>
@@ -201,201 +171,100 @@
                 <div class="summary-products-scroll" id="summaryScroll">
 
                     <%-- Shop 1 — 2 sản phẩm --%>
+                    <c:if test="${type == 'CART'}">
                     <div class="summary-shop-group">
+                        <c:forEach items="${checkoutResponse.shopCartResponses}" var="shop">
                         <div class="summary-shop-header">
                             <div class="summary-shop-name">
                                 <i class="fa-solid fa-store"></i>
-                                MODA HÀ NỘI
+                                ${shop.shopName}
                             </div>
-                            <a href="#" class="summary-shop-link">Xem Shop</a>
+                            <a href="${pageContext.request.contextPath}/shop?shop_id=${shop.shopId}" class="summary-shop-link">Xem Shop</a>
                         </div>
 
                         <%-- SP 1 --%>
+                            <c:forEach items="${shop.items}" var="shopItem">
                         <div class="summary-product-item">
                             <img
-                                    src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=200&auto=format&fit=crop"
-                                    alt="Áo khoác Wool Overcoat"
+                                    src="${shopItem.thumbnailUrl}"
+                                    alt="${shopItem.productName}"
                                     class="summary-product-img"
                             >
                             <div class="summary-product-info">
-                                <div class="summary-product-name">Áo khoác Wool Overcoat</div>
-                                <div class="summary-product-variant">SIZE: L | COLOR: BLACK</div>
-                                <div class="summary-product-qty">x1</div>
+                                <div class="summary-product-name">${shopItem.productName}</div>
+                                <div class="summary-product-variant">Kích cỡ: ${shopItem.sizeName} | Màu sắc: ${shopItem.colorName}</div>
+                                <div class="summary-product-qty">Số lượng: ${shopItem.quantity}</div>
                             </div>
-                            <div class="summary-product-price">5.200.000đ</div>
+                            <div class="summary-product-price"><c:if test="${not empty shopItem.discountPrice}"><fmt:formatNumber type="currency" maxFractionDigits="0" value="${shopItem.discountPrice}"/></c:if></div>
                         </div>
-
-                        <%-- SP 2 --%>
-                        <div class="summary-product-item">
-                            <img
-                                    src="https://images.unsplash.com/photo-1600185365778-d9e3b1dcd23d?q=80&w=200&auto=format&fit=crop"
-                                    alt="Quần âu Slim Fit"
-                                    class="summary-product-img"
-                            >
-                            <div class="summary-product-info">
-                                <div class="summary-product-name">Quần âu Slim Fit</div>
-                                <div class="summary-product-variant">SIZE: 31 | COLOR: NAVY</div>
-                                <div class="summary-product-qty">x1</div>
-                            </div>
-                            <div class="summary-product-price">1.350.000đ</div>
-                        </div>
+                            </c:forEach>
+                        </c:forEach>
                     </div>
+                    </c:if>
+                <%--Nếu đi từ trang chi tiết sang--%>
+                        <c:if test="${type == 'DETAILS_PRODUCT'}">
+                            <div class="summary-shop-group">
+                                    <div class="summary-shop-header">
+                                        <div class="summary-shop-name">
+                                            <i class="fa-solid fa-store"></i>
+                                                ${checkoutResponse.summary.shopName}
+                                        </div>
+                                        <a href="${pageContext.request.contextPath}/shop?shop_id= ${checkoutResponse.summary.shopId}" class="summary-shop-link">Xem Shop</a>
+                                    </div>
 
-                    <%-- Shop 2 — 2 sản phẩm --%>
-                    <div class="summary-shop-group">
-                        <div class="summary-shop-header">
-                            <div class="summary-shop-name">
-                                <i class="fa-solid fa-store"></i>
-                                MODA SÀI GÒN
+                                    <%-- SP 1 --%>
+                                        <div class="summary-product-item">
+                                            <img src="${checkoutResponse.summary.thumbnail}" alt="${checkoutResponse.summary.productName}" class="summary-product-img">
+                                            <div class="summary-product-info">
+                                                <div class="summary-product-name">${checkoutResponse.summary.productName}</div>
+                                                <div class="summary-product-variant">Kích cỡ: ${checkoutResponse.summary.sizeName} | Màu sắc: ${checkoutResponse.summary.colorName}</div>
+                                                <div class="summary-product-qty">Số lượng: ${checkoutResponse.summary.quantity}</div>
+                                            </div>
+                                            <div class="summary-product-price"><c:if test="${not empty checkoutResponse.summary.price}"><fmt:formatNumber type="currency" maxFractionDigits="0" value="${checkoutResponse.summary.price}"/></c:if></div>
+                                        </div>
                             </div>
-                            <a href="#" class="summary-shop-link">Xem Shop</a>
-                        </div>
-
-                        <%-- SP 3 --%>
-                        <div class="summary-product-item">
-                            <img
-                                    src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=200&auto=format&fit=crop"
-                                    alt="Sơ mi LpA Premium"
-                                    class="summary-product-img"
-                            >
-                            <div class="summary-product-info">
-                                <div class="summary-product-name">Sơ mi LpA Premium</div>
-                                <div class="summary-product-variant">SIZE: M | COLOR: WHITE</div>
-                                <div class="summary-product-qty">x1</div>
-                            </div>
-                            <div class="summary-product-price">850.000đ</div>
-                        </div>
-
-                        <%-- SP 4 (mới) --%>
-                        <div class="summary-product-item">
-                            <img
-                                    src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=200&auto=format&fit=crop"
-                                    alt="Thắt lưng da Minimalist"
-                                    class="summary-product-img"
-                            >
-                            <div class="summary-product-info">
-                                <div class="summary-product-name">Thắt lưng da Minimalist</div>
-                                <div class="summary-product-variant">SIZE: OS | COLOR: TAN</div>
-                                <div class="summary-product-qty">x2</div>
-                            </div>
-                            <div class="summary-product-price">1.700.000đ</div>
-                        </div>
-                    </div>
-
-                    <%-- Shop 3 (mới) — 1 sản phẩm --%>
-                    <div class="summary-shop-group">
-                        <div class="summary-shop-header">
-                            <div class="summary-shop-name">
-                                <i class="fa-solid fa-store"></i>
-                                Gian hàng: MODA ARCHIVE
-                            </div>
-                            <a href="#" class="summary-shop-link">Xem Shop</a>
-                        </div>
-
-                        <%-- SP 5 --%>
-                        <div class="summary-product-item">
-                            <img
-                                    src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=200&auto=format&fit=crop"
-                                    alt="Sneaker Archive Low"
-                                    class="summary-product-img"
-                            >
-                            <div class="summary-product-info">
-                                <div class="summary-product-name">Sneaker Archive Low</div>
-                                <div class="summary-product-variant">SIZE: 42 | COLOR: WHITE</div>
-                                <div class="summary-product-qty">x1</div>
-                            </div>
-                            <div class="summary-product-price">2.900.000đ</div>
-                        </div>
-
-                        <%-- SP 6 (mới) --%>
-                        <div class="summary-product-item">
-                            <img
-                                    src="https://images.unsplash.com/photo-1434389677669-e08b4cac3105?q=80&w=200&auto=format&fit=crop"
-                                    alt="Mũ Bucket Canvas"
-                                    class="summary-product-img"
-                            >
-                            <div class="summary-product-info">
-                                <div class="summary-product-name">Mũ Bucket Canvas</div>
-                                <div class="summary-product-variant">SIZE: FREE | COLOR: BEIGE</div>
-                                <div class="summary-product-qty">x1</div>
-                            </div>
-                            <div class="summary-product-price">450.000đ</div>
-                        </div>
-
-                    </div><%-- /summary-shop-group Shop 3 --%>
-
-                    <%-- Shop 4 (mới) — 2 sản phẩm --%>
-                    <div class="summary-shop-group">
-                        <div class="summary-shop-header">
-                            <div class="summary-shop-name">
-                                <i class="fa-solid fa-store"></i>
-                                Gian hàng: MODA STUDIO
-                            </div>
-                            <a href="#" class="summary-shop-link">Xem Shop</a>
-                        </div>
-
-                        <%-- SP 7 (mới) --%>
-                        <div class="summary-product-item">
-                            <img
-                                    src="https://images.unsplash.com/photo-1618354691373-d851c5c3a990?q=80&w=200&auto=format&fit=crop"
-                                    alt="Áo Hoodie Oversized"
-                                    class="summary-product-img"
-                            >
-                            <div class="summary-product-info">
-                                <div class="summary-product-name">Áo Hoodie Oversized</div>
-                                <div class="summary-product-variant">SIZE: XL | COLOR: GREY</div>
-                                <div class="summary-product-qty">x1</div>
-                            </div>
-                            <div class="summary-product-price">980.000đ</div>
-                        </div>
-
-                        <%-- SP 8 (mới) --%>
-                        <div class="summary-product-item">
-                            <img
-                                    src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=200&auto=format&fit=crop"
-                                    alt="Túi Tote Leather"
-                                    class="summary-product-img"
-                            >
-                            <div class="summary-product-info">
-                                <div class="summary-product-name">Túi Tote Leather</div>
-                                <div class="summary-product-variant">SIZE: OS | COLOR: BLACK</div>
-                                <div class="summary-product-qty">x1</div>
-                            </div>
-                            <div class="summary-product-price">1.620.000đ</div>
-                        </div>
-
-                    </div><%-- /summary-shop-group Shop 4 --%>
-
-                </div><%-- /summary-products-scroll --%>
-
-
+                        </c:if>
+                </div>
                 <%-- ===== FOOTER CỐ ĐỊNH: Tổng tiền + Nút thanh toán ===== --%>
                 <div class="summary-footer">
                     <div class="summary-totals">
-                        <div class="summary-row">
-                            <span>Tạm tính</span>
-                            <span>12.000.000đ</span>
-                        </div>
                         <div class="summary-row summary-row--total">
                             <span>Tổng thanh toán</span>
-                            <span>12.000.000đ</span>
+                            <span><c:if test="${not empty checkoutResponse.allShopTotal}"><fmt:formatNumber type="currency" maxFractionDigits="0" value="${checkoutResponse.allShopTotal}"/></c:if></span>
                         </div>
                     </div>
 
-                    <button class="add-order__checkout-btn" id="btn-checkout">
+                    <button type="submit"
+                            class="add-order__checkout-btn ${empty checkoutResponse.addressResponse.fullName ? 'disabled' : ''}"
+                            id="btn-checkout"
+                    ${empty checkoutResponse.addressResponse.fullName ? 'disabled' : ''}>
                         Thanh toán ngay
                     </button>
+                    <%--Kiểm tra nút thanh toán và gửi đi--%>
+                    <input type="hidden" value="${type}" name="type">
+                    <input type="hidden" value="${checkoutResponse.addressResponse.fullName}" name="receiver_name">
+                    <input type="hidden" value="${checkoutResponse.addressResponse.phone}" name="receiver_phone">
+                    <input type="hidden" value="${checkoutResponse.addressResponse.localDetail}, ${checkoutResponse.addressResponse.wardName}, ${checkoutResponse.addressResponse.provinceName}" name="shipping_address">
+                    <input type="hidden" value="${checkoutResponse.allShopTotal}" name="total_amount">
 
+                    <c:if test="${type == 'CART'}">
+                        <input type="hidden" value="${checkoutResponse.listCartItemIds}" name="cartItemIds">
+                    </c:if>
+                    <c:if test="${type == 'DETAILS_PRODUCT'}">
+                        <input type="hidden" value="${checkoutResponse.variantId}" name="variant_id">
+                        <input type="hidden" value="${checkoutResponse.summary.quantity}" name="quantity_details_product">
+                    </c:if>
+                    <%----------------------%>
                     <p class="summary-terms">
                         Bằng cách đặt hàng, bạn đồng ý với các
                         <a href="#">Điều khoản &amp; Chính sách</a> của MODA.
                     </p>
-                </div><%-- /summary-footer --%>
-
-            </div><%-- /order-summary-panel --%>
+                </div>
+            </div>
         </aside>
 
     </div>
+</form>
 </main>
 
 <jsp:include page="/common/footer.jsp" />

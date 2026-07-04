@@ -47,9 +47,9 @@ function updateItemQuantity(contextPath, cartItemId, variantId,action,btn) {
         })
 }
 
-/**
- * HoaNK - Xóa 1 items trong giỏ hàng
- */
+
+ // Xóa 1 items trong giỏ hàng
+
 function removeAnItem(contextPath, cartItemId, btn) {
     const params = new URLSearchParams();
     params.set("cart_item_id", cartItemId);
@@ -89,10 +89,10 @@ function removeAnItem(contextPath, cartItemId, btn) {
 }
 
 
-/**
- * HoaNK - lấy ra danh sách các sản phẩm được tích checkbox
- */
+
+ //cập nhật biến thể khi tích checkbox
 function getListCheckbox(contextPath,cartItemId,btn) {
+    const checkoutError = document.getElementById("checkout-error");
     const params = new URLSearchParams();
     const isSelected = btn.checked; // trả về true false
     params.set('cart_item_id', cartItemId);
@@ -103,8 +103,40 @@ function getListCheckbox(contextPath,cartItemId,btn) {
             const data = response.data;
 
             newAllShopTotal.innerText = data.totalPriceAllShop;
+            updateCheckoutButtonLink(contextPath);
         })
         .catch(error => {
             console.log("Thêm biến thể giỏ hàng thất bại!", error);
         })
+}
+
+
+// Lấy tất cả những sản phâẩm được checkbox trong giỏ hàng
+function getCheckedCartItemIds() {
+    const checkedCheckboxes = document.querySelectorAll(".cart-item__checkbox:checked");
+    const idsArray = Array.from(checkedCheckboxes).map(checkbox => checkbox.value);
+    return idsArray.join(",");
+}
+
+//
+function goToCheckout(contextPath) {
+    const cartItemIds = getCheckedCartItemIds();
+    const checkoutError = document.getElementById("checkout-error");
+    if (!cartItemIds) {
+        checkoutError.innerText = "* Vui lòng tích chọn ít nhất 1 sản phẩm...";
+        return;
+    }
+    checkoutError.innerText = "";
+    window.location.href = contextPath + "/customer/add-order?type=CART&list_cart_item_id=" + cartItemIds;
+}
+
+// cập nhật link cho thẻ a sang trang thanh toán
+function updateCheckoutButtonLink(contextPath) {
+    const cartItemIds = getCheckedCartItemIds();
+    const checkoutBtn = document.querySelector(".checkout-btn");
+
+    if (checkoutBtn) {
+        // Cập nhật lại href động liên tục
+        checkoutBtn.setAttribute("href", contextPath + "/customer/add-order?type=CART&list_cart_item_id=" + cartItemIds);
+    }
 }
