@@ -1,7 +1,8 @@
 package vn.edu.fpt.dao;
 import vn.edu.fpt.common.DBContext;
-import vn.edu.fpt.dto.request.CartRequest;
 import vn.edu.fpt.dto.response.CartResponse;
+import vn.edu.fpt.dto.response.ShopCartResponse;
+import vn.edu.fpt.dto.response.SummaryOrderCheckoutResponse;
 import vn.edu.fpt.model.Product;
 
 import java.sql.Statement;
@@ -9,7 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
+
 public class CartDAO extends DBContext {
     /**
      * HoaNK - Đếm số lượng sản phẩm trong giỏ hàng của user
@@ -94,14 +95,13 @@ public class CartDAO extends DBContext {
             JOIN products p ON v.product_id = p.product_id
             JOIN shops s ON p.shop_id = s.shop_id
             JOIN colors co ON v.color_id = co.color_id
-            JOIN sizes sz ON v.size_id = sz.size_id
+            JOIN sizes sz ON v.size_id = sz.size_id  
             WHERE c.user_id = ?
-            ORDER BY s.shop_id, c.added_at DESC;
             """;
     // lấy ra danh sách sản phẩm trong giỏ cho người dùng đã đăng nhập nếu trong giỏ ko còn sản pẩm nào thì list rỗng
     public List<CartResponse> getCartForMember(int userId) {
         List<CartResponse> cartResponses = new ArrayList<>();
-        String sql = GET_CART_ITEM;
+        String sql = GET_CART_ITEM + " ORDER BY s.shop_id, c.cart_item_id DESC ";
 
         try(PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
@@ -205,6 +205,59 @@ public class CartDAO extends DBContext {
             e.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * HoaNK - Lấy ra tất cả sản phẩm được tiích chọn bên giỏ hàng khi nhấn thanh toán
+     */
+    public List<CartResponse> getCartItemCheckbox(String cartItemIds, int userId) {
+        String sql = GET_CART_ITEM;
+
+        List<CartResponse> list = new ArrayList<>();
+        if (cartItemIds == null || !cartItemIds.matches("^[0-9,]+$")) {
+            return list;
+        }else{
+            sql += " AND cart_item_id IN ("+cartItemIds+") ";
+        }
+        sql += " ORDER BY s.shop_id, c.cart_item_id DESC ";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)){
+            stmt.setInt(1,userId);
+             try(ResultSet rs = stmt.executeQuery()) {
+                 while (rs.next()) {
+                     CartResponse cartResponse = buildCartResponse(rs);
+                     list.add(cartResponse);
+                 }
+             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * HoaNK - Lấy ra list variant, số lượng từ những id đc gửi từ giỏ hàng sang thanh toán
+     */
+    private String GET_VARIANT_CART_ITEMS = """
+            SELECT variant_id, quantity FROM cart_items WHERE cart_item_id IN (?) AND user_id = ?;
+            """;
+    public Map<Integer, Integer> getVariantQuantityFromCartItems(String cartItemIds, int userId) {
+        String sql = GET_VARIANT_CART_ITEMS;
+        Map<Integer, Integer> variantQuantityMap = new HashMap<>();
+        if (cartItemIds == null || !cartItemIds.matches("^[0-9,]+$")) {
+            return variantQuantityMap;
+        }
+        try(PreparedStatement stmt = connection.prepareStatement(sql)){
+            stmt.setString(1,cartItemIds);
+            stmt.setInt(2,userId);
+            try(ResultSet rs = stmt.executeQuery()){
+                while(rs.next()){
+                    variantQuantityMap.put(rs.getInt("variant_id"), rs.getInt("quantity"));
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return variantQuantityMap;
     }
 }
 
