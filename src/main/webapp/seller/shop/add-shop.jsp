@@ -114,7 +114,7 @@
                                            class="input-control <%= !err.apply("shopName").isEmpty() ? "input-error" : "" %>"
                                            placeholder="VD: Minimalist Home Decor"
                                            value="<%= old.apply("shopName") %>"
-                                           maxlength="100" required>
+                                           required>
                                 </div>
                                 <% if (!err.apply("shopName").isEmpty()) { %>
                                 <span class="field-error"><%= err.apply("shopName") %></span>
