@@ -68,7 +68,7 @@ public class AddShopServlet extends HttpServlet {
             String shopName = request.getParameter("shopName");
             if (shopName == null || shopName.trim().isEmpty()) {
                 errors.put("shopName", "Tên cửa hàng không được để trống.");
-            } else if (shopName.length() > 100) {
+            } else if (shopName.trim().length() > 100) {
                 errors.put("shopName", "Tên cửa hàng không được vượt quá 100 ký tự.");
             } else if (shopDAO.existsByShopName(shopName.trim())) {
                 errors.put("shopName", "Tên cửa hàng đã tồn tại.");
