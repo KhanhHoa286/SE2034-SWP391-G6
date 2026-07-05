@@ -97,13 +97,13 @@
                     </label>
 
                     <%-- CHUYỂN KHOẢN --%>
-                    <label class="payment-method-card" id="pm-bank" for="radio-bank" onclick="selectPayment('bank_transfer')">
+                    <label class="payment-method-card"  data-user-id = "${checkoutResponse.userId}" id="pm-bank" for="radio-bank" onclick="selectPayment('bank_transfer')">
                         <input type="radio" name="payment_method" id="radio-bank" value="BANK">
                         <i class="fa-solid fa-building-columns"></i>
                         <span class="payment-method-card__name">Chuyển khoản</span>
                         <span class="payment-method-card__desc">Xác nhận thủ công</span>
                     </label>
-
+                        <input type="hidden" id="hidden-transaction-code" name="transaction_code" value="">
                 </div>
 
                 <%-- === KHỐI THÔNG TIN CHUYỂN KHOẢN (hiện khi chọn bank_transfer) === --%>
@@ -129,13 +129,13 @@
 
                             <div class="bank-info-box__row">
                                 <span class="bank-info-box__label">Tên người nhận</span>
-                                <span class="bank-info-box__value">NGUYEN VAN AN</span>
+                                <span class="bank-info-box__value">Cong Ty MODA</span>
                             </div>
 
                             <div class="bank-info-box__row">
                                 <span class="bank-info-box__label">Số tài khoản</span>
                                 <div class="bank-info-box__stk-row">
-                                    <span class="bank-info-box__value" id="stkValue">9876 5432 10</span>
+                                    <span class="bank-info-box__value" id="stkValue">13686789</span>
                                     <button type="button" class="bank-info-box__copy-btn" id="btnCopyStk" title="Sao chép STK">
                                         <i class="fa-regular fa-copy"></i>
                                     </button>
@@ -144,7 +144,7 @@
 
                             <div class="bank-info-box__row">
                                 <span class="bank-info-box__label">Nội dung CK</span>
-                                <span class="bank-info-box__value bank-info-box__value--accent">MODA [Tên bạn]</span>
+                                <span id="paymentContent" class="bank-info-box__value bank-info-box__value--accent">MODA</span>
                             </div>
 
                             <div class="bank-info-box__note">
@@ -270,15 +270,7 @@
 <jsp:include page="/common/footer.jsp" />
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-    function selectPayment(method) {
-        document.getElementById('pm-cod').classList.toggle('selected', method === 'cod');
-        document.getElementById('pm-bank').classList.toggle('selected', method === 'bank_transfer');
-        document.getElementById('bankInfoBox').classList.toggle('active', method === 'bank_transfer');
-    }
-</script>
-
+<script src="${pageContext.request.contextPath}/assets/js/customer/add-order.js"></script>
 </body>
 </html>
 

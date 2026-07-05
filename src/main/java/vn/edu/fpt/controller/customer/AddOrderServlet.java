@@ -23,9 +23,9 @@ import java.util.Map;
 
 /**
  * HoaNK - HE195013
- * Servlet xử lý trang đặt hàng (add-order):
- * - doGet : Load dữ liệu địa chỉ + sản phẩm checkout → forward vào JSP
- * - doPost: Nhận form submit → gọi transaction tạo đơn → redirect
+ * Date: 4/7/2026
+ * Description: Load ln địa chỉ nhận hàng, sản phaamr được choọn từ trang chi tiết hoặc sản phẩm được tích từ trang giỏ hàng
+ * qua trang thanh toán, tiến hành thanh toán và dọn dẹp biến thể trong giỏ hàng
  */
 @WebServlet("/customer/add-order")
 public class AddOrderServlet extends HttpServlet {
@@ -47,10 +47,9 @@ public class AddOrderServlet extends HttpServlet {
         String type = request.getParameter("type");
         CheckoutResponse checkoutResponse = new CheckoutResponse();
 
-        // Load địa chỉ mặc định của user
+        //load địa chỉ mặc định của user
         this.loadAddress(user.getUserId(), checkoutResponse);
-
-        // Load dữ liệu sản phẩm theo luồng CART hoặc DETAILS_PRODUCT
+        //load dữ liệu sản phẩm theo luồng CART hoặc DETAILS_PRODUCT
         this.loadProductData(request, type, user.getUserId(), checkoutResponse);
 
         request.setAttribute("checkoutResponse", checkoutResponse);
@@ -58,9 +57,7 @@ public class AddOrderServlet extends HttpServlet {
         request.getRequestDispatcher("/customer/checkout/add-order.jsp").forward(request, response);
     }
 
-    // =========================================================================
     // Load địa chỉ mặc định của user cho trang checkout
-    // =========================================================================
     private void loadAddress(int userId, CheckoutResponse checkoutResponse) {
         AddressResponse addressResponse = addressDAO.getAddressCheckout(userId);
         if (addressResponse == null) {
@@ -69,14 +66,12 @@ public class AddOrderServlet extends HttpServlet {
         checkoutResponse.setAddressResponse(addressResponse);
     }
 
-    // =========================================================================
     // Load dữ liệu sản phẩm: phân luồng theo type
-    // =========================================================================
     private void loadProductData(HttpServletRequest request, String type, int userId, CheckoutResponse checkoutResponse) {
         if (type == null) return;
 
-        if ("CART".equalsIgnoreCase(type)) {
-            // Luồng từ giỏ hàng — đọc danh sách cart_item_id đã chọn
+        if ("CART".equalsIgnoreCase(type)) { // luồng giỏ hàng ăn theo list cart items id
+            // luồng từ giỏ hàng, đọc danh sách cart_item_id đã chọn và bắt bằng js been front gửi sang
             String cartItemIds = request.getParameter("list_cart_item_id");
             if (cartItemIds == null || cartItemIds.trim().isEmpty()) return;
 
@@ -89,14 +84,13 @@ public class AddOrderServlet extends HttpServlet {
                 checkoutResponse.setListCartItemIds(cartItemIds);
             }
 
-        } else if ("DETAILS_PRODUCT".equalsIgnoreCase(type)) {
+        } else if ("DETAILS_PRODUCT".equalsIgnoreCase(type)) { // luồng chi tiết ăn theo variant Id
             // Luồng từ trang chi tiết sản phẩm — mua ngay 1 biến thể
             Integer colorId = ParamUtil.getInteger(request, "color_id");
             Integer sizeId = ParamUtil.getInteger(request, "size_id");
             Integer productId = ParamUtil.getInteger(request, "product_id");
             Integer quantity = ParamUtil.getInteger(request, "quantity");
 
-            // Null-guard: tránh NPE khi auto-unboxing Integer -> int
             if (productId == null || sizeId == null || colorId == null || quantity == null) return;
 
             int variantId = productDAO.getVariantById(productId, sizeId, colorId);
@@ -109,11 +103,10 @@ public class AddOrderServlet extends HttpServlet {
                 checkoutResponse.setVariantId(variantId);
             }
         }
+        checkoutResponse.setUserId(userId);
     }
 
-    // =========================================================================
-    // Nhóm danh sách CartResponse theo từng shop
-    // =========================================================================
+    //nhóm danh sách CartResponse theo từng shop cho phần giỏ hàng qua
     private List<ShopCartResponse> groupByShop(List<CartResponse> cartResponses) {
         Map<Integer, ShopCartResponse> shopMap = new LinkedHashMap<>();
         for (CartResponse item : cartResponses) {
@@ -129,9 +122,6 @@ public class AddOrderServlet extends HttpServlet {
         return new ArrayList<>(shopMap.values());
     }
 
-    // =========================================================================
-    // Nhận form submit từ trang add-order → tạo đơn hàng
-    // =========================================================================
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Kiểm tra đăng nhập
@@ -142,7 +132,6 @@ public class AddOrderServlet extends HttpServlet {
             return;
         }
 
-        // Build CheckoutRequest từ form gửi lên
         CheckoutRequest checkoutRequest = new CheckoutRequest();
         checkoutRequest.setType(request.getParameter("type"));
         checkoutRequest.setPaymentMethod(request.getParameter("payment_method"));
@@ -150,9 +139,9 @@ public class AddOrderServlet extends HttpServlet {
         checkoutRequest.setReceiverPhone(request.getParameter("receiver_phone"));
         checkoutRequest.setShippingAddress(request.getParameter("shipping_address"));
         checkoutRequest.setTotalAmount(ParamUtil.getBigDecimal(request, "total_amount"));
+        checkoutRequest.setTransactionCode(request.getParameter("transaction_code"));
 
         if ("CART".equalsIgnoreCase(checkoutRequest.getType())) {
-            // Form gửi name="cartItemIds" — chuỗi id cách nhau bằng dấu phẩy
             checkoutRequest.setCartItemIds(request.getParameter("cartItemIds"));
         } else if ("DETAILS_PRODUCT".equalsIgnoreCase(checkoutRequest.getType())) {
             checkoutRequest.setVariantId(ParamUtil.getInteger(request, "variant_id"));
