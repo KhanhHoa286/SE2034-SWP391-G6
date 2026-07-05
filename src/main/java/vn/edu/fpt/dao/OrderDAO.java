@@ -19,10 +19,9 @@ import java.util.*;
 public class OrderDAO extends DBContext {
     private final CartDAO cartDAO = new CartDAO();
 
-    // =========================================================================
-    // HoaNK - Lấy tỷ lệ hoa hồng hiện hành từ bảng commission_configs
-    // Lấy bản ghi có effective_date <= GETDATE() mới nhất
-    // =========================================================================
+    /**
+     * HoaNK - Lấy ra commission rate mới nhất từ bảng
+     */
     private final String GET_LATEST_COMMISSION_RATE = """
         SELECT TOP 1 commission_rate
         FROM commission_configs
@@ -34,15 +33,13 @@ public class OrderDAO extends DBContext {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    // commission_rate trong DB lưu dạng DECIMAL(5,2) tức là 5.00 = 5%
-                    // cần chia cho 100 để ra hệ số nhân
                     return rs.getBigDecimal("commission_rate").divide(BigDecimal.valueOf(100));
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // Nếu chưa có dữ liệu trong bảng thì mặc định 1.5%
+        //nếu chưa có dữ liệu trong bảng thì mặc định 1.5%
         return BigDecimal.valueOf(0.015);
     }
 
@@ -227,7 +224,7 @@ public class OrderDAO extends DBContext {
             WHERE mo.customer_id = ?
             """;
     private final String PAGING = """
-            ORDER BY so.sub_order_id ASC 
+            ORDER BY so.created_at DESC
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
             """;
     public List<OrderHistoryResponse> getSubOrderByCustomerId(int customer_id, OrderHistoryFilterRequest orderRequest, int pageSize) {
@@ -587,14 +584,13 @@ public class OrderDAO extends DBContext {
     }
 
 
-    // =========================================================================
-// HÀM MẸ QUẢN LÝ TRANSACTION VÀ ĐIỀU PHỐI CHÍNH
-// =========================================================================
+    /**
+     * HoaNK - Tạo 1 đơn hàng trong 1 transaction
+     */
     public int createOrderTransaction(CheckoutRequest req, int userId) {
         int masterOrderId = 0;
         try {
             connection.setAutoCommit(false); // BẮT ĐẦU TRANSACTION
-
             // 1. Lấy tỷ lệ hoa hồng hiện hành từ bảng commission_configs
             BigDecimal commissionRate = this.getLatestCommissionRate();
 
@@ -658,15 +654,22 @@ public class OrderDAO extends DBContext {
         } catch (Exception e) {
             e.printStackTrace();
             if (connection != null) {
-                try { connection.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try {
+                    connection.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
             return 0;
         }
     }
 
+    /**
+     * HoaNK - Insert 1 đơn hàng tổng
+     */
     private final String INSERT_MASTER_ORDER = """
-    INSERT INTO master_orders (customer_id, total_amount, receiver_name, receiver_phone, shipping_address, payment_method, payment_status, created_at) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE());
+    INSERT INTO master_orders (customer_id, total_amount, receiver_name, receiver_phone, shipping_address, payment_method, payment_status, created_at,transaction_code) 
+    VALUES (?, ?, ?, ?, ?, ?, ?,?,?, GETDATE());
     """;
     public int insertMasterOrder(int customerId, CheckoutRequest req) throws SQLException {
         String sql = INSERT_MASTER_ORDER;
@@ -680,6 +683,7 @@ public class OrderDAO extends DBContext {
             stmt.setString(5, req.getShippingAddress());
             stmt.setString(6, req.getPaymentMethod());
             stmt.setString(7, paymentStatus);
+            stmt.setString(8,req.getTransactionCode());
             stmt.executeUpdate();
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 if (rs.next()) return rs.getInt(1);
@@ -688,6 +692,9 @@ public class OrderDAO extends DBContext {
         throw new SQLException("Thêm đơn hàng tổng thất bại!");
     }
 
+    /**
+     * HoaNK - Insert 1 dơn hàng con(của 1 shop)
+     */
     private final String INSERT_SUB_ORDER = """
         INSERT INTO sub_orders (master_order_id, shop_id, sub_total, discount_amount, total_amount, commission_fee, status, created_at) 
         VALUES (?, ?, ?, 0, ?, ?, 'PENDING', GETDATE());
@@ -708,6 +715,9 @@ public class OrderDAO extends DBContext {
         throw new SQLException("Thêm đơn hàng theo Shop thất bại!");
     }
 
+    /**
+     * HoaNK - Insert từng sản phẩm của 1 suborder(1 sản phẩm 1 shop)
+     */
     private final String INSERT_ORDER_ITEM = """
         INSERT INTO order_items (sub_order_id, product_id, variant_id, quantity, price_at_purchase) 
         VALUES (?, ?, ?, ?, ?);
@@ -724,6 +734,9 @@ public class OrderDAO extends DBContext {
         }
     }
 
+    /**
+     * HoaNK - Sau khi mua n ố lượng biến thể th trừ trong kho đi
+     */
     private final String UPDATE_STOCK_VARIANT = """
         UPDATE product_variants SET stock_quantity = stock_quantity - ? WHERE variant_id = ?;
         """;
@@ -736,6 +749,9 @@ public class OrderDAO extends DBContext {
         }
     }
 
+    /**
+     * HoaNK - Dọn dẹp giỏ hàng khi bieens thể đó đã dcd mua ở trang giỏ hàng tích
+     */
     public void deleteCartItemsByListId(String cartItemIds) throws SQLException {
         if (cartItemIds == null || !cartItemIds.matches("^[0-9,]+$")) return;
         String sql = "DELETE FROM cart_items WHERE cart_item_id IN (" + cartItemIds + ");";
@@ -744,6 +760,9 @@ public class OrderDAO extends DBContext {
         }
     }
 
+    /**
+     * HoaNK - Dọn dẹp giỏ hàng khi biến thể đó đã đc mua ở trang chi tiết
+     */
     private final String DELETE_CART_ITEM_BUY_NOW = """
         DELETE FROM cart_items WHERE user_id = ? AND variant_id = ?;
         """;
@@ -756,6 +775,9 @@ public class OrderDAO extends DBContext {
         }
     }
 
+    /**
+     * HoaNK - Lấy ra thông tin chi tiết của biến th sản phẩm khi nhấn mua ngay
+     */
     private final String GET_VARIANT_INFO_BUY_NOW = """
         SELECT p.product_id, p.shop_id, (p.base_price * (100 - p.discount_percentage) / 100) AS discount_price 
         FROM product_variants v 
@@ -779,6 +801,9 @@ public class OrderDAO extends DBContext {
         return null;
     }
 
+    /**
+     * HoaNK - Gom nhóm lại những sản phẩm đc tích chia về shop của sản phẩm đó
+     */
     public List<ShopCartResponse> groupCartByShop(List<CartResponse> cartResponses) {
         Map<Integer, ShopCartResponse> map = new LinkedHashMap<>();
         for (CartResponse c : cartResponses) {
