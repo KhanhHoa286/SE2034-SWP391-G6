@@ -140,3 +140,9 @@ function updateCheckoutButtonLink(contextPath) {
         checkoutBtn.setAttribute("href", contextPath + "/customer/add-order?type=CART&list_cart_item_id=" + cartItemIds);
     }
 }
+
+window.addEventListener("pageshow", function (event) {
+    if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+        window.location.reload();
+    }
+});

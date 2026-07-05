@@ -11,6 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class CheckoutResponse {
+    private Integer userId;
     private AddressResponse addressResponse;
     private List<ShopCartResponse> shopCartResponses;
     private SummaryOrderCheckoutResponse summary;

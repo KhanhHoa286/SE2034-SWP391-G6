@@ -76,11 +76,13 @@
                                     <p>Số lượng: ${item.quantity}</p>
                                 </div>
                                 <div class="product-actions">
+                                    <c:if test="${subOrderDetail.statusOrder == 'DELIVERED'}">
                                     <a href="${pageContext.request.contextPath}/product-detail?pid=${item.productId}" class="action-link">Mua lại</a>
-                                    <c:if test="${item.reviewed == false}">
+                                    </c:if>
+                                    <c:if test="${item.reviewed == false && subOrderDetail.statusOrder == 'DELIVERED'}">
                                     <a href="${pageContext.request.contextPath}/customer/add-product-review?product_id=${item.productId}&order_item_id=${item.orderItemId}&sub_order_id=${item.subOrderId}" class="action-link">Viết đánh giá</a>
                                     </c:if>
-                                    <c:if test="${item.reviewed == true}">
+                                    <c:if test="${item.reviewed == true && subOrderDetail.statusOrder == 'DELIVERED'}">
                                         <a href="${pageContext.request.contextPath}/product-review?product_id=${item.productId}" class="action-link">Xem đánh giá</a>
                                     </c:if>
                                 </div>
@@ -93,30 +95,6 @@
                         </div>
                     </div>
                     </c:forEach>
-<%--                    <!-- Product 2 -->--%>
-<%--                    <div class="product-card">--%>
-<%--                        <div class="product-brand"><i class="fa-solid fa-wand-magic-sparkles"></i> MODA STUDIO</div>--%>
-<%--                        <div class="product-details-wrap">--%>
-<%--                            <div class="product-img-box">--%>
-<%--                                <div class="img-placeholder"><i class="fa-regular fa-image"></i></div>--%>
-<%--                            </div>--%>
-<%--                            <div class="product-info">--%>
-<%--                                <div class="product-name-price">--%>
-<%--                                    <h3 class="product-name">SƠ MI LỤA PREMIUM</h3>--%>
-<%--                                    <span class="product-price">4,200,000đ</span>--%>
-<%--                                </div>--%>
-<%--                                <div class="product-meta">--%>
-<%--                                    <p>MÀU SẮC: IVORY WHITE</p>--%>
-<%--                                    <p>KÍCH THƯỚC: 39 (S)</p>--%>
-<%--                                    <p>SỐ LƯỢNG: 1</p>--%>
-<%--                                </div>--%>
-<%--                                <div class="product-actions">--%>
-<%--                                    <a href="#" class="action-link">MUA LẠI</a>--%>
-<%--                                    <a href="add-review.jsp" class="action-link">VIẾT ĐÁNH GIÁ</a>--%>
-<%--                                </div>--%>
-<%--                            </div>--%>
-<%--                        </div>--%>
-<%--                    </div>--%>
 
                 </div>
 
@@ -152,14 +130,6 @@
                     <!-- Order Summary -->
                     <div class="summary-card">
                         <h3 class="card-title">TỔNG KẾT ĐƠN HÀNG</h3>
-<%--                        <div class="summary-row">--%>
-<%--                            <span>Tạm tính</span>--%>
-<%--                            <span>16,700,000đ</span>--%>
-<%--                        </div>--%>
-<%--                        <div class="summary-row discount">--%>
-<%--                            <span>Giảm giá (MODA10)</span>--%>
-<%--                            <span>-1,670,000đ</span>--%>
-<%--                        </div>--%>
                         <hr class="summary-divider">
                         <div class="summary-row total">
                             <span>Tổng cộng</span>
@@ -177,5 +147,12 @@
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
+</script>
 </body>
 </html>
