@@ -31,7 +31,11 @@ public class EditSellerStatusServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        renderStatusPage(request, response, null, null);
+        String successMessage = null;
+        if ("1".equals(request.getParameter("labelReady"))) {
+            successMessage = "Đã chuyển sang trạng thái đang chuẩn bị hàng. Phiếu vận đơn đã sẵn sàng để in.";
+        }
+        renderStatusPage(request, response, null, successMessage);
     }
 
     @Override
@@ -42,13 +46,13 @@ public class EditSellerStatusServlet extends HttpServlet {
 
         Shop shop = resolveSellerShop(request);
         if (shop == null) {
-            renderStatusPage(request, response, "Vui long dang nhap bang tai khoan seller da co shop.", null);
+            renderStatusPage(request, response, "Vui lòng đăng nhập bằng tài khoản người bán đã có cửa hàng.", null);
             return;
         }
 
         Integer subOrderId = parseSubOrderId(request);
         if (subOrderId == null) {
-            renderStatusPage(request, response, "Ma don hang khong hop le.", null);
+            renderStatusPage(request, response, "Mã đơn hàng không hợp lệ.", null);
             return;
         }
 
@@ -58,24 +62,32 @@ public class EditSellerStatusServlet extends HttpServlet {
         try (Connection connection = openConnection()) {
             SellerStatusOrder order = loadOrder(connection, shop.getShopId(), subOrderId);
             if (order == null) {
-                renderStatusPage(request, response, "Khong tim thay don hang hoac don hang khong thuoc shop cua ban.", null);
+                renderStatusPage(request, response, "Không tìm thấy đơn hàng hoặc đơn hàng không thuộc cửa hàng của bạn.", null);
                 return;
             }
 
             List<StatusOption> nextStatuses = buildNextStatusOptions(order.getStatus());
             if (nextStatuses.isEmpty()) {
-                renderLoadedPage(request, response, shop, order, "Trang thai hien tai khong con nam trong phan seller duoc phep cap nhat.");
+                renderLoadedPage(request, response, shop, order, "Trạng thái hiện tại không còn thuộc phần người bán được phép cập nhật.");
                 return;
             }
 
             if (!isAllowedStatus(nextStatuses, newStatus)) {
-                renderLoadedPage(request, response, shop, order, "Trang thai moi khong hop le voi trang thai hien tai cua don hang.");
+                renderLoadedPage(request, response, shop, order, "Trạng thái mới không hợp lệ với trạng thái hiện tại của đơn hàng.");
                 return;
             }
 
             boolean updated = updateOrderStatus(connection, order, newStatus);
             if (!updated) {
-                renderStatusPage(request, response, "Trang thai don hang da thay doi. Vui long tai lai va thu lai.", null);
+                renderStatusPage(request, response, "Trạng thái đơn hàng đã thay đổi. Vui lòng tải lại và thử lại.", null);
+                return;
+            }
+
+            if ("PREPARING".equals(newStatus)) {
+                ensureDeliveryRecord(connection, order);
+                response.sendRedirect(request.getContextPath()
+                        + "/seller/order/status?subOrderId=" + subOrderId
+                        + "&labelReady=1");
                 return;
             }
 
@@ -84,7 +96,7 @@ public class EditSellerStatusServlet extends HttpServlet {
                     + "&statusUpdated=1");
         } catch (Exception ex) {
             ex.printStackTrace();
-            renderStatusPage(request, response, "Khong the cap nhat trang thai don hang. Vui long kiem tra ket noi database.", null);
+            renderStatusPage(request, response, "Không thể cập nhật trạng thái đơn hàng. Vui lòng kiểm tra kết nối cơ sở dữ liệu.", null);
         }
     }
 
@@ -101,7 +113,7 @@ public class EditSellerStatusServlet extends HttpServlet {
         Shop shop = resolveSellerShop(request);
         if (shop == null) {
             if (errorMessage == null) {
-                request.setAttribute("errorMessage", "Vui long dang nhap bang tai khoan seller da co shop.");
+                request.setAttribute("errorMessage", "Vui lòng đăng nhập bằng tài khoản người bán đã có cửa hàng.");
             }
             request.getRequestDispatcher(STATUS_PAGE).forward(request, response);
             return;
@@ -110,7 +122,7 @@ public class EditSellerStatusServlet extends HttpServlet {
         Integer subOrderId = parseSubOrderId(request);
         if (subOrderId == null) {
             if (errorMessage == null) {
-                request.setAttribute("errorMessage", "Ma don hang khong hop le.");
+                request.setAttribute("errorMessage", "Mã đơn hàng không hợp lệ.");
             }
             request.getRequestDispatcher(STATUS_PAGE).forward(request, response);
             return;
@@ -119,14 +131,14 @@ public class EditSellerStatusServlet extends HttpServlet {
         try (Connection connection = openConnection()) {
             SellerStatusOrder order = loadOrder(connection, shop.getShopId(), subOrderId);
             if (order == null) {
-                request.setAttribute("errorMessage", "Khong tim thay don hang hoac don hang khong thuoc shop cua ban.");
+                request.setAttribute("errorMessage", "Không tìm thấy đơn hàng hoặc đơn hàng không thuộc cửa hàng của bạn.");
             } else {
                 renderLoadedPage(request, response, shop, order, errorMessage);
                 return;
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-            request.setAttribute("errorMessage", "Khong the tai don hang. Vui long kiem tra ket noi database.");
+            request.setAttribute("errorMessage", "Không thể tải đơn hàng. Vui lòng kiểm tra kết nối cơ sở dữ liệu.");
         }
 
         request.getRequestDispatcher(STATUS_PAGE).forward(request, response);
@@ -183,11 +195,14 @@ public class EditSellerStatusServlet extends HttpServlet {
                        so.master_order_id,
                        so.shop_id,
                        s.shop_name,
+                       owner.phone AS seller_phone,
+                       s.street_address + N', ' + w.path_with_type AS pickup_address,
                        mo.created_at AS buyer_ordered_at,
                        so.created_at AS seller_ordered_at,
                        so.status,
                        so.total_amount,
                        so.commission_fee,
+                       COALESCE(delivery.tracking_number, CONCAT('MODA-SUB-', so.sub_order_id, '-MO-', so.master_order_id)) AS tracking_number,
                        mo.payment_method,
                        mo.payment_status,
                        mo.receiver_name,
@@ -213,8 +228,16 @@ public class EditSellerStatusServlet extends HttpServlet {
                        ) AS total_quantity
                 FROM sub_orders so
                 INNER JOIN shops s ON s.shop_id = so.shop_id
+                INNER JOIN users owner ON owner.user_id = s.owner_id
+                INNER JOIN wards w ON w.id = s.ward_id
                 INNER JOIN master_orders mo ON mo.master_order_id = so.master_order_id
                 INNER JOIN users u ON u.user_id = mo.customer_id
+                OUTER APPLY (
+                    SELECT TOP 1 d.tracking_number
+                    FROM deliveries d
+                    WHERE d.sub_order_id = so.sub_order_id
+                    ORDER BY d.delivery_id DESC
+                ) delivery
                 WHERE so.sub_order_id = ?
                   AND so.shop_id = ?
                 """;
@@ -233,11 +256,14 @@ public class EditSellerStatusServlet extends HttpServlet {
                 order.setMasterOrderId(rs.getInt("master_order_id"));
                 order.setShopId(rs.getInt("shop_id"));
                 order.setShopName(rs.getString("shop_name"));
+                order.setSellerPhone(rs.getString("seller_phone"));
+                order.setPickupAddress(rs.getString("pickup_address"));
                 order.setBuyerOrderedAt(rs.getTimestamp("buyer_ordered_at"));
                 order.setSellerOrderedAt(rs.getTimestamp("seller_ordered_at"));
                 order.setStatus(rs.getString("status"));
                 order.setTotalAmount(rs.getBigDecimal("total_amount"));
                 order.setCommissionFee(rs.getBigDecimal("commission_fee"));
+                order.setTrackingNumber(rs.getString("tracking_number"));
                 order.setPaymentMethod(rs.getString("payment_method"));
                 order.setPaymentStatus(rs.getString("payment_status"));
                 order.setReceiverName(rs.getString("receiver_name"));
@@ -271,16 +297,49 @@ public class EditSellerStatusServlet extends HttpServlet {
         }
     }
 
+    private void ensureDeliveryRecord(Connection connection, SellerStatusOrder order) throws Exception {
+        String sql = """
+                IF NOT EXISTS (SELECT 1 FROM deliveries WHERE sub_order_id = ?)
+                BEGIN
+                    DECLARE @shipperId INT;
+
+                    SELECT TOP 1 @shipperId = u.user_id
+                    FROM users u
+                    INNER JOIN user_roles ur ON ur.user_id = u.user_id
+                    INNER JOIN roles r ON r.role_id = ur.role_id
+                    WHERE r.role_name = 'DELIVERY'
+                    ORDER BY u.user_id;
+
+                    IF @shipperId IS NOT NULL
+                    BEGIN
+                        INSERT INTO deliveries (tracking_number, sub_order_id, shipper_id, status)
+                        VALUES (?, ?, @shipperId, 'ASSIGNED');
+                    END
+                END
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, order.getSubOrderId());
+            ps.setString(2, buildTrackingNumber(order));
+            ps.setInt(3, order.getSubOrderId());
+            ps.executeUpdate();
+        }
+    }
+
+    private String buildTrackingNumber(SellerStatusOrder order) {
+        return "MODA-SUB-" + order.getSubOrderId() + "-MO-" + order.getMasterOrderId();
+    }
+
     private List<StatusOption> buildNextStatusOptions(String currentStatus) {
         List<StatusOption> options = new ArrayList<>();
         String status = trim(currentStatus).toUpperCase();
 
         if ("PENDING".equals(status)) {
-            options.add(new StatusOption("CONFIRMED", "Xac nhan don hang", "Seller da kiem tra va chap nhan xu ly don nay."));
+            options.add(new StatusOption("PREPARING", "Đang chuẩn bị hàng", "Cửa hàng bắt đầu đóng gói và chuẩn bị bàn giao đơn."));
         } else if ("CONFIRMED".equals(status)) {
-            options.add(new StatusOption("PREPARING", "Dang chuan bi hang", "Shop bat dau dong goi va chuan bi ban giao don."));
+            options.add(new StatusOption("PREPARING", "Đang chuẩn bị hàng", "Cửa hàng bắt đầu đóng gói và chuẩn bị bàn giao đơn."));
         } else if ("PREPARING".equals(status)) {
-            options.add(new StatusOption("SHIPPING", "Da giao cho ben van chuyen", "Don da duoc ban giao cho bo phan van chuyen."));
+            options.add(new StatusOption("SHIPPING", "Đã giao cho bên vận chuyển", "Đơn đã được bàn giao cho bộ phận vận chuyển."));
         }
 
         return options;
@@ -288,26 +347,32 @@ public class EditSellerStatusServlet extends HttpServlet {
 
     private List<StatusStep> buildStatusSteps(String currentStatus) {
         List<StatusStep> steps = new ArrayList<>();
-        List<String> sequence = List.of("PENDING", "CONFIRMED", "PREPARING", "SHIPPING");
-        int currentIndex = sequence.indexOf(trim(currentStatus).toUpperCase());
+        String status = trim(currentStatus).toUpperCase();
+        int currentIndex = 0;
+        if ("PREPARING".equals(status) || "CONFIRMED".equals(status)) {
+            currentIndex = 1;
+        } else if ("SHIPPING".equals(status) || "DELIVERED".equals(status)) {
+            currentIndex = 2;
+        } else if ("CANCELLED".equals(status)) {
+            currentIndex = -1;
+        }
 
-        steps.add(new StatusStep("PENDING", "Cho xac nhan", currentIndex >= 0));
-        steps.add(new StatusStep("CONFIRMED", "Da xac nhan", currentIndex >= 1));
-        steps.add(new StatusStep("PREPARING", "Dang chuan bi", currentIndex >= 2));
-        steps.add(new StatusStep("SHIPPING", "Da giao van chuyen", currentIndex >= 3));
+        steps.add(new StatusStep("PENDING", "Chờ xác nhận", currentIndex >= 0));
+        steps.add(new StatusStep("PREPARING", "Đang chuẩn bị", currentIndex >= 1));
+        steps.add(new StatusStep("SHIPPING", "Đã giao vận chuyển", currentIndex >= 2));
         return steps;
     }
 
     private String buildLockedMessage(String currentStatus) {
         String status = trim(currentStatus).toUpperCase();
         if ("SHIPPING".equals(status)) {
-            return "Don hang da giao cho ben van chuyen. Cac trang thai tiep theo se do shipper cap nhat.";
+            return "Đơn hàng đã giao cho bên vận chuyển. Các trạng thái tiếp theo sẽ do bộ phận vận chuyển cập nhật.";
         }
         if ("DELIVERED".equals(status)) {
-            return "Don hang da giao thanh cong. Trang thai nay do shipper hoac customer xac nhan.";
+            return "Đơn hàng đã giao thành công. Trạng thái này do bộ phận vận chuyển hoặc người mua xác nhận.";
         }
         if ("CANCELLED".equals(status)) {
-            return "Don hang da huy nen seller khong the chuyen trang thai.";
+            return "Đơn hàng đã hủy nên người bán không thể chuyển trạng thái.";
         }
         return "";
     }
@@ -347,11 +412,14 @@ public class EditSellerStatusServlet extends HttpServlet {
         private int masterOrderId;
         private int shopId;
         private String shopName;
+        private String sellerPhone;
+        private String pickupAddress;
         private Timestamp buyerOrderedAt;
         private Timestamp sellerOrderedAt;
         private String status;
         private BigDecimal totalAmount;
         private BigDecimal commissionFee;
+        private String trackingNumber;
         private String paymentMethod;
         private String paymentStatus;
         private String receiverName;
@@ -395,6 +463,22 @@ public class EditSellerStatusServlet extends HttpServlet {
             this.shopName = shopName;
         }
 
+        public String getSellerPhone() {
+            return sellerPhone;
+        }
+
+        public void setSellerPhone(String sellerPhone) {
+            this.sellerPhone = sellerPhone;
+        }
+
+        public String getPickupAddress() {
+            return pickupAddress;
+        }
+
+        public void setPickupAddress(String pickupAddress) {
+            this.pickupAddress = pickupAddress;
+        }
+
         public Timestamp getBuyerOrderedAt() {
             return buyerOrderedAt;
         }
@@ -435,6 +519,14 @@ public class EditSellerStatusServlet extends HttpServlet {
             this.commissionFee = commissionFee;
         }
 
+        public String getTrackingNumber() {
+            return trackingNumber;
+        }
+
+        public void setTrackingNumber(String trackingNumber) {
+            this.trackingNumber = trackingNumber;
+        }
+
         public String getPaymentMethod() {
             return paymentMethod;
         }
@@ -449,6 +541,13 @@ public class EditSellerStatusServlet extends HttpServlet {
 
         public void setPaymentStatus(String paymentStatus) {
             this.paymentStatus = paymentStatus;
+        }
+
+        public BigDecimal getCollectAmount() {
+            if ("PAID".equalsIgnoreCase(paymentStatus)) {
+                return BigDecimal.ZERO;
+            }
+            return totalAmount == null ? BigDecimal.ZERO : totalAmount;
         }
 
         public String getReceiverName() {

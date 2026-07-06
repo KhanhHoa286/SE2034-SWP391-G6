@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%
@@ -460,6 +460,10 @@
 
     /* ===== ĐỊNH DẠNG GIÁ BÁN ===== */
     function formatPriceDisplay(value) {
+        // Loại bỏ phần thập phân .00 từ Java BigDecimal string
+        if (value.includes('.') && /^\d+\.\d+$/.test(value)) {
+            value = value.split('.')[0];
+        }
         let raw = value.replace(/[^0-9]/g, '');
         if (raw === '') return '';
         return raw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
