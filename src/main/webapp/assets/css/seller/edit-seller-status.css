@@ -162,7 +162,7 @@ body {
 
 .seller-status-steps {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
 }
 
@@ -282,6 +282,176 @@ body {
     width: 18px;
     height: 18px;
     flex: 0 0 auto;
+}
+
+.seller-status-label-card {
+    background: #ffffff;
+}
+
+.seller-shipping-label {
+    width: 560px;
+    min-height: 640px;
+    border: 2px solid #07111f;
+    background: #ffffff;
+    color: #07111f;
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.25;
+    max-width: 100%;
+}
+
+.label-header,
+.label-route,
+.label-footer {
+    display: flex;
+}
+
+.label-header {
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 12px;
+    border-bottom: 2px dashed #07111f;
+}
+
+.label-header strong {
+    display: block;
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.label-header span,
+.label-code span,
+.label-payment span,
+.label-signature > span {
+    display: block;
+    color: #07111f;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.label-code {
+    text-align: right;
+}
+
+.label-code strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.label-route {
+    min-height: 170px;
+    border-bottom: 2px dashed #07111f;
+}
+
+.label-address {
+    flex: 1;
+    padding: 12px;
+}
+
+.label-address + .label-address {
+    border-left: 1px dashed #07111f;
+}
+
+.label-address h3,
+.label-products h3,
+.label-instruction h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.label-address strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.label-address p {
+    margin: 3px 0 0;
+    color: #07111f;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.label-products {
+    min-height: 230px;
+    padding: 12px;
+    border-bottom: 2px dashed #07111f;
+}
+
+.label-products p {
+    margin: 0;
+    color: #07111f;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.label-products em {
+    display: block;
+    margin-top: 132px;
+    color: #3f4a59;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.label-footer {
+    min-height: 190px;
+}
+
+.label-payment {
+    flex: 1;
+    padding: 12px;
+}
+
+.label-payment strong {
+    display: block;
+    margin: 16px 0 18px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: 900;
+}
+
+.label-instruction h3 {
+    margin-bottom: 10px;
+}
+
+.label-instruction p {
+    margin: 2px 0;
+    color: #07111f;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.label-signature {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+}
+
+.label-signature > span {
+    margin-bottom: 16px;
+}
+
+.label-signature > div {
+    min-height: 130px;
+    padding: 12px;
+    border: 2px solid #9ca3af;
+}
+
+.label-signature strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.label-signature p {
+    margin: 0;
+    color: #3f4a59;
+    font-size: 13px;
+    font-weight: 700;
 }
 
 .seller-status-actions {
@@ -453,7 +623,7 @@ body {
     }
 
     .seller-status-steps {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
@@ -465,5 +635,16 @@ body {
 
     .seller-status-main {
         padding: 32px 20px 50px;
+    }
+
+    .seller-status-steps,
+    .label-route,
+    .label-order-line {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+    }
+
+    .seller-shipping-label {
+        max-width: 100%;
     }
 }

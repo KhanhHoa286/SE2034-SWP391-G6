@@ -28,10 +28,9 @@ import java.util.Collection;
 import java.util.List;
 
 @WebServlet("/add-product")
-@MultipartConfig(
-        fileSizeThreshold = 1024 * 1024,      // 1MB
-        maxFileSize = 1024 * 1024 * 5,       // 5MB
-        maxRequestSize = 1024 * 1024 * 25    // 25MB
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, // 1MB
+        maxFileSize = 1024 * 1024 * 5, // 5MB
+        maxRequestSize = 1024 * 1024 * 25 // 25MB
 )
 public class AddProductServlet extends HttpServlet {
 
@@ -290,9 +289,12 @@ public class AddProductServlet extends HttpServlet {
             int variantCount = Math.min(variantColors.length, Math.min(variantSizes.length, variantStocks.length));
             for (int i = 0; i < variantCount; i++) {
                 // Bỏ qua biến thể rỗng (chưa chọn)
-                if (variantColors[i] == null || variantColors[i].trim().isEmpty()) continue;
-                if (variantSizes[i] == null || variantSizes[i].trim().isEmpty()) continue;
-                if (variantStocks[i] == null || variantStocks[i].trim().isEmpty()) continue;
+                if (variantColors[i] == null || variantColors[i].trim().isEmpty())
+                    continue;
+                if (variantSizes[i] == null || variantSizes[i].trim().isEmpty())
+                    continue;
+                if (variantStocks[i] == null || variantStocks[i].trim().isEmpty())
+                    continue;
 
                 String colorName = variantColors[i].trim();
                 String sizeName = variantSizes[i].trim();
@@ -314,6 +316,8 @@ public class AddProductServlet extends HttpServlet {
             }
 
             // Thành công -> chuyển hướng về trang danh sách sản phẩm
+            session.setAttribute("toastMessage", "Thêm sản phẩm thành công!");
+            session.setAttribute("toastType", "success");
             response.sendRedirect(request.getContextPath() + "/list-seller-products");
 
         } catch (Exception e) {
