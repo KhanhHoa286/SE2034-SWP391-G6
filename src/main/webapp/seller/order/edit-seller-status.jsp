@@ -6,11 +6,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chuy&#7875;n tr&#7841;ng th&#225;i &#273;&#417;n h&#224;ng - MODA</title>
+    <title>Chuyển trạng thái đơn hàng - MODA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260630a">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/edit-seller-status.css?v=20260630a">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/edit-seller-status.css?v=20260706a">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -22,18 +22,18 @@
 
     <main class="seller-status-main container-fluid">
         <nav class="seller-status-breadcrumb d-flex align-items-center">
-            <a href="${pageContext.request.contextPath}/seller/orders">Qu&#7843;n l&#253; &#273;&#417;n h&#224;ng</a>
+            <a href="${pageContext.request.contextPath}/seller/orders">Quản lý đơn hàng</a>
             <span>/</span>
             <c:choose>
                 <c:when test="${not empty orderStatus}">
                     <a href="${pageContext.request.contextPath}/seller/order/view?subOrderId=${orderStatus.subOrderId}">#SUB-${orderStatus.subOrderId}</a>
                 </c:when>
                 <c:otherwise>
-                    <span>Chi ti&#7871;t &#273;&#417;n</span>
+                    <span>Chi tiết đơn</span>
                 </c:otherwise>
             </c:choose>
             <span>/</span>
-            <strong>Chuy&#7875;n tr&#7841;ng th&#225;i</strong>
+            <strong>Chuyển trạng thái</strong>
         </nav>
 
         <c:if test="${not empty errorMessage}">
@@ -55,17 +55,17 @@
                 <header class="seller-status-heading">
                     <div>
                         <span class="seller-status-eyebrow">#SUB-${orderStatus.subOrderId} / #MO-${orderStatus.masterOrderId}</span>
-                        <h1>Chuy&#7875;n tr&#7841;ng th&#225;i &#273;&#417;n h&#224;ng</h1>
-                        <p>Seller ch&#7881; x&#7917; l&#253; c&#225;c b&#432;&#7899;c t&#7915; ch&#7901; x&#225;c nh&#7853;n &#273;&#7871;n b&#224;n giao cho v&#7853;n chuy&#7875;n.</p>
+                        <h1>Chuyển trạng thái đơn hàng</h1>
+                        <p>Người bán xác nhận đơn, in phiếu vận đơn khi chuẩn bị hàng và bàn giao khi bên vận chuyển đến lấy.</p>
                     </div>
                     <span class="seller-status-badge status-${orderStatus.status}">
                         <c:choose>
-                            <c:when test="${orderStatus.status == 'PENDING'}">Ch&#7901; x&#225;c nh&#7853;n</c:when>
-                            <c:when test="${orderStatus.status == 'CONFIRMED'}">&#272;&#227; x&#225;c nh&#7853;n</c:when>
-                            <c:when test="${orderStatus.status == 'PREPARING'}">&#272;ang chu&#7849;n b&#7883;</c:when>
-                            <c:when test="${orderStatus.status == 'SHIPPING'}">&#272;&#227; giao v&#7853;n chuy&#7875;n</c:when>
-                            <c:when test="${orderStatus.status == 'DELIVERED'}">&#272;&#227; giao h&#224;ng</c:when>
-                            <c:when test="${orderStatus.status == 'CANCELLED'}">&#272;&#227; h&#7911;y</c:when>
+                            <c:when test="${orderStatus.status == 'PENDING'}">Chờ xác nhận</c:when>
+                            <c:when test="${orderStatus.status == 'CONFIRMED'}">Đang chuẩn bị</c:when>
+                            <c:when test="${orderStatus.status == 'PREPARING'}">Đang chuẩn bị</c:when>
+                            <c:when test="${orderStatus.status == 'SHIPPING'}">Đã giao vận chuyển</c:when>
+                            <c:when test="${orderStatus.status == 'DELIVERED'}">Đã giao hàng</c:when>
+                            <c:when test="${orderStatus.status == 'CANCELLED'}">Đã hủy</c:when>
                             <c:otherwise>${orderStatus.status}</c:otherwise>
                         </c:choose>
                     </span>
@@ -75,8 +75,8 @@
                     <div class="seller-status-left">
                         <section class="seller-status-card card shadow-sm">
                             <div class="seller-status-card-header">
-                                <h2>Ti&#7871;n tr&#236;nh seller</h2>
-                                <span>4 b&#432;&#7899;c x&#7917; l&#253;</span>
+                                <h2>Tiến trình đơn hàng</h2>
+                                <span>3 bước xử lý</span>
                             </div>
 
                             <div class="seller-status-steps">
@@ -95,18 +95,16 @@
                                         <div>
                                             <strong>
                                                 <c:choose>
-                                                    <c:when test="${step.value == 'PENDING'}">Ch&#7901; x&#225;c nh&#7853;n</c:when>
-                                                    <c:when test="${step.value == 'CONFIRMED'}">&#272;&#227; x&#225;c nh&#7853;n</c:when>
-                                                    <c:when test="${step.value == 'PREPARING'}">&#272;ang chu&#7849;n b&#7883;</c:when>
-                                                    <c:when test="${step.value == 'SHIPPING'}">&#272;&#227; giao v&#7853;n chuy&#7875;n</c:when>
+                                                    <c:when test="${step.value == 'PENDING'}">Chờ xác nhận</c:when>
+                                                    <c:when test="${step.value == 'PREPARING'}">Đang chuẩn bị hàng</c:when>
+                                                    <c:when test="${step.value == 'SHIPPING'}">Đã giao vận chuyển</c:when>
                                                 </c:choose>
                                             </strong>
                                             <small>
                                                 <c:choose>
-                                                    <c:when test="${step.value == 'PENDING'}">Kh&#225;ch &#273;&#227; x&#225;c nh&#7853;n mua, ch&#7901; seller ki&#7875;m tra.</c:when>
-                                                    <c:when test="${step.value == 'CONFIRMED'}">Seller ch&#7845;p nh&#7853;n x&#7917; l&#253; &#273;&#417;n.</c:when>
-                                                    <c:when test="${step.value == 'PREPARING'}">Shop &#273;ang chu&#7849;n b&#7883; v&#224; &#273;&#243;ng g&#243;i h&#224;ng.</c:when>
-                                                    <c:when test="${step.value == 'SHIPPING'}">&#272;&#417;n &#273;&#227; b&#224;n giao cho b&#234;n v&#7853;n chuy&#7875;n.</c:when>
+                                                    <c:when test="${step.value == 'PENDING'}">Khách đã xác nhận mua, chờ người bán kiểm tra.</c:when>
+                                                    <c:when test="${step.value == 'PREPARING'}">Cửa hàng đóng gói, in phiếu vận đơn và chờ lấy hàng.</c:when>
+                                                    <c:when test="${step.value == 'SHIPPING'}">Đơn đã bàn giao cho bên vận chuyển.</c:when>
                                                 </c:choose>
                                             </small>
                                         </div>
@@ -115,10 +113,80 @@
                             </div>
                         </section>
 
+                        <c:if test="${orderStatus.status == 'CONFIRMED' || orderStatus.status == 'PREPARING' || orderStatus.status == 'SHIPPING'}">
+                            <section class="seller-status-card seller-status-label-card card shadow-sm">
+                                <div class="seller-status-card-header">
+                                    <h2>Phiếu vận đơn</h2>
+                                    <span>In và dán lên đơn hàng</span>
+                                </div>
+
+                                <div id="shippingLabel" class="seller-shipping-label">
+                                    <div class="label-header">
+                                        <div>
+                                            <strong>MODA EXPRESS</strong>
+                                            <span>#SUB-${orderStatus.subOrderId} / #MO-${orderStatus.masterOrderId}</span>
+                                        </div>
+                                        <div class="label-code">
+                                            <span>Số vận đơn</span>
+                                            <strong>${orderStatus.trackingNumber}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="label-route">
+                                        <div class="label-address">
+                                            <h3>Từ</h3>
+                                            <strong>${orderStatus.shopName}</strong>
+                                            <p>${orderStatus.pickupAddress}</p>
+                                            <p>${orderStatus.sellerPhone}</p>
+                                        </div>
+                                        <div class="label-address">
+                                            <h3>Đến</h3>
+                                            <strong>${orderStatus.receiverName}</strong>
+                                            <p>${orderStatus.shippingAddress}</p>
+                                            <p>${orderStatus.receiverPhone}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="label-products">
+                                        <h3>Nội dung hàng (Tổng SL sản phẩm: ${orderStatus.totalQuantity})</h3>
+                                        <p>1. ${empty orderStatus.productsSummary ? 'Chua co san pham' : orderStatus.productsSummary}</p>
+                                        <em>Người gửi phải cam kết hàng hóa có đầy đủ các hóa đơn, chứng từ, giấy phép cần thiết theo quy định của pháp luật và đính kèm theo bên trong đơn hàng này.</em>
+                                    </div>
+
+                                    <div class="label-footer">
+                                        <div class="label-payment">
+                                            <span>Tiền thu Người nhận:</span>
+                                            <strong><fmt:formatNumber value="${orderStatus.collectAmount}" type="number" maxFractionDigits="0"/> VND</strong>
+                                            <div class="label-instruction">
+                                                <h3>Chỉ dẫn giao hàng:</h3>
+                                                <p>- Không đồng kiểm;</p>
+                                                <p>- Chuyển hoàn sau 3 lần phát;</p>
+                                                <p>- Lưu kho tối đa 5 ngày.</p>
+                                            </div>
+                                        </div>
+                                        <div class="label-signature">
+                                            <span>Khối lượng tối đa: 300g</span>
+                                            <div>
+                                                <strong>Chữ ký người nhận</strong>
+                                                <p>Xác nhận hàng nguyên vẹn, không móp/méo, bể/vỡ</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="seller-status-actions">
+                                    <button type="button" class="seller-status-secondary btn btn-outline-dark" onclick="printShippingLabel()">
+                                        <i data-lucide="printer"></i>
+                                        <span>In phiếu</span>
+                                    </button>
+                                </div>
+                            </section>
+                        </c:if>
+
                         <section class="seller-status-card card shadow-sm">
                             <div class="seller-status-card-header">
-                                <h2>C&#7853;p nh&#7853;t tr&#7841;ng th&#225;i</h2>
-                                <span>Ch&#7885;n b&#432;&#7899;c k&#7871; ti&#7871;p</span>
+                                <h2>Cập nhật trạng thái</h2>
+                                <span>Chọn bước kế tiếp</span>
                             </div>
 
                             <c:choose>
@@ -136,17 +204,15 @@
                                                     <span>
                                                         <strong>
                                                             <c:choose>
-                                                                <c:when test="${option.value == 'CONFIRMED'}">X&#225;c nh&#7853;n &#273;&#417;n h&#224;ng</c:when>
-                                                                <c:when test="${option.value == 'PREPARING'}">&#272;ang chu&#7849;n b&#7883; h&#224;ng</c:when>
-                                                                <c:when test="${option.value == 'SHIPPING'}">&#272;&#227; giao cho b&#234;n v&#7853;n chuy&#7875;n</c:when>
+                                                                <c:when test="${option.value == 'PREPARING'}">Xác nhận và chuẩn bị hàng</c:when>
+                                                                <c:when test="${option.value == 'SHIPPING'}">Đã giao cho bên vận chuyển</c:when>
                                                                 <c:otherwise>${option.label}</c:otherwise>
                                                             </c:choose>
                                                         </strong>
                                                         <small>
                                                             <c:choose>
-                                                                <c:when test="${option.value == 'CONFIRMED'}">Seller &#273;&#227; ki&#7875;m tra v&#224; ch&#7845;p nh&#7853;n x&#7917; l&#253; &#273;&#417;n n&#224;y.</c:when>
-                                                                <c:when test="${option.value == 'PREPARING'}">Shop b&#7855;t &#273;&#7847;u &#273;&#243;ng g&#243;i v&#224; chu&#7849;n b&#7883; b&#224;n giao &#273;&#417;n.</c:when>
-                                                                <c:when test="${option.value == 'SHIPPING'}">&#272;&#417;n &#273;&#227; &#273;&#432;&#7907;c b&#224;n giao cho b&#7897; ph&#7853;n v&#7853;n chuy&#7875;n.</c:when>
+                                                                <c:when test="${option.value == 'PREPARING'}">Đơn chuyển sang chuẩn bị hàng và phiếu vận đơn sẽ được tạo để in.</c:when>
+                                                                <c:when test="${option.value == 'SHIPPING'}">Chỉ chọn khi bên vận chuyển đã đến lấy đơn.</c:when>
                                                                 <c:otherwise>${option.description}</c:otherwise>
                                                             </c:choose>
                                                         </small>
@@ -157,17 +223,17 @@
 
                                         <div class="seller-status-note">
                                             <i data-lucide="info"></i>
-                                            <span>H&#7879; th&#7889;ng ch&#7881; cho ph&#233;p chuy&#7875;n sang b&#432;&#7899;c k&#7871; ti&#7871;p, kh&#244;ng nh&#7843;y tr&#7841;ng th&#225;i.</span>
+                                            <span>Chỉ chuyển sang đã giao vận chuyển khi bên vận chuyển đến lấy.</span>
                                         </div>
 
                                         <div class="seller-status-actions">
                                             <a class="seller-status-secondary btn btn-outline-dark"
                                                href="${pageContext.request.contextPath}/seller/order/view?subOrderId=${orderStatus.subOrderId}">
-                                                H&#7911;y
+                                                Hủy
                                             </a>
                                             <button type="submit" class="seller-status-primary btn btn-dark">
                                                 <i data-lucide="refresh-cw"></i>
-                                                <span>C&#7853;p nh&#7853;t</span>
+                                                <span>Cập nhật</span>
                                             </button>
                                         </div>
                                     </form>
@@ -175,11 +241,11 @@
                                 <c:otherwise>
                                     <div class="seller-status-locked">
                                         <i data-lucide="lock"></i>
-                                        <h3>Seller kh&#244;ng th&#7875; c&#7853;p nh&#7853;t ti&#7871;p</h3>
+                                        <h3>Người bán không thể cập nhật tiếp</h3>
                                         <p>${lockedMessage}</p>
                                         <a class="seller-status-primary btn btn-dark"
                                            href="${pageContext.request.contextPath}/seller/order/view?subOrderId=${orderStatus.subOrderId}">
-                                            Quay l&#7841;i chi ti&#7871;t
+                                            Quay lại chi tiết
                                         </a>
                                     </div>
                                 </c:otherwise>
@@ -189,33 +255,33 @@
 
                     <aside class="seller-status-side">
                         <section class="seller-status-info-card card shadow-sm">
-                            <h2>Th&#244;ng tin &#273;&#417;n</h2>
+                            <h2>Thông tin đơn</h2>
                             <dl>
-                                <dt>Kh&#225;ch h&#224;ng</dt>
+                                <dt>Khách hàng</dt>
                                 <dd>${orderStatus.customerName}</dd>
                                 <dt>Email</dt>
                                 <dd>${orderStatus.customerEmail}</dd>
-                                <dt>Ng&#224;y &#273;&#7863;t</dt>
+                                <dt>Ngày đặt</dt>
                                 <dd><fmt:formatDate value="${orderStatus.buyerOrderedAt}" pattern="dd/MM/yyyy HH:mm"/></dd>
-                                <dt>T&#7893;ng ti&#7873;n</dt>
-                                <dd><fmt:formatNumber value="${orderStatus.totalAmount}" type="number" maxFractionDigits="0"/>&#273;</dd>
+                                <dt>Tổng tiền</dt>
+                                <dd><fmt:formatNumber value="${orderStatus.totalAmount}" type="number" maxFractionDigits="0"/>đ</dd>
                             </dl>
                         </section>
 
                         <section class="seller-status-info-card card shadow-sm">
-                            <h2>S&#7843;n ph&#7849;m</h2>
+                            <h2>Sản phẩm</h2>
                             <p>${empty orderStatus.productsSummary ? 'Chua co san pham' : orderStatus.productsSummary}</p>
-                            <small>${orderStatus.itemCount} d&#242;ng h&#224;ng &bull; ${orderStatus.totalQuantity} s&#7843;n ph&#7849;m</small>
+                            <small>${orderStatus.itemCount} dòng hàng • ${orderStatus.totalQuantity} sản phẩm</small>
                         </section>
 
                         <section class="seller-status-info-card card shadow-sm">
-                            <h2>Giao h&#224;ng</h2>
+                            <h2>Giao hàng</h2>
                             <dl>
-                                <dt>Ng&#432;&#7901;i nh&#7853;n</dt>
+                                <dt>Người nhận</dt>
                                 <dd>${orderStatus.receiverName}</dd>
-                                <dt>S&#7889; &#273;i&#7879;n tho&#7841;i</dt>
+                                <dt>Số điện thoại</dt>
                                 <dd>${orderStatus.receiverPhone}</dd>
-                                <dt>&#272;&#7883;a ch&#7881;</dt>
+                                <dt>Địa chỉ</dt>
                                 <dd>${orderStatus.shippingAddress}</dd>
                             </dl>
                         </section>
@@ -225,9 +291,9 @@
             <c:otherwise>
                 <section class="seller-status-error-card card shadow-sm">
                     <i data-lucide="package-x"></i>
-                    <h1>Kh&#244;ng t&#7843;i &#273;&#432;&#7907;c &#273;&#417;n h&#224;ng</h1>
-                    <p>Vui l&#242;ng quay l&#7841;i danh s&#225;ch &#273;&#417;n h&#224;ng v&#224; ch&#7885;n m&#7897;t &#273;&#417;n h&#7907;p l&#7879;.</p>
-                    <a class="seller-status-primary btn btn-dark" href="${pageContext.request.contextPath}/seller/orders">Quay l&#7841;i danh s&#225;ch</a>
+                    <h1>Không tải được đơn hàng</h1>
+                    <p>Vui lòng quay lại danh sách đơn hàng và chọn một đơn hợp lệ.</p>
+                    <a class="seller-status-primary btn btn-dark" href="${pageContext.request.contextPath}/seller/orders">Quay lại danh sách</a>
                 </section>
             </c:otherwise>
         </c:choose>
@@ -235,6 +301,56 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    function printShippingLabel() {
+        const label = document.getElementById('shippingLabel');
+        if (!label) {
+            return;
+        }
+
+        const printWindow = window.open('', '_blank', 'width=720,height=820');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html lang="vi">
+            <head>
+                <meta charset="UTF-8">
+                <title>Phieu van don</title>
+                <style>
+                    body { margin: 0; padding: 16px; font-family: Arial, sans-serif; color: #000; }
+                    .seller-shipping-label { width: 560px; min-height: 640px; border: 2px solid #000; line-height: 1.25; }
+                    .label-header, .label-route, .label-footer { display: flex; }
+                    .label-header { justify-content: space-between; gap: 16px; padding: 10px 12px; border-bottom: 2px dashed #000; }
+                    .label-header strong { display: block; font-size: 20px; font-weight: 900; }
+                    .label-header span, .label-code span, .label-payment span, .label-signature > span { display: block; font-size: 12px; font-weight: 800; }
+                    .label-code { text-align: right; }
+                    .label-code strong { display: block; margin-top: 4px; font-size: 13px; font-weight: 900; }
+                    .label-route { min-height: 170px; border-bottom: 2px dashed #000; }
+                    .label-address { flex: 1; padding: 12px; }
+                    .label-address + .label-address { border-left: 1px dashed #000; }
+                    h3 { margin: 0 0 8px; font-size: 14px; font-weight: 900; }
+                    .label-address strong { display: block; font-size: 14px; font-weight: 900; }
+                    .label-address p { margin: 3px 0 0; font-size: 14px; font-weight: 700; }
+                    .label-products { min-height: 230px; padding: 12px; border-bottom: 2px dashed #000; }
+                    .label-products p { margin: 0; font-size: 14px; font-weight: 700; }
+                    .label-products em { display: block; margin-top: 132px; font-size: 13px; font-weight: 700; line-height: 1.35; }
+                    .label-footer { min-height: 190px; }
+                    .label-payment { flex: 1; padding: 12px; }
+                    .label-payment strong { display: block; margin: 16px 0 18px; text-align: center; font-size: 26px; font-weight: 900; }
+                    .label-instruction p { margin: 2px 0; font-size: 13px; font-weight: 700; }
+                    .label-signature { flex: 1; padding: 12px; text-align: center; }
+                    .label-signature > span { margin-bottom: 16px; }
+                    .label-signature > div { min-height: 130px; padding: 12px; border: 2px solid #9ca3af; }
+                    .label-signature strong { display: block; margin-bottom: 8px; font-size: 15px; font-weight: 900; }
+                    .label-signature p { margin: 0; font-size: 13px; font-weight: 700; }
+                </style>
+            </head>
+            <body>` + label.outerHTML + `</body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+    }
+
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
