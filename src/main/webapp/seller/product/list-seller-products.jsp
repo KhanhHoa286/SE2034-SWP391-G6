@@ -8,9 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh sách sản phẩm - MODA</title>
     <!-- Nhúng CSS dùng chung để đồng bộ font Outfit và layout chính -->
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260625">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260707a">
     <!-- Nhúng CSS riêng của trang list-seller-products -->
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/list-seller-products.css?v=20260625">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/list-seller-products.css?v=20260707a">
     <!-- Tải Lucide Icons qua CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
