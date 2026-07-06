@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
@@ -8,9 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chi tiết sản phẩm - MODA Seller Center</title>
     <!-- Nhúng CSS dùng chung (seller.css) -->
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260706">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260707a">
     <!-- Nhúng CSS riêng trang view-seller-product -->
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/view-seller-product.css?v=20260706">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/view-seller-product.css?v=20260707a">
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>

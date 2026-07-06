@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -10,8 +10,8 @@
     <title>Chi tiết đơn hàng - MODA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260630a">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/view-seller-order.css?v=20260630b">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260707a">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/view-seller-order.css?v=20260707a">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
