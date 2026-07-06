@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%
@@ -24,7 +24,7 @@
     <!-- Nhúng CSS riêng của trang add-product -->
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/add-product.css?v=20260628">
     <!-- Tải Lucide Icons qua CDN -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest.js"></script>
 </head>
 <body>
 <%

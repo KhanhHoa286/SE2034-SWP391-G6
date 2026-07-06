@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%-- BẮT BUỘC: Thêm thư viện functions để xử lý chuỗi (viết thường chữ) an toàn --%>
@@ -138,7 +138,7 @@
         @media (max-width: 768px) { .app-container { flex-direction: column; } .sidebar-wrapper { width: 100%; height: auto; } .main-content { padding: 16px; } .page-header { flex-direction: column; align-items: flex-start; gap: 12px; } .btn-primary { width: 100%; justify-content: center; } }
     </style>
 
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
 

@@ -133,11 +133,12 @@ a {
 }
 
 .brand-title {
-    font-size: 19px;
-    font-weight: 800;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 21px;
+    font-weight: 700;
     color: var(--color-text-primary);
     line-height: 1.1;
-    letter-spacing: -0.3px;
+    letter-spacing: 0.2px;
 }
 
 .brand-subtitle {
