@@ -33,6 +33,11 @@
 
     <!-- Main Content -->
     <main class="profile-main">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="javascript:history.back()" class="text-dark text-decoration-none"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
+        </div>
+
         <div class="profile-container">
 
             <div class="orders-header-container">
@@ -166,6 +171,11 @@
     startDate.addEventListener('change', validateDate);
     endDate.addEventListener('change',validateDate);
 
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
 </script>
 </body>
 </html>

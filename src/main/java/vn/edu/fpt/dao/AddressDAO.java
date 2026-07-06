@@ -1,6 +1,7 @@
 package vn.edu.fpt.dao;
 
 import vn.edu.fpt.common.DBContext;
+import vn.edu.fpt.dto.response.AddressResponse;
 import vn.edu.fpt.model.Address;
 import vn.edu.fpt.model.Province;
 import vn.edu.fpt.model.Ward;
@@ -12,29 +13,10 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- * DAO xử lý dữ liệu địa chỉ giao hàng của customer.
- *
- * File này chỉ làm việc với DB.
- * Không xử lý giao diện.
- * Không điều hướng trang.
- */
+
 public class AddressDAO extends DBContext {
 
-    /*
-     * Lấy danh sách địa chỉ giao hàng của một customer.
-     *
-     * userId lấy từ session đăng nhập, không lấy từ URL.
-     *
-     * Bảng dùng:
-     * - addresses: lưu địa chỉ giao hàng
-     * - wards: lấy tên phường/xã
-     * - provinces: lấy tỉnh/thành phố
-     *
-     * Sắp xếp:
-     * - Địa chỉ mặc định lên đầu
-     * - Địa chỉ mới tạo đứng trước
-     */
+
     public List<Address> getAddressesByUserId(int userId) {
         List<Address> addresses = new ArrayList<>();
 
@@ -241,4 +223,38 @@ public class AddressDAO extends DBContext {
 
         return false;
     }
+
+    /**
+     * HoaNK - Lấy ra list address với tên tỉnh và tên quận/huyện
+     */
+    private final String GET_ADDRESS_CHECKOUT = """
+            SELECT p.name AS province_name,w.name AS ward_name,a.receiver_name,a.receiver_phone,a.street_address,a.is_default
+            FROM addresses a
+            JOIN wards w ON a.ward_id = w.id
+            JOIN provinces p ON p.id = w.province_id
+            WHERE user_id = ?
+            """;
+   public AddressResponse getAddressCheckout(int userId) {
+       String sql = GET_ADDRESS_CHECKOUT;
+       AddressResponse addressResponse = new AddressResponse();
+       try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+           stmt.setInt(1, userId);
+           try(ResultSet rs = stmt.executeQuery()) {
+               while(rs.next()) {
+                   boolean isDefault = rs.getBoolean("is_default");
+                   if(isDefault == true) {
+                       addressResponse.setPhone(rs.getString("receiver_phone"));
+                       addressResponse.setFullName(rs.getString("receiver_name"));
+                       addressResponse.setWardName(rs.getString("ward_name"));
+                       addressResponse.setProvinceName(rs.getString("province_name"));
+                       addressResponse.setLocalDetail(rs.getString("street_address"));
+                       addressResponse.setDefault(isDefault);
+                   }
+               }
+           }
+       }catch (Exception e) {
+           e.printStackTrace();
+       }
+       return addressResponse;
+   }
 }

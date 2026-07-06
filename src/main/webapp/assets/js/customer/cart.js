@@ -7,15 +7,9 @@
 // lấy ra thẻ chứa tổng tiền
 const newAllShopTotal = document.getElementById("new-all-shop-total");
 // + - items trong giỏ hàng ( <0 báo lỗi, vượt quá số lượng kho báo lỗi
-function updateItemQuantity(contextPath, cartItemId, variantId,shopId,action,btn) {
+function updateItemQuantity(contextPath, cartItemId, variantId,action,btn) {
     // tìm khối cha gần nhất bao cả span lỗi
     const container = btn.closest(".cart-item__actions");
-    // lấy ra cha của khối shopTtotal
-    const vendorGroup = btn.closest(".vendor-group");
-    let shopTotal = null;
-    if(vendorGroup) {
-         shopTotal = vendorGroup.querySelector(".shopTotal");
-    }
 
     // lấy số lượng trong ô nhập và thẻ lỗi
     const quantityInput = container.querySelector(".qty-input");
@@ -31,14 +25,13 @@ function updateItemQuantity(contextPath, cartItemId, variantId,shopId,action,btn
     params.set('cart_item_id', cartItemId);
     params.set('quantity_item', quantityItem);
     params.set('variant_id', variantId);
-    params.set('shop_id', shopId);
     // axios
     axios.post(contextPath + "/api/customer/update-cart", params)
         .then(response => {
             const data = response.data;
             if(data.status === "SUCCESS") {
                 quantityInput.value = quantityItem;
-                shopTotal.innerText = data.newShopTotal;
+                // shopTotal.innerText = data.newShopTotal;
                 newAllShopTotal.innerText = data.newAllShopTotal;
             }
             if(data.status === "OVER_STOCK") {
@@ -54,19 +47,12 @@ function updateItemQuantity(contextPath, cartItemId, variantId,shopId,action,btn
         })
 }
 
-/**
- * HoaNK - Xóa 1 items trong giỏ hàng
- */
-function removeAnItem(contextPath, cartItemId,shopId, btn) {
+
+ // Xóa 1 items trong giỏ hàng
+
+function removeAnItem(contextPath, cartItemId, btn) {
     const params = new URLSearchParams();
     params.set("cart_item_id", cartItemId);
-    params.set("shop_id", shopId);
-    // lấy ra cha của khối shopTtotal
-    const vendorGroup = btn.closest(".vendor-group");
-    let shopTotal = null;
-    if(vendorGroup) {
-        shopTotal = vendorGroup.querySelector(".shopTotal");
-    }
 
     axios.post(contextPath + "/api/customer/delete-cart-item", params)
         .then(response => {
@@ -84,15 +70,11 @@ function removeAnItem(contextPath, cartItemId,shopId, btn) {
                 const quantityItemInShopCart = item_shop_container.querySelectorAll(".cart-item");
                 if(quantityItemInShopCart.length === 0) {
                     item_shop_container.remove();
-                }else{
-                    shopTotal.innerText = data.newShopTotal;
                 }
                 // xét lại số lượng trên header sau khi xóa thành công
                 if(parseInt(cartCount.innerText) > 0) {
                 cartCount.innerText = parseInt(cartCount.innerText) - 1;
                 }
-
-                shopTotal.innerText = data.newShopTotal;
                 newAllShopTotal.innerText = data.newAllShopTotal;
             }
 
@@ -106,9 +88,61 @@ function removeAnItem(contextPath, cartItemId,shopId, btn) {
         })
 }
 
-/**
- * HoaNK - quét qua các nuút checkbox để edit giá tiền chung và giá tiền riêng từng shop
- */
-function editTotalPrice() {
 
+
+ //cập nhật biến thể khi tích checkbox
+function getListCheckbox(contextPath,cartItemId,btn) {
+    const checkoutError = document.getElementById("checkout-error");
+    const params = new URLSearchParams();
+    const isSelected = btn.checked; // trả về true false
+    params.set('cart_item_id', cartItemId);
+    params.set('is_selected', isSelected);
+
+    axios.post(contextPath + "/api/customer/update-checkbox", params)
+        .then(response =>{
+            const data = response.data;
+
+            newAllShopTotal.innerText = data.totalPriceAllShop;
+            updateCheckoutButtonLink(contextPath);
+        })
+        .catch(error => {
+            console.log("Thêm biến thể giỏ hàng thất bại!", error);
+        })
 }
+
+
+// Lấy tất cả những sản phâẩm được checkbox trong giỏ hàng
+function getCheckedCartItemIds() {
+    const checkedCheckboxes = document.querySelectorAll(".cart-item__checkbox:checked");
+    const idsArray = Array.from(checkedCheckboxes).map(checkbox => checkbox.value);
+    return idsArray.join(",");
+}
+
+//
+function goToCheckout(contextPath) {
+    const cartItemIds = getCheckedCartItemIds();
+    const checkoutError = document.getElementById("checkout-error");
+    if (!cartItemIds) {
+        checkoutError.innerText = "* Vui lòng tích chọn ít nhất 1 sản phẩm...";
+        return;
+    }
+    checkoutError.innerText = "";
+    window.location.href = contextPath + "/customer/add-order?type=CART&list_cart_item_id=" + cartItemIds;
+}
+
+// cập nhật link cho thẻ a sang trang thanh toán
+function updateCheckoutButtonLink(contextPath) {
+    const cartItemIds = getCheckedCartItemIds();
+    const checkoutBtn = document.querySelector(".checkout-btn");
+
+    if (checkoutBtn) {
+        // Cập nhật lại href động liên tục
+        checkoutBtn.setAttribute("href", contextPath + "/customer/add-order?type=CART&list_cart_item_id=" + cartItemIds);
+    }
+}
+
+window.addEventListener("pageshow", function (event) {
+    if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+        window.location.reload();
+    }
+});

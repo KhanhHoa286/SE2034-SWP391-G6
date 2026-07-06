@@ -13,7 +13,6 @@ import vn.edu.fpt.dao.CategoryDAO;
 import vn.edu.fpt.dao.ProductDAO;
 import vn.edu.fpt.dao.ShopDAO;
 import vn.edu.fpt.enums.Gender;
-import vn.edu.fpt.enums.ProductStatus;
 import vn.edu.fpt.model.Product;
 import vn.edu.fpt.model.ProductImage;
 import vn.edu.fpt.model.ProductVariant;
@@ -22,18 +21,17 @@ import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-@WebServlet("/add-product")
+@WebServlet("/edit-product")
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,      // 1MB
         maxFileSize = 1024 * 1024 * 5,       // 5MB
         maxRequestSize = 1024 * 1024 * 25    // 25MB
 )
-public class AddProductServlet extends HttpServlet {
+public class EditProductServlet extends HttpServlet {
 
     private final ProductDAO productDAO = new ProductDAO();
     private final ShopDAO shopDAO = new ShopDAO();
@@ -53,7 +51,7 @@ public class AddProductServlet extends HttpServlet {
             shop = shopDAO.getShopByOwnerId(ownerId);
         }
 
-        // Nếu chưa có shop -> lấy shop đầu tiên để demo
+        // Demo fallback
         if (shop == null) {
             List<Shop> allShops = shopDAO.getAllShops();
             if (allShops != null && !allShops.isEmpty()) {
@@ -61,14 +59,37 @@ public class AddProductServlet extends HttpServlet {
             }
         }
 
-        request.setAttribute("shop", shop);
-        request.setAttribute("categories", categoryDAO.getAllCategory());
-        request.setAttribute("colors", productDAO.getAllColors());
-        request.setAttribute("sizes", productDAO.getAllSizes());
-        request.setAttribute("discounts", productDAO.getDiscountPercentages());
-        request.setAttribute("activePage", "products");
+        String idStr = request.getParameter("id");
+        if (idStr == null || idStr.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/list-seller-products");
+            return;
+        }
 
-        request.getRequestDispatcher("/seller/product/add-product.jsp").forward(request, response);
+        try {
+            int productId = Integer.parseInt(idStr.trim());
+            Product product = productDAO.getProductById(productId);
+            if (product == null || (shop != null && !product.getShopId().equals(shop.getShopId()))) {
+                response.sendRedirect(request.getContextPath() + "/list-seller-products");
+                return;
+            }
+
+            List<ProductVariant> variants = productDAO.getVariantsByProductId(productId);
+            List<ProductImage> images = productDAO.getProductImagesByProductId(productId);
+
+            request.setAttribute("product", product);
+            request.setAttribute("productVariants", variants);
+            request.setAttribute("productImagesList", images);
+            request.setAttribute("shop", shop);
+            request.setAttribute("categories", categoryDAO.getAllCategory());
+            request.setAttribute("colors", productDAO.getAllColors());
+            request.setAttribute("sizes", productDAO.getAllSizes());
+            request.setAttribute("discounts", productDAO.getDiscountPercentages());
+            request.setAttribute("activePage", "products");
+
+            request.getRequestDispatcher("/seller/product/edit-product.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/list-seller-products");
+        }
     }
 
     @Override
@@ -87,7 +108,6 @@ public class AddProductServlet extends HttpServlet {
             shop = shopDAO.getShopByOwnerId(ownerId);
         }
 
-        // Demo fallback
         if (shop == null) {
             List<Shop> allShops = shopDAO.getAllShops();
             if (allShops != null && !allShops.isEmpty()) {
@@ -95,8 +115,16 @@ public class AddProductServlet extends HttpServlet {
             }
         }
 
-        if (shop == null) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Không tìm thấy Shop hợp lệ để đăng sản phẩm!");
+        String productIdStr = request.getParameter("productId");
+        if (productIdStr == null || productIdStr.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/list-seller-products");
+            return;
+        }
+
+        int productId = Integer.parseInt(productIdStr.trim());
+        Product existingProduct = productDAO.getProductById(productId);
+        if (existingProduct == null || (shop != null && !existingProduct.getShopId().equals(shop.getShopId()))) {
+            response.sendRedirect(request.getContextPath() + "/list-seller-products");
             return;
         }
 
@@ -159,19 +187,51 @@ public class AddProductServlet extends HttpServlet {
             }
         }
 
-        // 2. Xử lý các file ảnh tải lên Cloudinary
+        // Xử lý ảnh tải lên
         List<String> imageUrls = new ArrayList<>();
+        List<ProductImage> existingImages = productDAO.getProductImagesByProductId(productId);
+        
+        // Đọc các ảnh hiện tại giữ lại hoặc thay mới
+        String keepImage0 = request.getParameter("keepImage0");
+        String keepImage1 = request.getParameter("keepImage1");
+        String keepImage2 = request.getParameter("keepImage2");
+        String keepImage3 = request.getParameter("keepImage3");
+
         try {
             Collection<Part> parts = request.getParts();
-            for (Part part : parts) {
-                if (part.getName().equals("productImages") && part.getSize() > 0) {
-                    try {
-                        String imageUrl = UploadImage.uploadImage(part, "products");
-                        if (imageUrl != null) {
-                            imageUrls.add(imageUrl);
+            int partIndex = 0;
+            // Map file input với index
+            // imgInput0 -> index 0, imgInput1 -> index 1...
+            for (int i = 0; i < 4; i++) {
+                Part part = request.getPart("productImages" + i); // Hoặc lọc theo thứ tự
+                if (part == null) {
+                    // fallback check all parts
+                    for (Part p : parts) {
+                        if (p.getName().equals("productImages") && p.getSize() > 0) {
+                            if (partIndex == i) {
+                                part = p;
+                                break;
+                            }
+                            partIndex++;
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    }
+                }
+
+                if (part != null && part.getSize() > 0) {
+                    String imageUrl = UploadImage.uploadImage(part, "products");
+                    if (imageUrl != null) {
+                        imageUrls.add(imageUrl);
+                    }
+                } else {
+                    // Không upload mới thì giữ ảnh cũ nếu có
+                    String keepUrl = null;
+                    if (i == 0) keepUrl = keepImage0;
+                    else if (i == 1) keepUrl = keepImage1;
+                    else if (i == 2) keepUrl = keepImage2;
+                    else if (i == 3) keepUrl = keepImage3;
+
+                    if (keepUrl != null && !keepUrl.trim().isEmpty()) {
+                        imageUrls.add(keepUrl);
                     }
                 }
             }
@@ -179,11 +239,17 @@ public class AddProductServlet extends HttpServlet {
             e.printStackTrace();
         }
 
+        // Nếu hoàn toàn không có ảnh nào được giữ hoặc upload mới
         if (imageUrls.isEmpty()) {
-            errors.put("images", "Vui lòng tải lên ít nhất ảnh chính của sản phẩm.");
+            // Fallback giữ lại thumbnail hiện tại
+            if (existingProduct.getThumbnailUrl() != null) {
+                imageUrls.add(existingProduct.getThumbnailUrl());
+            } else {
+                errors.put("images", "Vui lòng tải lên ít nhất ảnh chính của sản phẩm.");
+            }
         }
 
-        // 3. Đọc dữ liệu biến thể
+        // Đọc dữ liệu biến thể
         String[] variantColors = request.getParameterValues("variantColor");
         String[] variantSizes = request.getParameterValues("variantSize");
         String[] variantStocks = request.getParameterValues("variantStock");
@@ -191,21 +257,17 @@ public class AddProductServlet extends HttpServlet {
         if (variantColors == null || variantSizes == null || variantStocks == null) {
             errors.put("variants", "Sản phẩm phải chứa ít nhất 1 biến thể.");
         } else {
-            // Sử dụng min length để tránh ArrayIndexOutOfBoundsException
             int variantCount = Math.min(variantColors.length, Math.min(variantSizes.length, variantStocks.length));
             if (variantCount == 0) {
                 errors.put("variants", "Sản phẩm phải chứa ít nhất 1 biến thể.");
             } else {
                 boolean hasValidVariant = false;
                 for (int i = 0; i < variantCount; i++) {
-                    // Bỏ qua biến thể chưa chọn (giá trị rỗng)
                     boolean colorEmpty = (variantColors[i] == null || variantColors[i].trim().isEmpty());
                     boolean sizeEmpty = (variantSizes[i] == null || variantSizes[i].trim().isEmpty());
                     boolean stockEmpty = (variantStocks[i] == null || variantStocks[i].trim().isEmpty());
 
-                    if (colorEmpty && sizeEmpty && stockEmpty) {
-                        continue; // biến thể hoàn toàn rỗng, bỏ qua
-                    }
+                    if (colorEmpty && sizeEmpty && stockEmpty) continue;
 
                     if (colorEmpty) {
                         errors.put("variants", "Vui lòng chọn màu sắc cho tất cả biến thể.");
@@ -240,13 +302,16 @@ public class AddProductServlet extends HttpServlet {
         if (!errors.isEmpty()) {
             request.setAttribute("errors", errors);
             request.setAttribute("oldInput", oldInput);
+            request.setAttribute("product", existingProduct);
+            request.setAttribute("productVariants", productDAO.getVariantsByProductId(productId));
+            request.setAttribute("productImagesList", existingImages);
             request.setAttribute("shop", shop);
             request.setAttribute("categories", categoryDAO.getAllCategory());
             request.setAttribute("colors", productDAO.getAllColors());
             request.setAttribute("sizes", productDAO.getAllSizes());
             request.setAttribute("discounts", productDAO.getDiscountPercentages());
             request.setAttribute("activePage", "products");
-            request.getRequestDispatcher("/seller/product/add-product.jsp").forward(request, response);
+            request.getRequestDispatcher("/seller/product/edit-product.jsp").forward(request, response);
             return;
         }
 
@@ -254,29 +319,19 @@ public class AddProductServlet extends HttpServlet {
             Integer categoryId = Integer.parseInt(categoryIdStr);
             BigDecimal basePrice = new BigDecimal(basePriceRaw.trim());
 
-            // 4. Khởi tạo và lưu sản phẩm
-            Product product = Product.builder()
-                    .shopId(shop.getShopId())
-                    .categoryId(categoryId)
-                    .gender(Gender.valueOf(genderStr))
-                    .productName(productName.trim())
-                    .description(description.trim())
-                    .basePrice(basePrice)
-                    .discountPercentage(discountPercentage)
-                    .thumbnailUrl(imageUrls.get(0)) // Ảnh chính là ảnh đầu tiên
-                    .isActive(true)
-                    .isDeleted(false)
-                    .status(ProductStatus.ACTIVE)
-                    .createdAt(LocalDateTime.now())
-                    .build();
+            // Cập nhật thông tin cơ bản sản phẩm
+            existingProduct.setCategoryId(categoryId);
+            existingProduct.setGender(Gender.valueOf(genderStr));
+            existingProduct.setProductName(productName.trim());
+            existingProduct.setDescription(description.trim());
+            existingProduct.setBasePrice(basePrice);
+            existingProduct.setDiscountPercentage(discountPercentage);
+            existingProduct.setThumbnailUrl(imageUrls.get(0)); // ảnh chính đầu tiên
 
-            int productId = productDAO.insertProduct(product);
+            productDAO.updateProduct(existingProduct);
 
-            if (productId == -1) {
-                throw new Exception("Lưu sản phẩm thất bại.");
-            }
-
-            // 5. Lưu danh sách ảnh vào bảng product_images
+            // Cập nhật bảng ảnh (xóa ảnh cũ và insert lại)
+            productDAO.deleteImagesByProductId(productId);
             for (int i = 0; i < imageUrls.size(); i++) {
                 ProductImage productImage = ProductImage.builder()
                         .productId(productId)
@@ -286,10 +341,10 @@ public class AddProductServlet extends HttpServlet {
                 productDAO.insertProductImage(productImage);
             }
 
-            // 6. Lưu danh sách các biến thể sản phẩm
+            // Cập nhật các biến thể (xóa biến thể cũ và insert lại)
+            productDAO.deleteVariantsByProductId(productId);
             int variantCount = Math.min(variantColors.length, Math.min(variantSizes.length, variantStocks.length));
             for (int i = 0; i < variantCount; i++) {
-                // Bỏ qua biến thể rỗng (chưa chọn)
                 if (variantColors[i] == null || variantColors[i].trim().isEmpty()) continue;
                 if (variantSizes[i] == null || variantSizes[i].trim().isEmpty()) continue;
                 if (variantStocks[i] == null || variantStocks[i].trim().isEmpty()) continue;
@@ -313,19 +368,23 @@ public class AddProductServlet extends HttpServlet {
                 productDAO.insertProductVariant(variant);
             }
 
-            // Thành công -> chuyển hướng về trang danh sách sản phẩm
+            session.setAttribute("toastMessage", "Cập nhật sản phẩm thành công!");
+            session.setAttribute("toastType", "success");
             response.sendRedirect(request.getContextPath() + "/list-seller-products");
 
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", e.getMessage());
+            request.setAttribute("product", existingProduct);
+            request.setAttribute("productVariants", productDAO.getVariantsByProductId(productId));
+            request.setAttribute("productImagesList", existingImages);
             request.setAttribute("shop", shop);
             request.setAttribute("categories", categoryDAO.getAllCategory());
             request.setAttribute("colors", productDAO.getAllColors());
             request.setAttribute("sizes", productDAO.getAllSizes());
             request.setAttribute("discounts", productDAO.getDiscountPercentages());
             request.setAttribute("activePage", "products");
-            request.getRequestDispatcher("/seller/product/add-product.jsp").forward(request, response);
+            request.getRequestDispatcher("/seller/product/edit-product.jsp").forward(request, response);
         }
     }
 }

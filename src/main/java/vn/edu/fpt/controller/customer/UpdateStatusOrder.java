@@ -37,7 +37,7 @@ public class UpdateStatusOrder extends HttpServlet {
                checkUpdateStatusOrder =  orderDAO.updateStatusOrder(subOrderId);
                if("COD".equals(paymentMethod)){
                    checkUpdatePaymentMethod = orderDAO.updatePaymentMethod(masterOrderId);
-               }else if("PAID".equals(paymentMethod)) {
+               }else if("BANK".equals(paymentMethod)) {
                    checkUpdatePaymentMethod = true;
                }
              }

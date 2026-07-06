@@ -152,7 +152,7 @@
                                                 </td>
                                                 <td>
                                                     <div class="action-buttons">
-                                                        <a href="${pageContext.request.contextPath}/seller/product/edit-product.jsp?id=${p.productId}" class="action-btn edit-btn" title="Chỉnh sửa">
+                                                        <a href="${pageContext.request.contextPath}/edit-product?id=${p.productId}" class="action-btn edit-btn" title="Chỉnh sửa">
                                                             <i data-lucide="edit-2"></i>
                                                         </a>
                                                         <a href="#" class="action-btn delete-btn" title="Xóa sản phẩm" onclick="return deleteProduct(${p.productId})">

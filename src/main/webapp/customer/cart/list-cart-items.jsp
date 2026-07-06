@@ -51,7 +51,7 @@
                 <!-- Item 1 -->
                 <c:forEach items="${shop.value.items}" var="shopProduct">
                 <div class="cart-item">
-<%--                    <input type="checkbox" ${shopProduct.selected ? 'checked' : ''} value="${shopProduct.cartItemId}" class="cart-item__checkbox">--%>
+                    <input type="checkbox" ${shopProduct.selected ? 'checked' : ''} value="${shopProduct.cartItemId}" class="cart-item__checkbox" onclick="getListCheckbox('${pageContext.request.contextPath}',${shopProduct.cartItemId}, this)">
                     <img src="${shopProduct.thumbnailUrl}" alt="${shopProduct.productName}" class="cart-item__img">
 
                     <div class="cart-item__info">
@@ -62,53 +62,29 @@
 
                     <div class="cart-item__actions">
                         <div class="quantity-control">
-                            <button class="qty-btn" onclick="updateItemQuantity('${pageContext.request.contextPath}', ${shopProduct.cartItemId},${shopProduct.variantId},${shopProduct.shopId},'decrease', this)">-</button>
+                            <button class="qty-btn" onclick="updateItemQuantity('${pageContext.request.contextPath}', ${shopProduct.cartItemId},${shopProduct.variantId},'decrease', this)">-</button>
                             <input type="number" value="${shopProduct.quantity}" class="qty-input" min="1" readonly>
-                            <button class="qty-btn"  onclick="updateItemQuantity('${pageContext.request.contextPath}', ${shopProduct.cartItemId},${shopProduct.variantId},${shopProduct.shopId}, 'increase', this)">+</button>
+                            <button class="qty-btn"  onclick="updateItemQuantity('${pageContext.request.contextPath}', ${shopProduct.cartItemId},${shopProduct.variantId}, 'increase', this)">+</button>
                         </div>
-                        <button class="cart-item__remove" onclick="removeAnItem('${pageContext.request.contextPath}',${shopProduct.cartItemId},${shopProduct.shopId},this)"><i class="fa-regular fa-trash-can"></i></button>
+                        <button class="cart-item__remove" onclick="removeAnItem('${pageContext.request.contextPath}',${shopProduct.cartItemId},this)"><i class="fa-regular fa-trash-can"></i></button>
                         <span class="stock-error text-danger" style=" font-size: 12px; margin-top: 5px;"></span>
                     </div>
                 </div>
                 </c:forEach>
-                <div class="vendor-footer">
-<%--                    <div class="vendor-footer__shipping">Phí vận chuyển dự kiến (Shop này): Miễn phí</div>--%>
-                    <div class="vendor-footer__subtotal shopTotal" id="subtotal_shop_cart">Tạm tính đơn hàng: <fmt:formatNumber value="${shop.value.shopTotal}" type="currency" maxFractionDigits="0"/></div>
-                </div>
             </div>
                 </c:forEach>
             </div>
         <!-- Right: Order Summary -->
         <div class="order-summary">
-<%--                <h2 class="order-summary__title">TÓM TẮT ĐƠN HÀNG</h2>--%>
-
-<%--                <div class="summary-row">--%>
-<%--                    <span>Tạm tính</span>--%>
-<%--                    <span>14,900,000đ</span>--%>
-<%--                </div>--%>
-<%--                <div class="summary-row">--%>
-<%--                    <span>Phí vận chuyển (Tổng)</span>--%>
-<%--                    <span>0đ</span>--%>
-<%--                </div>--%>
-<%--                <div class="summary-row">--%>
-<%--                    <span>Giảm giá</span>--%>
-<%--                    <span>0đ</span>--%>
-<%--                </div>--%>
 
             <div class="summary-row total">
                 <span>TỔNG CỘNG</span>
                 <span id="new-all-shop-total"><fmt:formatNumber value="${shopAllTotal}" type="currency" maxFractionDigits="0"/></span>
             </div>
-
-            <button class="checkout-btn">TIẾN HÀNH THANH TOÁN</button>
-<%--                <div class="payment-methods">--%>
-<%--                    <p>CHẤP NHẬN THANH TOÁN</p>--%>
-<%--                    <div class="payment-icons">--%>
-<%--                        <i class="fa-brands fa-cc-visa"></i>--%>
-<%--                        <i class="fa-brands fa-cc-mastercard"></i>--%>
-<%--                        <i class="fa-solid fa-money-bill-wave"></i>--%>
-<%--                    </div>--%>
+            <div class="text-end mb-2">
+                <span id="checkout-error" class="text-danger" style="font-size: 13px; font-weight: 500;"></span>
             </div>
+            <a href="javascript:void(0)" onclick="goToCheckout('${pageContext.request.contextPath}')" class="checkout-btn">TIẾN HÀNH THANH TOÁN</a>            </div>
         </div>
 
     </div>

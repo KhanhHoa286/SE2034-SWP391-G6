@@ -210,7 +210,7 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect(contextPath + "/home");
 
         } else if (roleId == 3) {
-            response.sendRedirect(contextPath + "/seller/orders");
+            response.sendRedirect(contextPath + "/home");
 
         } else if (roleId == 4) {
             response.sendRedirect(contextPath + "/logistics/delivery/list-deliveries.jsp");

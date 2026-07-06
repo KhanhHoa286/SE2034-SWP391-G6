@@ -1,6 +1,7 @@
 package vn.edu.fpt.dao;
 
 import vn.edu.fpt.common.DBContext;
+import vn.edu.fpt.dto.request.CheckoutRequest;
 import vn.edu.fpt.dto.request.OrderHistoryFilterRequest;
 import vn.edu.fpt.dto.response.*;
 import vn.edu.fpt.enums.PaymentMethod;
@@ -11,12 +12,36 @@ import vn.edu.fpt.model.Product;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
 
 public class OrderDAO extends DBContext {
+    private final CartDAO cartDAO = new CartDAO();
+
+    /**
+     * HoaNK - Lấy ra commission rate mới nhất từ bảng
+     */
+    private final String GET_LATEST_COMMISSION_RATE = """
+        SELECT TOP 1 commission_rate
+        FROM commission_configs
+        WHERE effective_date <= GETDATE()
+        ORDER BY effective_date DESC
+        """;
+    public BigDecimal getLatestCommissionRate() {
+        String sql = GET_LATEST_COMMISSION_RATE;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBigDecimal("commission_rate").divide(BigDecimal.valueOf(100));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //nếu chưa có dữ liệu trong bảng thì mặc định 1.5%
+        return BigDecimal.valueOf(0.015);
+    }
 
     public BigDecimal getTodayRevenue(int shopId) {
         String sql = """
@@ -199,7 +224,7 @@ public class OrderDAO extends DBContext {
             WHERE mo.customer_id = ?
             """;
     private final String PAGING = """
-            ORDER BY so.sub_order_id ASC 
+            ORDER BY so.created_at DESC
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
             """;
     public List<OrderHistoryResponse> getSubOrderByCustomerId(int customer_id, OrderHistoryFilterRequest orderRequest, int pageSize) {
@@ -556,5 +581,241 @@ public class OrderDAO extends DBContext {
          * trả về list rỗng để JSP hiển thị "Bạn chưa có đơn hàng nào."
          */
         return orders;
+    }
+
+
+    /**
+     * HoaNK - Tạo 1 đơn hàng trong 1 transaction
+     */
+    public int createOrderTransaction(CheckoutRequest req, int userId) {
+        int masterOrderId = 0;
+        try {
+            connection.setAutoCommit(false); // BẮT ĐẦU TRANSACTION
+            // 1. Lấy tỷ lệ hoa hồng hiện hành từ bảng commission_configs
+            BigDecimal commissionRate = this.getLatestCommissionRate();
+
+            // 2. Tạo đơn hàng tổng (master_order)
+            masterOrderId = this.insertMasterOrder(userId, req);
+
+            // 3. Phân luồng xử lý chi tiết theo loại checkout
+            if ("CART".equalsIgnoreCase(req.getType())) {
+                // Luồng từ giỏ hàng — lấy danh sách item đã tick chọn
+                List<CartResponse> listCartItems = cartDAO.getCartItemCheckbox(req.getCartItemIds(), userId);
+                List<ShopCartResponse> shopsData = this.groupCartByShop(listCartItems);
+
+                for (ShopCartResponse shop : shopsData) {
+                    // Tính tổng tiền của shop hiện tại
+                    BigDecimal subTotal = BigDecimal.ZERO;
+                    for (CartResponse item : shop.getItems()) {
+                        // discountPrice đã là BigDecimal, getQuantity() là int cần valueOf()
+                        BigDecimal itemPrice    = item.getDiscountPrice();
+                        BigDecimal itemQuantity = BigDecimal.valueOf(item.getQuantity());
+                        subTotal = subTotal.add(itemPrice.multiply(itemQuantity));
+                    }
+
+                    // Tính phí hoa hồng theo tỷ lệ lấy từ DB
+                    BigDecimal commissionFee = subTotal.multiply(commissionRate);
+
+                    // Tạo sub_order cho từng shop
+                    int subOrderId = this.insertSubOrder(masterOrderId, shop.getShopId(), subTotal, commissionFee);
+
+                    // Tạo order_item và trừ tồn kho cho từng sản phẩm
+                    for (CartResponse item : shop.getItems()) {
+                        // discountPrice đã là BigDecimal, truyền thẳng không cần valueOf()
+                        this.insertOrderItem(subOrderId, item.getProductId(), item.getVariantId(), item.getQuantity(), item.getDiscountPrice());
+                        this.updateDecreaseStock(item.getVariantId(), item.getQuantity());
+                    }
+                }
+                // Xóa các item đã checkout khỏi giỏ hàng
+                this.deleteCartItemsByListId(req.getCartItemIds());
+
+            } else if ("DETAILS_PRODUCT".equalsIgnoreCase(req.getType())) {
+                // Luồng từ trang chi tiết sản phẩm — mua ngay 1 sản phẩm
+                SummaryOrderCheckoutResponse summary = this.getVariantInfoForCheckout(req.getVariantId());
+
+                if (summary != null) {
+                    summary.setQuantity(req.getQuantity());
+                    BigDecimal subTotal = summary.getTotalPrice();
+
+                    // Tính phí hoa hồng theo tỷ lệ lấy từ DB
+                    BigDecimal commissionFee = subTotal.multiply(commissionRate);
+
+                    int subOrderId = this.insertSubOrder(masterOrderId, summary.getShopId(), subTotal, commissionFee);
+                    this.insertOrderItem(subOrderId, summary.getProductId(), req.getVariantId(), req.getQuantity(), summary.getPrice());
+                    this.updateDecreaseStock(req.getVariantId(), req.getQuantity());
+                    // Xóa item khỏi giỏ hàng nếu sản phẩm đã có trong giỏ
+                    this.removeCartItemIfExist(userId, req.getVariantId());
+                }
+            }
+
+            connection.commit(); // COMMIT TRANSACTION
+            return masterOrderId;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            return 0;
+        }
+    }
+
+    /**
+     * HoaNK - Insert 1 đơn hàng tổng
+     */
+    private final String INSERT_MASTER_ORDER = """
+    INSERT INTO master_orders (customer_id, total_amount, receiver_name, receiver_phone, shipping_address, payment_method, payment_status, created_at,transaction_code) 
+    VALUES (?, ?, ?, ?, ?, ?, ?,?,?, GETDATE());
+    """;
+    public int insertMasterOrder(int customerId, CheckoutRequest req) throws SQLException {
+        String sql = INSERT_MASTER_ORDER;
+        String paymentStatus = "BANK".equalsIgnoreCase(req.getPaymentMethod()) ? "PAID" : "PENDING";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, customerId);
+            stmt.setBigDecimal(2, req.getTotalAmount()); // Thằng này giờ đã là BigDecimal
+            stmt.setString(3, req.getReceiverName());
+            stmt.setString(4, req.getReceiverPhone());
+            stmt.setString(5, req.getShippingAddress());
+            stmt.setString(6, req.getPaymentMethod());
+            stmt.setString(7, paymentStatus);
+            stmt.setString(8,req.getTransactionCode());
+            stmt.executeUpdate();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        throw new SQLException("Thêm đơn hàng tổng thất bại!");
+    }
+
+    /**
+     * HoaNK - Insert 1 dơn hàng con(của 1 shop)
+     */
+    private final String INSERT_SUB_ORDER = """
+        INSERT INTO sub_orders (master_order_id, shop_id, sub_total, discount_amount, total_amount, commission_fee, status, created_at) 
+        VALUES (?, ?, ?, 0, ?, ?, 'PENDING', GETDATE());
+        """;
+    public int insertSubOrder(int masterOrderId, int shopId, BigDecimal subTotal, BigDecimal commissionFee) throws SQLException {
+        String sql = INSERT_SUB_ORDER;
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, masterOrderId);
+            stmt.setInt(2, shopId);
+            stmt.setBigDecimal(3, subTotal);
+            stmt.setBigDecimal(4, subTotal);
+            stmt.setBigDecimal(5, commissionFee);
+            stmt.executeUpdate();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        throw new SQLException("Thêm đơn hàng theo Shop thất bại!");
+    }
+
+    /**
+     * HoaNK - Insert từng sản phẩm của 1 suborder(1 sản phẩm 1 shop)
+     */
+    private final String INSERT_ORDER_ITEM = """
+        INSERT INTO order_items (sub_order_id, product_id, variant_id, quantity, price_at_purchase) 
+        VALUES (?, ?, ?, ?, ?);
+        """;
+    public void insertOrderItem(int subOrderId, int productId, int variantId, int quantity, BigDecimal priceAtPurchase) throws SQLException {
+        String sql = INSERT_ORDER_ITEM;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, subOrderId);
+            stmt.setInt(2, productId);
+            stmt.setInt(3, variantId);
+            stmt.setInt(4, quantity);
+            stmt.setBigDecimal(5, priceAtPurchase);
+            stmt.executeUpdate();
+        }
+    }
+
+    /**
+     * HoaNK - Sau khi mua n ố lượng biến thể th trừ trong kho đi
+     */
+    private final String UPDATE_STOCK_VARIANT = """
+        UPDATE product_variants SET stock_quantity = stock_quantity - ? WHERE variant_id = ?;
+        """;
+    public void updateDecreaseStock(int variantId, int quantity) throws SQLException {
+        String sql = UPDATE_STOCK_VARIANT;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, quantity);
+            stmt.setInt(2, variantId);
+            stmt.executeUpdate();
+        }
+    }
+
+    /**
+     * HoaNK - Dọn dẹp giỏ hàng khi bieens thể đó đã dcd mua ở trang giỏ hàng tích
+     */
+    public void deleteCartItemsByListId(String cartItemIds) throws SQLException {
+        if (cartItemIds == null || !cartItemIds.matches("^[0-9,]+$")) return;
+        String sql = "DELETE FROM cart_items WHERE cart_item_id IN (" + cartItemIds + ");";
+        try (Statement stmt = connection.createStatement()) {
+            stmt.executeUpdate(sql);
+        }
+    }
+
+    /**
+     * HoaNK - Dọn dẹp giỏ hàng khi biến thể đó đã đc mua ở trang chi tiết
+     */
+    private final String DELETE_CART_ITEM_BUY_NOW = """
+        DELETE FROM cart_items WHERE user_id = ? AND variant_id = ?;
+        """;
+    public void removeCartItemIfExist(int userId, int variantId) throws SQLException {
+        String sql = DELETE_CART_ITEM_BUY_NOW;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, variantId);
+            stmt.executeUpdate();
+        }
+    }
+
+    /**
+     * HoaNK - Lấy ra thông tin chi tiết của biến th sản phẩm khi nhấn mua ngay
+     */
+    private final String GET_VARIANT_INFO_BUY_NOW = """
+        SELECT p.product_id, p.shop_id, (p.base_price * (100 - p.discount_percentage) / 100) AS discount_price 
+        FROM product_variants v 
+        JOIN products p ON v.product_id = p.product_id 
+        WHERE v.variant_id = ?;
+        """;
+    public SummaryOrderCheckoutResponse getVariantInfoForCheckout(int variantId) throws SQLException {
+        String sql = GET_VARIANT_INFO_BUY_NOW;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, variantId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    SummaryOrderCheckoutResponse summary = new SummaryOrderCheckoutResponse();
+                    summary.setProductId(rs.getInt("product_id"));
+                    summary.setShopId(rs.getInt("shop_id"));
+                    summary.setPrice(rs.getBigDecimal("discount_price"));
+                    return summary;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * HoaNK - Gom nhóm lại những sản phẩm đc tích chia về shop của sản phẩm đó
+     */
+    public List<ShopCartResponse> groupCartByShop(List<CartResponse> cartResponses) {
+        Map<Integer, ShopCartResponse> map = new LinkedHashMap<>();
+        for (CartResponse c : cartResponses) {
+            int shopId = c.getShopId();
+            if (!map.containsKey(shopId)) {
+                ShopCartResponse src = new ShopCartResponse();
+                src.setShopId(shopId);
+                src.setShopName(c.getShopName());
+                map.put(shopId, src);
+            }
+            map.get(shopId).getItems().add(c);
+        }
+        return new ArrayList<>(map.values());
     }
 }
