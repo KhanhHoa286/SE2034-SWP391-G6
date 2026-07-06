@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%
@@ -83,8 +83,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chỉnh sửa sản phẩm - MODA</title>
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260706">
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/edit-product.css?v=20260706">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260707a">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/edit-product.css?v=20260707a">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>

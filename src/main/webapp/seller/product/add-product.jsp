@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%
@@ -20,11 +20,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thêm sản phẩm mới - MODA</title>
     <!-- Nhúng CSS dùng chung để đồng bộ font Outfit và layout chính -->
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260628">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260707a">
     <!-- Nhúng CSS riêng của trang add-product -->
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/add-product.css?v=20260628">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/add-product.css?v=20260707a">
     <!-- Tải Lucide Icons qua CDN -->
-    <script src="https://unpkg.com/lucide@latest.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 <%
