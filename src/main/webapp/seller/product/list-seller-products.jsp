@@ -8,9 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh sách sản phẩm - MODA</title>
     <!-- Nhúng CSS dùng chung để đồng bộ font Outfit và layout chính -->
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260625">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260707a">
     <!-- Nhúng CSS riêng của trang list-seller-products -->
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/list-seller-products.css?v=20260625">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/list-seller-products.css?v=20260707a">
     <!-- Tải Lucide Icons qua CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -117,12 +117,16 @@
                                         <c:forEach var="p" items="${products}">
                                             <tr class="product-row">
                                                 <td>
-                                                    <img src="${not empty p.thumbnailUrl ? p.thumbnailUrl : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150&auto=format&fit=crop&q=80'}"
-                                                         alt="${p.productName}" class="product-thumb">
+                                                    <a href="${pageContext.request.contextPath}/view-seller-product?id=${p.productId}">
+                                                        <img src="${not empty p.thumbnailUrl ? p.thumbnailUrl : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150&auto=format&fit=crop&q=80'}"
+                                                             alt="${p.productName}" class="product-thumb">
+                                                    </a>
                                                 </td>
                                                 <td>
                                                     <div class="product-info-cell">
-                                                        <span class="product-name-text">${p.productName}</span>
+                                                        <a href="${pageContext.request.contextPath}/view-seller-product?id=${p.productId}" class="product-name-link" style="text-decoration: none; color: inherit;">
+                                                            <span class="product-name-text">${p.productName}</span>
+                                                        </a>
                                                         <span class="product-sku-text">SKU: PRD-${String.format("%05d", p.productId)}</span>
                                                     </div>
                                                 </td>
@@ -152,7 +156,10 @@
                                                 </td>
                                                 <td>
                                                     <div class="action-buttons">
-                                                        <a href="${pageContext.request.contextPath}/seller/product/edit-product.jsp?id=${p.productId}" class="action-btn edit-btn" title="Chỉnh sửa">
+                                                        <a href="${pageContext.request.contextPath}/view-seller-product?id=${p.productId}" class="action-btn view-btn" title="Xem chi tiết">
+                                                            <i data-lucide="eye"></i>
+                                                        </a>
+                                                        <a href="${pageContext.request.contextPath}/edit-product?id=${p.productId}" class="action-btn edit-btn" title="Chỉnh sửa">
                                                             <i data-lucide="edit-2"></i>
                                                         </a>
                                                         <a href="#" class="action-btn delete-btn" title="Xóa sản phẩm" onclick="return deleteProduct(${p.productId})">

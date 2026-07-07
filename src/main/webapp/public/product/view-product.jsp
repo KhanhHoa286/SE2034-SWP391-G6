@@ -151,8 +151,8 @@
 
             <!-- Actions -->
             <div class="product-actions">
-                <button class="moda-btn moda-btn-primary" type="button" onclick="cart()" id="add-to-cart">THÊM VÀO GIỎ HÀNG</button>
-                <button class="moda-btn moda-btn-outline" type="submit" id="add-order">MUA NGAY</button>
+                <button class="moda-btn moda-btn-primary" type="button" onclick="cartAndBuyNow('CART')" id="add-to-cart">THÊM VÀO GIỎ HÀNG</button>
+                <a class="moda-btn moda-btn-outline" id="add-order" onclick="cartAndBuyNow('BUY_NOW')" href="javascript:void(0)">MUA NGAY</a>
             </div>
     </form>
             <span id="product-seller" class="text-danger fw-bold"></span>

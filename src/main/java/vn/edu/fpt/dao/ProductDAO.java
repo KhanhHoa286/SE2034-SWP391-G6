@@ -14,7 +14,6 @@ import vn.edu.fpt.model.Size;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.SQLException;
@@ -85,8 +84,7 @@ public class ProductDAO extends DBContext {
     }
 
     /**
-     * HoaNK - Lấy top sản phẩm bán chạy nhất (JOIN product với shops, wards, provinces, order_details, orders)
-     * Gom nhóm và tính tổng các sản phẩm đã được giao và đơn đã hoàn thành và sắp xếp tổng theo thứ tự giảm dần
+     * HoaNK - Lấy top sản phẩm bán chạy nhất
      */
 
     public List<ProductResponse> getTopBestSellingProducts() {
@@ -975,6 +973,209 @@ public class ProductDAO extends DBContext {
             e.printStackTrace();
         }
         return addReviewResponse;
+    }
+
+    public List<Integer> getDiscountPercentages() {
+        List<Integer> list = new ArrayList<>();
+        String sql = "SELECT DISTINCT discount_percentage FROM products ORDER BY discount_percentage";
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(rs.getInt("discount_percentage"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Fallback to standard discount rates if database has none
+        if (list.isEmpty()) {
+            list.add(0);
+            list.add(5);
+            list.add(10);
+            list.add(15);
+            list.add(20);
+        }
+        return list;
+    }
+
+        /**
+     * HoaNK - Lấy sản phẩm mua ngay ở trang details
+     */
+    private final String GET_VARIANT_PRODUCT_DETAILS = """
+                SELECT pv.variant_id,p.thumbnail_url,p.product_name,p.product_id,p.base_price,p.discount_percentage,s.size_name, c.color_name, sh.shop_name,sh.shop_id
+                FROM product_variants pv
+                JOIN products p ON p.product_id = pv.product_id
+                JOIN sizes s ON s.size_id = pv.size_id
+                JOIN colors c ON c.color_id = pv.color_id
+                JOIN shops sh ON sh.shop_id = p.shop_id
+                WHERE variant_id = ?
+                """;
+    public SummaryOrderCheckoutResponse getVariantInfoForCheckout(int variantId) {
+        String sql = GET_VARIANT_PRODUCT_DETAILS;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)){
+            stmt.setInt(1, variantId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    SummaryOrderCheckoutResponse summary = new SummaryOrderCheckoutResponse();
+                    summary.setVariantId(rs.getInt("variant_id"));
+                    summary.setColorName(rs.getString("color_name"));
+                    summary.setSizeName(rs.getString("size_name"));
+                    summary.setProductName(rs.getString("product_name"));
+                    summary.setShopName(rs.getString("shop_name"));
+                    summary.setShopId(rs.getInt("shop_id"));
+                    summary.setProductId(rs.getInt("product_id"));
+                    summary.setThumbnail(rs.getString("thumbnail_url"));
+                    //
+                    Product product = new Product();
+                    product.setBasePrice(rs.getBigDecimal("base_price"));
+                    product.setDiscountPercentage(rs.getInt("discount_percentage"));
+                    summary.setPrice(product.getDiscountedPrice());
+                    //
+                    return summary;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Product getProductById(int productId) {
+        String sql = "SELECT * FROM products WHERE product_id = ? AND is_deleted = 0";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Product.builder()
+                            .productId(rs.getInt("product_id"))
+                            .shopId(rs.getInt("shop_id"))
+                            .categoryId(rs.getObject("category_id") != null ? rs.getInt("category_id") : null)
+                            .gender(rs.getString("gender") != null ? Gender.valueOf(rs.getString("gender")) : null)
+                            .productName(rs.getString("product_name"))
+                            .description(rs.getString("description"))
+                            .basePrice(rs.getBigDecimal("base_price"))
+                            .discountPercentage(rs.getInt("discount_percentage"))
+                            .thumbnailUrl(rs.getString("thumbnail_url"))
+                            .isActive(rs.getBoolean("is_active"))
+                            .isDeleted(rs.getBoolean("is_deleted"))
+                            .status(rs.getString("status") != null ? vn.edu.fpt.enums.ProductStatus.valueOf(rs.getString("status")) : null)
+                            .createdAt(rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null)
+                            .build();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<ProductVariant> getVariantsByProductId(int productId) {
+        List<ProductVariant> list = new ArrayList<>();
+        String sql = """
+            SELECT pv.variant_id, pv.product_id, pv.color_id, pv.size_id, pv.variant_name, pv.stock_quantity,
+                   c.color_name, c.color_code, s.size_name
+            FROM product_variants pv
+            LEFT JOIN colors c ON pv.color_id = c.color_id
+            LEFT JOIN sizes s ON pv.size_id = s.size_id
+            WHERE pv.product_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Color color = null;
+                    if (rs.getObject("color_id") != null) {
+                        color = new Color(rs.getInt("color_id"), rs.getString("color_name"), rs.getString("color_code"));
+                    }
+                    Size size = null;
+                    if (rs.getObject("size_id") != null) {
+                        size = new Size(rs.getInt("size_id"), rs.getString("size_name"));
+                    }
+                    list.add(ProductVariant.builder()
+                            .variantId(rs.getInt("variant_id"))
+                            .productId(rs.getInt("product_id"))
+                            .colorId(rs.getObject("color_id") != null ? rs.getInt("color_id") : null)
+                            .color(color)
+                            .sizeId(rs.getObject("size_id") != null ? rs.getInt("size_id") : null)
+                            .size(size)
+                            .variantName(rs.getString("variant_name"))
+                            .stockQuantity(rs.getInt("stock_quantity"))
+                            .build());
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<ProductImage> getProductImagesByProductId(int productId) {
+        List<ProductImage> list = new ArrayList<>();
+        String sql = "SELECT * FROM product_images WHERE product_id = ? ORDER BY is_primary DESC";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(ProductImage.builder()
+                            .imageId(rs.getInt("image_id"))
+                            .productId(rs.getInt("product_id"))
+                            .imageUrl(rs.getString("image_url"))
+                            .isPrimary(rs.getBoolean("is_primary"))
+                            .build());
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public boolean updateProduct(Product product) {
+        String sql = """
+            UPDATE products
+            SET category_id = ?, gender = ?, product_name = ?, description = ?, base_price = ?, discount_percentage = ?, thumbnail_url = ?
+            WHERE product_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            if (product.getCategoryId() != null) {
+                stmt.setInt(1, product.getCategoryId());
+            } else {
+                stmt.setNull(1, java.sql.Types.INTEGER);
+            }
+            stmt.setString(2, product.getGender() != null ? product.getGender().name() : "UNISEX");
+            stmt.setString(3, product.getProductName());
+            stmt.setString(4, product.getDescription());
+            stmt.setBigDecimal(5, product.getBasePrice());
+            stmt.setInt(6, product.getDiscountPercentage() != null ? product.getDiscountPercentage() : 0);
+            stmt.setString(7, product.getThumbnailUrl());
+            stmt.setInt(8, product.getProductId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteVariantsByProductId(int productId) {
+        String sql = "DELETE FROM product_variants WHERE product_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            return stmt.executeUpdate() >= 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteImagesByProductId(int productId) {
+        String sql = "DELETE FROM product_images WHERE product_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            return stmt.executeUpdate() >= 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
 

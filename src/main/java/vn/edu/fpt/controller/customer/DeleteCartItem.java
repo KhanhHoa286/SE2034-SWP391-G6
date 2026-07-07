@@ -31,7 +31,6 @@ public class DeleteCartItem extends HttpServlet {
              response.setCharacterEncoding("UTF-8");
          //
          Integer cartItemId = ParamUtil.getInteger(request, "cart_item_id");
-         Integer shopId = ParamUtil.getInteger(request, "shop_id");
          //
          HttpSession session = request.getSession();
          User user = (User)session.getAttribute("user");
@@ -42,26 +41,19 @@ public class DeleteCartItem extends HttpServlet {
                 // nếu update thành công thì lấy ra list sản phẩm trong giỏ hàng của memeber đó
                 List<CartResponse> cartResponses = cartDAO.getCartForMember(user.getUserId());
 
-                BigDecimal newShopTotal = new BigDecimal(BigInteger.ZERO); // tiền tất cả sản phẩm biến thể trog giỏ của shop đó
                 BigDecimal newAllShopTotal = new BigDecimal(BigInteger.ZERO); // tiền hcung trong giỏ tất cả sản phẩm có trong giỏ
 
                 // duyệt qua từng cart items để cộng tiền lại => tiền chung
                 if (cartResponses != null) {
                     for (CartResponse c : cartResponses) {
                         newAllShopTotal = newAllShopTotal.add(c.getTotalPrice());
-
-                        if (c.getShopId() == shopId) {
-                            newShopTotal = newShopTotal.add(c.getTotalPrice());
-                        }
                     }
                 }
 
-                String shopTotalStr = "Tạm tính đơn hàng: " + String.format("%,d",newShopTotal.longValue()) + " đ";
                 String shopAllTotalStr = String.format("%,d", newAllShopTotal.longValue()) + " đ";
                 // Trả về cho js
                 String jsonResponse = "{"
                         + "\"status\":\"SUCCESS\","
-                        + "\"newShopTotal\":\"" + shopTotalStr + "\","
                         + "\"newAllShopTotal\":\"" + shopAllTotalStr + "\""
                         + "}";
 
