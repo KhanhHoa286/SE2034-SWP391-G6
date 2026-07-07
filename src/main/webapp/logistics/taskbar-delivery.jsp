@@ -1,9 +1,10 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%
     String activeAttr = (String) request.getAttribute("activePage");
     if (activeAttr == null) activeAttr = "";
 
     boolean isListActive = activeAttr.isEmpty() || activeAttr.equals("delivery-list");
+    boolean isMyOrdersActive = activeAttr.equals("delivery-my-orders");
 %>
 
 <aside class="sidebar">
@@ -26,6 +27,12 @@
                 </a>
             </li>
 
+            <li class="sidebar-item <%= isMyOrdersActive ? "active" : "" %>">
+                <a href="${pageContext.request.contextPath}/logistics/delivery/my-orders" class="sidebar-link">
+                    <i data-lucide="list-checks"></i>
+                    <span>Đơn vận chuyển của tôi</span>
+                </a>
+            </li>
         </ul>
     </div>
 

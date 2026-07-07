@@ -118,7 +118,7 @@
                     <c:when test="${not empty deliveries}">
                         <c:forEach var="delivery" items="${deliveries}">
                             <tr class="delivery-list-clickable-row"
-                                data-href="${pageContext.request.contextPath}/logistics/delivery/view-delivery.jsp?deliveryId=${delivery.deliveryId}"
+                                data-href="${pageContext.request.contextPath}/logistics/delivery/view?subOrderId=${delivery.subOrderId}"
                                 tabindex="0"
                                 role="link"
                                 aria-label="Xem vận đơn ${delivery.trackingNumber}">
@@ -178,7 +178,7 @@
 
                                 <td>
                                     <a class="delivery-list-open-link"
-                                       href="${pageContext.request.contextPath}/logistics/delivery/view-delivery.jsp?deliveryId=${delivery.deliveryId}">
+                                       href="${pageContext.request.contextPath}/logistics/delivery/view?subOrderId=${delivery.subOrderId}">
                                         <i data-lucide="eye"></i>
                                         <span>Xem</span>
                                     </a>

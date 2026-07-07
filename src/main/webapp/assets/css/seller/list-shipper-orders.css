@@ -1,0 +1,345 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f7f8fc;
+    color: #07111f;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.shipper-order-shell {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    min-height: 100vh;
+    border-bottom: 2px solid #111111;
+}
+
+.shipper-order-main {
+    padding: 48px 42px 70px;
+    background: #f7f8fc;
+}
+
+.shipper-order-breadcrumb {
+    gap: 11px;
+    margin-bottom: 32px;
+    color: #07111f;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.shipper-order-heading {
+    margin-bottom: 32px;
+}
+
+.shipper-order-heading h1 {
+    margin: 0 0 10px;
+    font-size: 32px;
+    line-height: 1.15;
+    font-weight: 800;
+}
+
+.shipper-order-heading p {
+    max-width: 980px;
+    margin: 0;
+    color: #3f4a59;
+    font-size: 15px;
+}
+
+.shipper-order-alert {
+    gap: 10px;
+    margin-bottom: 22px;
+    padding: 14px 16px;
+    border: 1px solid #fecaca;
+    border-radius: 0;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.shipper-order-alert-success {
+    border-color: #86efac;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.shipper-order-alert svg {
+    width: 18px;
+    height: 18px;
+}
+
+.shipper-order-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 32px;
+}
+
+.shipper-order-metric-card {
+    min-height: 110px;
+    padding: 24px 26px;
+    border: 1px solid #d1c7c7;
+    border-radius: 0;
+    background: #ffffff;
+}
+
+.shipper-order-metric-card span {
+    display: block;
+    margin-bottom: 12px;
+    color: #565f6d;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.shipper-order-metric-card strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #07111f;
+    font-size: 28px;
+    line-height: 1;
+    font-weight: 800;
+}
+
+.shipper-order-metric-card small {
+    color: #3f4a59;
+    font-size: 12px;
+}
+
+.shipper-order-filter-card {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr 1fr 1.12fr 96px;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 12px;
+    border: 1px solid #d1c7c7;
+    border-radius: 0;
+    background: #ffffff;
+}
+
+.shipper-order-filter-input {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+    border: 1px solid #cfc7c7;
+    border-radius: 0;
+    outline: none;
+    background: #f6f7fb;
+    color: #07111f;
+    font: inherit;
+    font-size: 14px;
+}
+
+.shipper-order-filter-input:focus {
+    border-color: #07111f;
+    background: #ffffff;
+    box-shadow: none;
+}
+
+.shipper-order-filter-card button {
+    min-height: 48px;
+    border: 0;
+    border-radius: 0;
+    background: #000000;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.shipper-order-table-card {
+    overflow-x: auto;
+    border: 1px solid #d1c7c7;
+    border-radius: 0;
+    background: #ffffff;
+}
+
+.shipper-order-table {
+    width: 100%;
+    min-width: 1280px;
+    border-collapse: collapse;
+}
+
+.shipper-order-table th,
+.shipper-order-table td {
+    padding: 17px 18px;
+    border-bottom: 1px solid #dfd8d8;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.shipper-order-table th {
+    background: #f6f7fb;
+    color: #565f6d;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.shipper-order-table td {
+    color: #07111f;
+    font-size: 13px;
+}
+
+.shipper-order-clickable-row {
+    cursor: pointer;
+    transition: background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.shipper-order-clickable-row:hover td {
+    background: #f1f3f8;
+}
+
+.shipper-order-clickable-row:focus {
+    outline: none;
+}
+
+.shipper-order-clickable-row:focus-visible td {
+    background: #eef2ff;
+    box-shadow: inset 0 0 0 2px #07111f;
+}
+
+.shipper-order-table strong,
+.shipper-order-table small,
+.shipper-order-products span {
+    display: block;
+}
+
+.shipper-order-table small {
+    margin-top: 4px;
+    color: #6f7582;
+    font-size: 11.5px;
+    line-height: 1.35;
+}
+
+.shipper-order-code,
+.shipper-order-amount {
+    font-weight: 800;
+}
+
+.shipper-order-products {
+    max-width: 320px;
+}
+
+.shipper-order-products span {
+    color: #07111f;
+    line-height: 1.45;
+}
+
+.shipper-order-payment {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    min-height: 22px;
+    border: 1px solid #07111f;
+    background: #ffffff;
+    color: #07111f;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.shipper-order-status-badge {
+    display: inline-flex;
+    min-width: 110px;
+    min-height: 28px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    border: 1px solid #07111f;
+    background: #000000;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.shipper-order-status-badge.status-PREPARING {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.shipper-order-status-badge.status-SHIPPING {
+    border-color: #ca8a04;
+    background: #fefce8;
+    color: #854d0e;
+}
+
+.shipper-order-status-badge.status-DELIVERED {
+    border-color: #16a34a;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.shipper-order-open-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 74px;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid #07111f;
+    background: #07111f;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.shipper-order-open-link:hover {
+    color: #ffffff;
+    background: #000000;
+}
+
+.shipper-order-open-link svg {
+    width: 14px;
+    height: 14px;
+}
+
+.shipper-order-empty-state {
+    padding: 34px !important;
+    color: #3f4a59;
+    font-size: 14px;
+}
+
+@media (max-width: 1180px) {
+    .shipper-order-metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .shipper-order-filter-card {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .shipper-order-filter-card button {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 820px) {
+    .shipper-order-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .shipper-order-main {
+        padding: 28px 18px 44px;
+    }
+
+    .shipper-order-metric-grid,
+    .shipper-order-filter-card {
+        grid-template-columns: 1fr;
+    }
+}

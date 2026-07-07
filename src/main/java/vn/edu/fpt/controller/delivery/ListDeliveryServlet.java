@@ -103,7 +103,7 @@ public class ListDeliveryServlet extends HttpServlet {
                     ORDER BY d.delivery_id DESC
                 ) delivery
                 WHERE so.status = 'PREPARING'
-                  AND (delivery.delivery_id IS NULL OR delivery.status = 'ASSIGNED')
+                  AND delivery.delivery_id IS NULL
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -134,7 +134,7 @@ public class ListDeliveryServlet extends HttpServlet {
         StringBuilder sql = new StringBuilder("""
                 SELECT COALESCE(delivery.delivery_id, 0) AS delivery_id,
                        COALESCE(delivery.tracking_number, CONCAT('MODA-SUB-', so.sub_order_id, '-MO-', so.master_order_id)) AS tracking_number,
-                       COALESCE(delivery.status, 'ASSIGNED') AS delivery_status,
+                       COALESCE(delivery.status, 'WAITING') AS delivery_status,
                        delivery.assigned_at,
                        so.sub_order_id,
                        so.master_order_id,
@@ -182,7 +182,7 @@ public class ListDeliveryServlet extends HttpServlet {
                     ORDER BY d.delivery_id DESC
                 ) delivery
                 WHERE so.status = 'PREPARING'
-                  AND (delivery.delivery_id IS NULL OR delivery.status = 'ASSIGNED')
+                  AND delivery.delivery_id IS NULL
                 """);
 
         List<Object> params = new ArrayList<>();
