@@ -29,7 +29,7 @@
 
         <header class="delivery-list-heading">
             <h1>Danh sách đơn giao</h1>
-            <p>Hiển thị các đơn đang chuẩn bị hàng và đã được phân cho shipper để đến cửa hàng lấy hàng.</p>
+            <p>Hiển thị các đơn đang chuẩn bị hàng để nhân viên giao hàng đến cửa hàng lấy hàng.</p>
         </header>
 
         <c:if test="${not empty errorMessage}">
@@ -141,7 +141,7 @@
 
                                 <td class="delivery-list-products">
                                     <span>${empty delivery.productsSummary ? 'Chưa có sản phẩm' : delivery.productsSummary}</span>
-                                    <small>${delivery.itemCount} dòng hàng • ${delivery.totalQuantity} sản phẩm</small>
+                                    <small>${delivery.itemCount} dòng hàng - ${delivery.totalQuantity} sản phẩm</small>
                                 </td>
 
                                 <td>

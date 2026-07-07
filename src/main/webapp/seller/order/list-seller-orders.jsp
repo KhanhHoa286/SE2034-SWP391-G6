@@ -9,8 +9,8 @@
     <title>Quản lý đơn hàng - MODA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260630a">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/list-seller-orders.css?v=20260630c">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260707a">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/seller/list-seller-orders.css?v=20260707a">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>

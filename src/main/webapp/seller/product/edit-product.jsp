@@ -83,8 +83,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chỉnh sửa sản phẩm - MODA</title>
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260706">
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/edit-product.css?v=20260706">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260707a">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/edit-product.css?v=20260707a">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -460,6 +460,10 @@
 
     /* ===== ĐỊNH DẠNG GIÁ BÁN ===== */
     function formatPriceDisplay(value) {
+        // Loại bỏ phần thập phân .00 từ Java BigDecimal string
+        if (value.includes('.') && /^\d+\.\d+$/.test(value)) {
+            value = value.split('.')[0];
+        }
         let raw = value.replace(/[^0-9]/g, '');
         if (raw === '') return '';
         return raw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
