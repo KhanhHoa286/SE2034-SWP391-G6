@@ -101,7 +101,7 @@
                                 </div>
 
                                 <div class="address-card-actions">
-                                    <a href="javascript:void(0);" class="address-action address-action--edit">
+                                    <a href="${pageContext.request.contextPath}/customer/addresses/edit?id=${address.addressId}" class="address-action address-action--edit">
                                         <span class="material-symbols-outlined">edit</span>
                                         Chỉnh sửa
                                     </a>
