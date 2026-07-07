@@ -12,19 +12,19 @@
 <body>
 <div class="seller-page-shell">
     <%
-        request.setAttribute("activePage", "delivery");
+        request.setAttribute("activePage", "delivery-view");
     %>
-    <%@ include file="/seller/taskbar-seller.jsp" %>
+    <%@ include file="/logistics/taskbar-delivery.jsp" %>
 
     <main class="seller-page-main">
         <header class="top-header">
             <div class="profile-section">
-                <span>Seller Center</span>
+                <span>Trung tâm giao hàng</span>
             </div>
         </header>
         <section class="seller-page-content">
-            <h1>View Delivery</h1>
-            <p>Seller delivery detail screen.</p>
+            <h1>Chi tiết đơn giao</h1>
+            <p>Màn chi tiết đơn giao sẽ được hoàn thiện ở chức năng View Delivery.</p>
         </section>
     </main>
 </div>

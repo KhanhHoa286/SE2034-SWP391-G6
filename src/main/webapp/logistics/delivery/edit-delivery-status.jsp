@@ -12,19 +12,19 @@
 <body>
 <div class="seller-page-shell">
     <%
-        request.setAttribute("activePage", "delivery");
+        request.setAttribute("activePage", "delivery-status");
     %>
-    <%@ include file="/seller/taskbar-seller.jsp" %>
+    <%@ include file="/logistics/taskbar-delivery.jsp" %>
 
     <main class="seller-page-main">
         <header class="top-header">
             <div class="profile-section">
-                <span>Seller Center</span>
+                <span>Trung tâm giao hàng</span>
             </div>
         </header>
         <section class="seller-page-content">
-            <h1>Edit Delivery Status</h1>
-            <p>Update seller delivery status.</p>
+            <h1>Cập nhật trạng thái giao hàng</h1>
+            <p>Màn cập nhật trạng thái sẽ được hoàn thiện ở chức năng Edit Delivery Status.</p>
         </section>
     </main>
 </div>
