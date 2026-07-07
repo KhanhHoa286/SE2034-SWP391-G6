@@ -84,7 +84,6 @@ public class EditSellerStatusServlet extends HttpServlet {
             }
 
             if ("PREPARING".equals(newStatus)) {
-                ensureDeliveryRecord(connection, order);
                 response.sendRedirect(request.getContextPath()
                         + "/seller/order/status?subOrderId=" + subOrderId
                         + "&labelReady=1");
@@ -295,39 +294,6 @@ public class EditSellerStatusServlet extends HttpServlet {
             ps.setString(4, order.getStatus());
             return ps.executeUpdate() == 1;
         }
-    }
-
-    private void ensureDeliveryRecord(Connection connection, SellerStatusOrder order) throws Exception {
-        String sql = """
-                IF NOT EXISTS (SELECT 1 FROM deliveries WHERE sub_order_id = ?)
-                BEGIN
-                    DECLARE @shipperId INT;
-
-                    SELECT TOP 1 @shipperId = u.user_id
-                    FROM users u
-                    INNER JOIN user_roles ur ON ur.user_id = u.user_id
-                    INNER JOIN roles r ON r.role_id = ur.role_id
-                    WHERE r.role_name = 'DELIVERY'
-                    ORDER BY u.user_id;
-
-                    IF @shipperId IS NOT NULL
-                    BEGIN
-                        INSERT INTO deliveries (tracking_number, sub_order_id, shipper_id, status)
-                        VALUES (?, ?, @shipperId, 'ASSIGNED');
-                    END
-                END
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, order.getSubOrderId());
-            ps.setString(2, buildTrackingNumber(order));
-            ps.setInt(3, order.getSubOrderId());
-            ps.executeUpdate();
-        }
-    }
-
-    private String buildTrackingNumber(SellerStatusOrder order) {
-        return "MODA-SUB-" + order.getSubOrderId() + "-MO-" + order.getMasterOrderId();
     }
 
     private List<StatusOption> buildNextStatusOptions(String currentStatus) {

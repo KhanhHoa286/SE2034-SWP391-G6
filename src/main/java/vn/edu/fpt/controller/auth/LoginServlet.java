@@ -213,7 +213,7 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect(contextPath + "/seller/orders");
 
         } else if (roleId == 4) {
-            response.sendRedirect(contextPath + "/logistics/delivery/list-deliveries.jsp");
+            response.sendRedirect(contextPath + "/logistics/delivery/list");
 
         } else {
             response.sendRedirect(contextPath + "/public/home/view-home.jsp");
