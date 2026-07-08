@@ -841,12 +841,34 @@ public class UserDAO extends DBContext {
      * Ví dụ gọi deleteExpiredPendingRegistrations(15)
      * thì user có users.status = 'PENDING' quá 15 phút kể từ created_at sẽ bị xóa.
      */
+    /*
+     * Dọn các tài khoản PENDING quá hạn OTP.
+     *
+     * Logic cũ:
+     * - Tìm user status = PENDING quá hạn.
+     * - Xóa email_verifications.
+     * - Xóa user_roles.
+     * - Xóa users.
+     *
+     * Vấn đề:
+     * - Có user đang bị bảng deliveries tham chiếu qua shipper_id.
+     * - Nếu cố DELETE users thì SQL Server báo lỗi khóa ngoại.
+     *
+     * Logic mới:
+     * - Vẫn dọn user PENDING quá hạn.
+     * - Nhưng chỉ xóa user nào KHÔNG bị deliveries tham chiếu.
+     * - Như vậy không phá logic login/OTP, cũng không làm lỗi FK.
+     */
     public int deleteExpiredPendingRegistrations(int pendingMinutes) {
-        String findSql = "SELECT user_id, email "
-                + "FROM users "
-                + "WHERE status = 'PENDING' "
-                + "AND created_at IS NOT NULL "
-                + "AND DATEADD(MINUTE, ?, created_at) < GETDATE()";
+        String findSql = "SELECT u.user_id, u.email "
+                + "FROM users u "
+                + "WHERE u.status = 'PENDING' "
+                + "AND u.created_at IS NOT NULL "
+                + "AND DATEADD(MINUTE, ?, u.created_at) < GETDATE() "
+                + "AND NOT EXISTS ( "
+                + "    SELECT 1 FROM deliveries d "
+                + "    WHERE d.shipper_id = u.user_id "
+                + ")";
 
         String deleteOtpSql = "DELETE FROM email_verifications WHERE email = ?";
         String deleteRoleSql = "DELETE FROM user_roles WHERE user_id = ?";
@@ -885,16 +907,26 @@ public class UserDAO extends DBContext {
                 int userId = userIds.get(i);
                 String email = emails.get(i);
 
+                /*
+                 * Xóa OTP trước vì email_verifications phụ thuộc email đăng ký.
+                 */
                 try (PreparedStatement psOtp = connection.prepareStatement(deleteOtpSql)) {
                     psOtp.setString(1, email);
                     psOtp.executeUpdate();
                 }
 
+                /*
+                 * Xóa role trước khi xóa user.
+                 */
                 try (PreparedStatement psRole = connection.prepareStatement(deleteRoleSql)) {
                     psRole.setInt(1, userId);
                     psRole.executeUpdate();
                 }
 
+                /*
+                 * Xóa user cuối cùng.
+                 * User nào đang bị deliveries tham chiếu đã bị loại ngay từ findSql.
+                 */
                 try (PreparedStatement psUser = connection.prepareStatement(deleteUserSql)) {
                     psUser.setInt(1, userId);
                     deletedCount += psUser.executeUpdate();
@@ -922,5 +954,177 @@ public class UserDAO extends DBContext {
         }
 
         return 0;
+    }
+    /*
+     * Method này dùng cho màn edit profile.
+     *
+     * Mục đích:
+     * - Kiểm tra số điện thoại user nhập có bị trùng với tài khoản khác không.
+     *
+     * Vì sao không dùng isPhoneExist(phone)?
+     *
+     * Ví dụ:
+     * - User A có phone = 0957777777.
+     * - User A vào edit profile nhưng không đổi số điện thoại.
+     * - Nếu dùng SELECT 1 FROM users WHERE phone = ?
+     *   thì DB vẫn báo số này đã tồn tại.
+     *
+     * Nhưng số đó là của chính User A, không phải tài khoản khác.
+     *
+     * Vì vậy phải thêm:
+     * AND user_id <> ?
+     */
+
+
+    /*
+     * Kiểm tra số điện thoại này có thuộc tài khoản khác không.
+     *
+     * Dùng cho màn edit profile.
+     *
+     * Vì khi user sửa profile:
+     * - Nếu giữ nguyên số điện thoại của chính mình thì được phép.
+     * - Nhưng nếu nhập số điện thoại của tài khoản khác thì phải báo lỗi.
+     *
+     * Method này trả về status của tài khoản khác đang dùng số điện thoại đó:
+     * - PENDING
+     * - ACTIVE
+     * - LOCKED
+     *
+     * Nếu không có tài khoản khác dùng số này thì trả về null.
+     */
+    public String findPhoneOwnerStatusForOtherUser(String phone, int currentUserId) {
+        String sql = "SELECT status "
+                + "FROM users "
+                + "WHERE phone = ? "
+                + "AND user_id <> ? "
+                + "AND status IN ('PENDING', 'ACTIVE', 'LOCKED')";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, phone);
+            ps.setInt(2, currentUserId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("status");
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /*
+     * Method update profile cho bảng users.
+     *
+     * Chỉ update các cột thuộc màn chỉnh sửa hồ sơ:
+     * - first_name
+     * - last_name
+     * - phone
+     * - gender
+     * - date_of_birth
+     * - avatar_url
+     *
+     * Không update:
+     * - email
+     * - password_hash
+     * - status
+     * - created_at
+     */
+    public boolean updateProfile(int userId,
+                                 String firstName,
+                                 String lastName,
+                                 String phone,
+                                 Gender gender,
+                                 java.time.LocalDate dateOfBirth,
+                                 String avatarUrl) {
+
+        /*
+         * SQL update đúng bảng users.
+         *
+         * WHERE user_id = ?
+         * rất quan trọng.
+         * Nếu thiếu WHERE thì sẽ update toàn bộ users.
+         */
+        String sql = "UPDATE users "
+                + "SET first_name = ?, "
+                + "last_name = ?, "
+                + "phone = ?, "
+                + "gender = ?, "
+                + "date_of_birth = ?, "
+                + "avatar_url = ? "
+                + "WHERE user_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            /*
+             * Dấu ? số 1: first_name
+             */
+            ps.setString(1, firstName);
+
+            /*
+             * Dấu ? số 2: last_name
+             */
+            ps.setString(2, lastName);
+
+            /*
+             * Dấu ? số 3: phone
+             */
+            ps.setString(3, phone);
+
+            /*
+             * Dấu ? số 4: gender
+             *
+             * Java dùng enum Gender.
+             * DB lưu chuỗi:
+             * - NAM
+             * - NU
+             * - UNISEX
+             */
+            if (gender != null) {
+                ps.setString(4, gender.name());
+            } else {
+                ps.setNull(4, Types.NVARCHAR);
+            }
+
+            /*
+             * Dấu ? số 5: date_of_birth
+             *
+             * Java dùng LocalDate.
+             * JDBC cần java.sql.Date.
+             */
+            if (dateOfBirth != null) {
+                ps.setDate(5, Date.valueOf(dateOfBirth));
+            } else {
+                ps.setNull(5, Types.DATE);
+            }
+
+            /*
+             * Dấu ? số 6: avatar_url
+             */
+            if (avatarUrl != null && !avatarUrl.trim().isEmpty()) {
+                ps.setString(6, avatarUrl.trim());
+            } else {
+                ps.setNull(6, Types.VARCHAR);
+            }
+
+            /*
+             * Dấu ? số 7: user_id trong WHERE.
+             */
+            ps.setInt(7, userId);
+
+            /*
+             * executeUpdate dùng cho UPDATE/INSERT/DELETE.
+             * Nếu số dòng ảnh hưởng > 0 nghĩa là update thành công.
+             */
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 }

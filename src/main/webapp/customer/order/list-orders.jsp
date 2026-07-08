@@ -33,6 +33,11 @@
 
     <!-- Main Content -->
     <main class="profile-main">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="javascript:history.back()" class="text-dark text-decoration-none"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
+        </div>
+
         <div class="profile-container">
 
             <div class="orders-header-container">
@@ -92,9 +97,7 @@
                     <tr>
                         <td class="order-id">#MODA${order.subOrderId}</td>
                         <th class="order-date">${order.shopName}</th>
-                        <td class="order-date">
-                            <fmt:parseDate value="${order.createdAt}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedDate" type="both" />
-                            <fmt:formatDate value="${parsedDate}" pattern="dd-MM-yyyy" /></td>
+                        <td class="order-date">${order.createdAtFormat}</td>
                         <td><span class="status-badge
                             ${order.status == 'PENDING' ? 'status-pending' : ''}
                             ${order.status == 'CONFIRMED' ? 'status-preparing' : ''}
@@ -106,8 +109,19 @@
                         <td class="order-total"><fmt:formatNumber value="${order.totalAmount}" type="currency" maxFractionDigits="0"></fmt:formatNumber> </td>
                         <td>
                             <div class="action-links">
-<%--                                <button class="btn-repurchase">Mua lại</button>--%>
-                                <a href="${pageContext.request.contextPath}/customer/orders-list" class="btn-view-details">Xem chi tiết</a>
+                                <c:if test="${order.status == 'SHIPPING'}">
+                                <button class="btn-received" onclick="updateStatusOrder('${pageContext.request.contextPath}',${order.subOrderId},'${order.paymentMethod}',${order.masterOrderId}, this)">Đã nhận được hàng</button>
+                                </c:if>
+                                <c:if test="${order.status == 'PENDING' || order.status == 'CONFIRMED'}">
+                                    <button class="btn-canceled" onclick="cancelOrder('${pageContext.request.contextPath}',${order.subOrderId}, this)">Hủy đơn hàng</button>
+                                </c:if>
+                                <c:if test="${order.status == 'DELIVERED'}">
+                                    <button class="btn-received update-status-order">Đã nhận hàng</button>
+                                </c:if>
+                                <c:if test="${order.status == 'CANCELLED'}">
+                                    <button class="btn-canceled update-status-order">Đã hủy</button>
+                                </c:if>
+                        <a href="${pageContext.request.contextPath}/customer/view-order?sub_order_id=${order.subOrderId}" class="btn-view-details">Xem chi tiết</a>
                             </div>
                         </td>
                     </tr>
@@ -117,7 +131,7 @@
             </div>
 
             <!-- Pagination -->
-            <c:set var="filterPayload" value="&from_date=${orderRequest.fromDate}&toDate=${orderRequest.toDate}&status=${orderRequest.status}"></c:set>
+            <c:set var="filterPayload" value="&from_date=${orderRequest.fromDate}&to_date=${orderRequest.toDate}&status=${orderRequest.status}"></c:set>
             <c:if test="${orderResponse.totalPage > 1}">
             <div class="moda-pagination">
                 <c:if test="${orderResponse.currentPage > 1}">
@@ -138,6 +152,8 @@
 <%--<jsp:include page="/common/footer.jsp" />--%>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/customer/list-order.js"></script>
 <script>
     const startDate = document.getElementById("startDate");
     const endDate = document.getElementById("endDate");
@@ -161,6 +177,11 @@
     startDate.addEventListener('change', validateDate);
     endDate.addEventListener('change',validateDate);
 
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
 </script>
 </body>
 </html>

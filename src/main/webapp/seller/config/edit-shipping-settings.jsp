@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -11,7 +11,7 @@
     <!-- Nhúng CSS riêng của trang edit-shipping-settings -->
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/edit-shipping-settings.css">
     <!-- Tải Lucide Icons qua CDN để sử dụng các icon hiện đại -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
 <div class="app-container">

@@ -25,7 +25,7 @@
 <main class="container">
 <c:if test="${empty productDetail}">
     <div class="text-center py-5" style="margin-top: 5%;">
-        <h2 class="text-danger">⚠️ Sản phẩm không tồn tại hoặc đã bị ẩn!</h2>
+        <h2 class="text-danger">Sản phẩm không tồn tại hoặc đã bị ẩn!</h2>
         <p class="text-muted">Vui lòng quay lại trang chủ để tìm kiếm các sản phẩm khác.</p>
         <a href="${pageContext.request.contextPath}/home" class="btn btn-dark mt-2">Quay về trang chủ</a>
     </div>
@@ -66,7 +66,7 @@
 
             <!-- Product Stats -->
             <div class="product-info__stats" style="display: flex; align-items: center; margin-bottom: 15px; font-size: 14px;">
-                <a href="${pageContext.request.contextPath}/product-review?pid=${productDetail.productId}" class="product-info__reviews-link" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+                <a href="${pageContext.request.contextPath}/product-review?product_id=${productDetail.productId}" class="product-info__reviews-link" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
                     <span style="font-weight: 600; margin-right: 5px; border-bottom: 1px solid #000; padding-bottom: 1px;">${productDetail.averageRating}</span>
                     <span style="color: #f5c518; margin-right: 8px; font-size: 12px;">
               <i class="fa-solid fa-star"></i>
@@ -151,8 +151,8 @@
 
             <!-- Actions -->
             <div class="product-actions">
-                <button class="moda-btn moda-btn-primary" type="button" onclick="cart()" id="add-to-cart">THÊM VÀO GIỎ HÀNG</button>
-                <button class="moda-btn moda-btn-outline" type="submit" id="add-order">MUA NGAY</button>
+                <button class="moda-btn moda-btn-primary" type="button" onclick="cartAndBuyNow('CART')" id="add-to-cart">THÊM VÀO GIỎ HÀNG</button>
+                <a class="moda-btn moda-btn-outline" id="add-order" onclick="cartAndBuyNow('BUY_NOW')" href="javascript:void(0)">MUA NGAY</a>
             </div>
     </form>
             <span id="product-seller" class="text-danger fw-bold"></span>

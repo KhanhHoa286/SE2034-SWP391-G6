@@ -136,6 +136,19 @@ public class ViewProfileServlet extends HttpServlet {
         return isBlank(value) ? "Chưa cập nhật" : value.trim();
     }
 
+    /*
+     * Chuyển enum Gender thành text tiếng Việt để hiển thị ở view-profile.jsp.
+     *
+     * DB/model lưu:
+     * - NAM
+     * - NU
+     * - UNISEX
+     *
+     * UI hiển thị:
+     * - Nam
+     * - Nữ
+     * - Khác
+     */
     private String displayGender(Gender gender) {
         if (gender == null) {
             return "Chưa cập nhật";
@@ -149,9 +162,12 @@ public class ViewProfileServlet extends HttpServlet {
             return "Nữ";
         }
 
+        if (gender == Gender.UNISEX) {
+            return "Khác";
+        }
+
         return "Chưa cập nhật";
     }
-
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
