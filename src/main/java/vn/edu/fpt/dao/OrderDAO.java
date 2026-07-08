@@ -818,4 +818,22 @@ public class OrderDAO extends DBContext {
         }
         return new ArrayList<>(map.values());
     }
+
+    /**
+     * HoaNK - Cập nhật trạng thái hủy đơn hàng
+     */
+    private final String CANCLE_ORDER = """
+            UPDATE sub_orders SET status = 'CANCELLED' WHERE sub_order_id = ?;
+            """;
+    public boolean cancleOrder(int subOrderId) {
+        String sql = CANCLE_ORDER;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1,subOrderId);
+            stmt.executeUpdate();
+            return true;
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
