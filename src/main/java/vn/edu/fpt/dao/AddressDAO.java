@@ -257,4 +257,204 @@ public class AddressDAO extends DBContext {
        }
        return addressResponse;
    }
+
+
+    /*
+     * Lấy một địa chỉ theo addressId và userId.
+     *
+     * Lý do cần truyền cả userId:
+     * - Tránh customer sửa URL để xem/sửa địa chỉ của người khác
+     * - Ví dụ: /customer/addresses/edit?id=8
+     *
+     * Method này dùng cho màn edit address.
+     */
+    public Address getAddressByIdAndUserId(int addressId, int userId) {
+        String sql = "SELECT "
+                + "a.address_id, "
+                + "a.user_id, "
+                + "a.receiver_name, "
+                + "a.receiver_phone, "
+                + "a.street_address, "
+                + "a.ward_id, "
+                + "a.is_default, "
+                + "a.created_at, "
+
+                + "w.id AS ward_id_value, "
+                + "w.province_id AS ward_province_id, "
+                + "w.name AS ward_name, "
+                + "w.name_with_type AS ward_name_with_type, "
+                + "w.path_with_type AS ward_path_with_type, "
+
+                + "p.id AS province_id_value, "
+                + "p.name AS province_name, "
+                + "p.full_name AS province_full_name, "
+                + "p.type AS province_type "
+
+                + "FROM addresses a "
+                + "JOIN wards w ON w.id = a.ward_id "
+                + "JOIN provinces p ON p.id = w.province_id "
+                + "WHERE a.address_id = ? AND a.user_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, addressId);
+            ps.setInt(2, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Province province = Province.builder()
+                            .id(rs.getInt("province_id_value"))
+                            .name(rs.getString("province_name"))
+                            .fullName(rs.getString("province_full_name"))
+                            .type(rs.getString("province_type"))
+                            .build();
+
+                    Ward ward = Ward.builder()
+                            .id(rs.getInt("ward_id_value"))
+                            .provinceId(rs.getInt("ward_province_id"))
+                            .name(rs.getString("ward_name"))
+                            .nameWithType(rs.getString("ward_name_with_type"))
+                            .pathWithType(rs.getString("ward_path_with_type"))
+                            .province(province)
+                            .build();
+
+                    Timestamp createdAt = rs.getTimestamp("created_at");
+
+                    return Address.builder()
+                            .addressId(rs.getInt("address_id"))
+                            .userId(rs.getInt("user_id"))
+                            .receiverName(rs.getString("receiver_name"))
+                            .receiverPhone(rs.getString("receiver_phone"))
+                            .streetAddress(rs.getString("street_address"))
+                            .wardId(rs.getInt("ward_id"))
+                            .ward(ward)
+                            .isDefault(rs.getBoolean("is_default"))
+                            .createdAt(createdAt == null ? null : createdAt.toLocalDateTime())
+                            .build();
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /*
+     * Cập nhật địa chỉ giao hàng của customer.
+     *
+     * Nếu địa chỉ được chọn làm mặc định:
+     * - Bỏ mặc định toàn bộ địa chỉ cũ của user
+     * - Sau đó cập nhật địa chỉ hiện tại là mặc định
+     *
+     * Dùng transaction để tránh lỗi dữ liệu mặc định.
+     */
+    public boolean updateAddress(Address address) {
+        String updateOldDefaultSql = "UPDATE addresses "
+                + "SET is_default = 0 "
+                + "WHERE user_id = ?";
+
+        String updateSql = "UPDATE addresses "
+                + "SET receiver_name = ?, "
+                + "receiver_phone = ?, "
+                + "street_address = ?, "
+                + "ward_id = ?, "
+                + "is_default = ? "
+                + "WHERE address_id = ? AND user_id = ?";
+
+        boolean oldAutoCommit = true;
+
+        try {
+            oldAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            boolean addressIsDefault = Boolean.TRUE.equals(address.getIsDefault());
+
+            if (addressIsDefault) {
+                try (PreparedStatement psUpdateDefault = connection.prepareStatement(updateOldDefaultSql)) {
+                    psUpdateDefault.setInt(1, address.getUserId());
+                    psUpdateDefault.executeUpdate();
+                }
+            }
+
+            try (PreparedStatement psUpdate = connection.prepareStatement(updateSql)) {
+                psUpdate.setString(1, address.getReceiverName());
+                psUpdate.setString(2, address.getReceiverPhone());
+                psUpdate.setString(3, address.getStreetAddress());
+                psUpdate.setInt(4, address.getWardId());
+                psUpdate.setBoolean(5, addressIsDefault);
+                psUpdate.setInt(6, address.getAddressId());
+                psUpdate.setInt(7, address.getUserId());
+
+                int affectedRows = psUpdate.executeUpdate();
+
+                connection.commit();
+                return affectedRows > 0;
+            }
+
+        } catch (Exception e) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackException) {
+                rollbackException.printStackTrace();
+            }
+
+            e.printStackTrace();
+
+        } finally {
+            try {
+                connection.setAutoCommit(oldAutoCommit);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return false;
+    }
+    /*
+     * Xóa địa chỉ của customer.
+     * Chỉ xóa nếu address_id thuộc đúng user_id đang đăng nhập.
+     */
+    public boolean deleteAddressByIdAndUserId(int addressId, int userId) {
+        String sql = "DELETE FROM addresses "
+                + "WHERE address_id = ? AND user_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, addressId);
+            ps.setInt(2, userId);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    /*
+     * Sau khi xóa địa chỉ mặc định,
+     * set địa chỉ còn lại đầu tiên của user làm mặc định.
+     */
+    public boolean setFirstAddressAsDefault(int userId) {
+        String sql = "UPDATE addresses "
+                + "SET is_default = 1 "
+                + "WHERE address_id = ( "
+                + "    SELECT TOP 1 address_id "
+                + "    FROM addresses "
+                + "    WHERE user_id = ? "
+                + "    ORDER BY created_at ASC, address_id ASC "
+                + ")";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }
