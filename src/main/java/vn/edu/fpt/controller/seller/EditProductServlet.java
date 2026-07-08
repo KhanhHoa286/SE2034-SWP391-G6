@@ -42,21 +42,10 @@ public class EditProductServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
-
-        int ownerId = (account != null) ? account.getUserId() : -1;
-        Shop shop = null;
-
-        if (ownerId != -1) {
-            shop = shopDAO.getShopByOwnerId(ownerId);
-        }
-
-        // Demo fallback
+        Shop shop = resolveCurrentShop(session);
         if (shop == null) {
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                shop = allShops.get(0);
-            }
+            response.sendRedirect(request.getContextPath() + "/list-seller-products");
+            return;
         }
 
         String idStr = request.getParameter("id");
@@ -99,20 +88,10 @@ public class EditProductServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
-
-        int ownerId = (account != null) ? account.getUserId() : -1;
-        Shop shop = null;
-
-        if (ownerId != -1) {
-            shop = shopDAO.getShopByOwnerId(ownerId);
-        }
-
+        Shop shop = resolveCurrentShop(session);
         if (shop == null) {
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                shop = allShops.get(0);
-            }
+            response.sendRedirect(request.getContextPath() + "/list-seller-products");
+            return;
         }
 
         String productIdStr = request.getParameter("productId");
@@ -386,5 +365,40 @@ public class EditProductServlet extends HttpServlet {
             request.setAttribute("activePage", "products");
             request.getRequestDispatcher("/seller/product/edit-product.jsp").forward(request, response);
         }
+    }
+
+    private Shop resolveCurrentShop(HttpSession session) {
+        Integer ownerId = getLoggedInUserId(session);
+        return ownerId == null ? null : shopDAO.getShopByOwnerId(ownerId);
+    }
+
+    private Integer getLoggedInUserId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object rawUserId = session.getAttribute("userId");
+        if (rawUserId instanceof Integer) {
+            return (Integer) rawUserId;
+        }
+        if (rawUserId != null) {
+            try {
+                return Integer.parseInt(rawUserId.toString());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+
+        Object rawUser = session.getAttribute("user");
+        if (rawUser instanceof User) {
+            return ((User) rawUser).getUserId();
+        }
+
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
+        return null;
     }
 }

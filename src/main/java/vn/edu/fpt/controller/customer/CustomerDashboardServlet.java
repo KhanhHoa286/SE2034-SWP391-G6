@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import vn.edu.fpt.dao.CustomerDAO;
 import vn.edu.fpt.dao.OrderDAO;
 import vn.edu.fpt.dao.UserDAO;
 import vn.edu.fpt.dto.response.OrderHistoryResponse;
@@ -34,6 +35,7 @@ public class CustomerDashboardServlet extends HttpServlet {
 
     private final UserDAO userDAO = new UserDAO();
     private final OrderDAO orderDAO = new OrderDAO();
+    private final CustomerDAO customerDAO = new CustomerDAO();
 
     private static final String DASHBOARD_JSP = "/customer/account/view-dashboard.jsp";
 
@@ -110,6 +112,8 @@ public class CustomerDashboardServlet extends HttpServlet {
         int shippingOrders = orderDAO.countShippingSubOrdersByCustomerId(userId);
         List<OrderHistoryResponse> recentOrders =
                 orderDAO.getRecentSubOrdersByCustomerId(userId, 5);
+        boolean hasSellerAccount = customerDAO.hasSellerAccount(userId);
+        session.setAttribute("hasSellerAccount", hasSellerAccount);
 
         /*
          * Đẩy dữ liệu sang JSP.
@@ -119,6 +123,14 @@ public class CustomerDashboardServlet extends HttpServlet {
         request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("shippingOrders", shippingOrders);
         request.setAttribute("recentOrders", recentOrders);
+        request.setAttribute("hasSellerAccount", hasSellerAccount);
+
+        if ("1".equals(request.getParameter("sellerRegistered"))) {
+            request.setAttribute(
+                    "successMessage",
+                    "Đăng ký người bán thành công. Bạn có thể vào trang người bán để quản lý đơn hàng."
+            );
+        }
 
         /*
          * Forward sang JSP dashboard.

@@ -138,6 +138,28 @@
     transform: scale(1.03);
 }
 
+.view-empty-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--color-text-tertiary);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.view-empty-image i,
+.view-empty-image svg {
+    width: 42px;
+    height: 42px;
+    stroke-width: 1.5;
+}
+
 /* Stock Status Badge (góc trên trái ảnh chính) */
 .view-stock-badge {
     position: absolute;
@@ -186,6 +208,7 @@
     transition: var(--transition-fast);
     flex-shrink: 0;
     background-color: #f4f4f5;
+    padding: 0;
 }
 
 .view-thumb-item:hover {
@@ -384,6 +407,15 @@
     color: var(--color-text-primary);
 }
 
+.view-metric-value.price-value.sale-price {
+    color: var(--color-text-primary);
+}
+
+.view-metric-value.view-metric-small {
+    font-size: 14px;
+    font-weight: 700;
+}
+
 @media (max-width: 768px) {
     .view-info-metrics {
         grid-template-columns: repeat(2, 1fr);
@@ -488,6 +520,20 @@
     color: #ef4444;
 }
 
+.view-row-index {
+    font-weight: 700;
+    color: var(--color-text-tertiary);
+}
+
+.view-variant-size {
+    font-weight: 700;
+}
+
+.view-empty-inline {
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+}
+
 /* --- Product Meta Info (Thông tin bổ sung) --- */
 .view-meta-card {
     background-color: var(--color-bg-card);
@@ -548,6 +594,21 @@
     border-radius: 50%;
 }
 
+.view-status-plain {
+    padding: 0;
+    background-color: transparent;
+    border-radius: 0;
+}
+
+.view-status-plain.view-status-active {
+    background-color: transparent;
+    color: #059669;
+}
+
+.view-status-plain.view-status-inactive {
+    background-color: transparent;
+}
+
 .view-status-active {
     background-color: #ecfdf5;
     color: #059669;
@@ -592,23 +653,24 @@
    DISCOUNT BADGE
    ========================================================================== */
 .discount-badge {
-    display: inline-block;
+    display: block;
+    width: fit-content;
     padding: 3px 8px;
     background-color: #fef2f2;
     color: #dc2626;
     font-size: 11px;
     font-weight: 700;
     border-radius: 2px;
-    margin-left: 8px;
+    margin: 4px auto;
     letter-spacing: 0.3px;
 }
 
 /* Original price strike-through */
 .original-price {
-    font-size: 12px;
+    font-size: 15px;
     color: var(--color-text-tertiary);
     text-decoration: line-through;
-    font-weight: 500;
+    font-weight: 600;
     display: block;
-    margin-top: 2px;
+    margin-bottom: 4px;
 }
