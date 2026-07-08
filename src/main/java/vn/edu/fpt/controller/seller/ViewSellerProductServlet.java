@@ -31,6 +31,10 @@ public class ViewSellerProductServlet extends HttpServlet {
     private static final DateTimeFormatter VIEW_DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
+    private final ProductDAO productDAO = new ProductDAO();
+    private final ShopDAO shopDAO = new ShopDAO();
+    private final CategoryDAO categoryDAO = new CategoryDAO();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -44,11 +48,7 @@ public class ViewSellerProductServlet extends HttpServlet {
             return;
         }
 
-        ProductDAO productDAO = new ProductDAO();
-        ShopDAO shopDAO = new ShopDAO();
-        CategoryDAO categoryDAO = new CategoryDAO();
-
-        Shop shop = resolveCurrentShop(request.getSession(false), shopDAO);
+        Shop shop = resolveCurrentShop(request.getSession(false));
         if (shop == null) {
             redirectToProductList(request, response);
             return;
@@ -88,8 +88,6 @@ public class ViewSellerProductServlet extends HttpServlet {
         request.setAttribute("genderText", getGenderText(product));
         request.setAttribute("activeText", Boolean.TRUE.equals(product.getIsActive()) ? "Đang hoạt động" : "Ngừng bán");
         request.setAttribute("activeClass", Boolean.TRUE.equals(product.getIsActive()) ? "view-status-active" : "view-status-inactive");
-        request.setAttribute("approvalText", getApprovalText(product));
-        request.setAttribute("approvalClass", getApprovalClass(product));
         request.setAttribute("formattedCreatedAt", formatCreatedAt(product));
         request.setAttribute("formattedProductCode", String.format("PRD-%05d", product.getProductId()));
         request.setAttribute("discountedPrice", calculateDiscountedPrice(product));
@@ -109,9 +107,9 @@ public class ViewSellerProductServlet extends HttpServlet {
         }
     }
 
-    private Shop resolveCurrentShop(HttpSession session, ShopDAO shopDAO) {
-        User account = session != null ? (User) session.getAttribute("account") : null;
-        Shop shop = account != null ? shopDAO.getShopByOwnerId(account.getUserId()) : null;
+    private Shop resolveCurrentShop(HttpSession session) {
+        Integer ownerId = getLoggedInUserId(session);
+        Shop shop = ownerId == null ? null : shopDAO.getShopByOwnerId(ownerId);
 
         if (shop != null) {
             return shop;
@@ -119,6 +117,36 @@ public class ViewSellerProductServlet extends HttpServlet {
 
         List<Shop> allShops = shopDAO.getAllShops();
         return allShops != null && !allShops.isEmpty() ? allShops.get(0) : null;
+    }
+
+    private Integer getLoggedInUserId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object rawUserId = session.getAttribute("userId");
+        if (rawUserId instanceof Integer) {
+            return (Integer) rawUserId;
+        }
+        if (rawUserId != null) {
+            try {
+                return Integer.parseInt(rawUserId.toString());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+
+        Object rawUser = session.getAttribute("user");
+        if (rawUser instanceof User) {
+            return ((User) rawUser).getUserId();
+        }
+
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
+        return null;
     }
 
     private <T> List<T> safeList(List<T> source) {
@@ -198,29 +226,6 @@ public class ViewSellerProductServlet extends HttpServlet {
             case "NAM" -> "Nam";
             case "NU" -> "Nữ";
             default -> "Unisex";
-        };
-    }
-
-    private String getApprovalText(Product product) {
-        if (product.getStatus() == null) {
-            return "Chưa có trạng thái";
-        }
-        return switch (product.getStatus().name()) {
-            case "APPROVED" -> "Đã duyệt";
-            case "PENDING" -> "Chờ duyệt";
-            case "REJECTED" -> "Bị từ chối";
-            default -> product.getStatus().name();
-        };
-    }
-
-    private String getApprovalClass(Product product) {
-        if (product.getStatus() == null) {
-            return "view-status-pending";
-        }
-        return switch (product.getStatus().name()) {
-            case "APPROVED" -> "view-status-active";
-            case "REJECTED" -> "view-status-inactive";
-            default -> "view-status-pending";
         };
     }
 

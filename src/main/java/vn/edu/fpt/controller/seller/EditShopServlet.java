@@ -40,37 +40,11 @@ public class EditShopServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
-        int ownerId = (account != null) ? account.getUserId() : -1;
+        Shop shop = resolveCurrentShop(session);
 
-        Shop shop = null;
-        if (ownerId != -1) {
-            shop = shopDAO.getShopWithAddressAndOwnerByOwnerId(ownerId);
-        }
-
-        // Fallback: try to find the first shop in system for demo mode
         if (shop == null) {
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                shop = shopDAO.getShopWithAddressAndOwnerByOwnerId(allShops.get(0).getOwnerId());
-            }
-        }
-
-        // Hard mock fallback if DB is completely empty
-        if (shop == null) {
-            Province province = Province.builder().id(1).name("Hà Nội").build();
-            Ward ward = Ward.builder().id(1).name("Dịch Vọng Hậu").province(province).build();
-            User owner = User.builder().userId(-1).email("demo@maisonluxury.vn").phone("0987654321").build();
-            shop = Shop.builder()
-                    .shopId(-1)
-                    .ownerId(-1)
-                    .owner(owner)
-                    .shopName("Maison Luxury Official Store")
-                    .description("Maison Luxury là điểm đến hàng đầu cho những sản phẩm thời trang thiết kế...")
-                    .wardId(1)
-                    .ward(ward)
-                    .streetAddress("123 Lê Lợi")
-                    .build();
+            response.sendRedirect(request.getContextPath() + "/seller-register");
+            return;
         }
 
         // Fetch provinces for dropdown
@@ -96,21 +70,7 @@ public class EditShopServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
-        int ownerId = (account != null) ? account.getUserId() : -1;
-
-        // Fetch current shop
-        Shop currentShop = null;
-        if (ownerId != -1) {
-            currentShop = shopDAO.getShopWithAddressAndOwnerByOwnerId(ownerId);
-        }
-
-        if (currentShop == null) {
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                currentShop = shopDAO.getShopWithAddressAndOwnerByOwnerId(allShops.get(0).getOwnerId());
-            }
-        }
+        Shop currentShop = resolveCurrentShop(session);
 
         if (currentShop == null) {
             request.setAttribute("popupType", "error");
@@ -223,5 +183,40 @@ public class EditShopServlet extends HttpServlet {
         }
 
         doGet(request, response);
+    }
+
+    private Shop resolveCurrentShop(HttpSession session) {
+        Integer ownerId = getLoggedInUserId(session);
+        return ownerId == null ? null : shopDAO.getShopWithAddressAndOwnerByOwnerId(ownerId);
+    }
+
+    private Integer getLoggedInUserId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object rawUserId = session.getAttribute("userId");
+        if (rawUserId instanceof Integer) {
+            return (Integer) rawUserId;
+        }
+        if (rawUserId != null) {
+            try {
+                return Integer.parseInt(rawUserId.toString());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+
+        Object rawUser = session.getAttribute("user");
+        if (rawUser instanceof User) {
+            return ((User) rawUser).getUserId();
+        }
+
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
+        return null;
     }
 }

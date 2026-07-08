@@ -30,37 +30,11 @@ public class SellerDashboardServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
-
-        int ownerId = -1;
-        if (account != null) {
-            ownerId = account.getUserId();
-        }
-        // Đặt activePage để sidebar highlight đúng mục "Tổng quan"
         request.setAttribute("activePage", "dashboard");
 
-        Shop shop = shopDAO.getShopByOwnerId(ownerId);
+        Shop shop = resolveCurrentShop(session);
 
-        // Nếu chưa có shop, thử tìm bất kỳ shop nào tồn tại để hiển thị demo dashboard
-        if (shop == null) {
-            // Lấy shop bất kỳ
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                shop = allShops.get(0);
-            }
-        }
-
-        // Nếu hoàn toàn không có shop nào trong hệ thống, sử dụng shop demo để tránh redirect
-        if (shop == null) {
-            shop = Shop.builder()
-                    .shopId(-1)
-                    .shopName("Cửa hàng Demo")
-                    .description("Đây là cửa hàng demo chưa cấu hình.")
-                    .streetAddress("123 Đường Demo")
-                    .build();
-        }
-
-        int shopId = shop.getShopId();
+        int shopId = shop == null ? -1 : shop.getShopId();
 
         // 1. Doanh thu hôm nay
         BigDecimal todayRevenue = (shopId == -1) ? BigDecimal.ZERO : orderDAO.getTodayRevenue(shopId);
@@ -95,5 +69,40 @@ public class SellerDashboardServlet extends HttpServlet {
 
         // Forward tới trang dashboard JSP
         request.getRequestDispatcher("/seller/dashboard/view-seller-dashboard.jsp").forward(request, response);
+    }
+
+    private Shop resolveCurrentShop(HttpSession session) {
+        Integer ownerId = getLoggedInUserId(session);
+        return ownerId == null ? null : shopDAO.getShopByOwnerId(ownerId);
+    }
+
+    private Integer getLoggedInUserId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object rawUserId = session.getAttribute("userId");
+        if (rawUserId instanceof Integer) {
+            return (Integer) rawUserId;
+        }
+        if (rawUserId != null) {
+            try {
+                return Integer.parseInt(rawUserId.toString());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+
+        Object rawUser = session.getAttribute("user");
+        if (rawUser instanceof User) {
+            return ((User) rawUser).getUserId();
+        }
+
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
+        return null;
     }
 }

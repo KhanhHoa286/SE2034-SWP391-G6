@@ -31,35 +31,9 @@ public class ListSellerProductsServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1. Lấy thông tin user đang đăng nhập
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
+        Shop shop = resolveCurrentShop(session);
 
-        int ownerId = (account != null) ? account.getUserId() : -1;
-        Shop shop = null;
-
-        if (ownerId != -1) {
-            shop = shopDAO.getShopByOwnerId(ownerId);
-        }
-
-        // Nếu chưa đăng nhập hoặc chưa có shop → lấy shop đầu tiên để demo
-        if (shop == null) {
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                shop = allShops.get(0);
-            }
-        }
-
-        // Nếu hoàn toàn không có shop nào → forward trang trống
-        if (shop == null) {
-            request.setAttribute("activePage", "products");
-            request.getRequestDispatcher("/seller/product/list-seller-products.jsp").forward(request, response);
-            return;
-        }
-
-        int shopId = shop.getShopId();
-
-        // 2. Đọc các tham số lọc và phân trang từ request
         String search = request.getParameter("search");
         String statusFilter = request.getParameter("status"); // all, instock, outofstock, lowstock
         Integer categoryId = ParamUtil.getInteger(request, "cid");
@@ -71,18 +45,20 @@ public class ListSellerProductsServlet extends HttpServlet {
             statusFilter = null;
         }
 
-        // 3. Truy vấn danh sách sản phẩm và tổng số lượng
-        List<ProductResponse> products = productDAO.getSellerProductsByShopId(
-                shopId, search, statusFilter, categoryId, currentPage, PAGE_SIZE);
+        List<ProductResponse> products = java.util.Collections.emptyList();
+        int totalProducts = 0;
+        if (shop != null) {
+            int shopId = shop.getShopId();
+            products = productDAO.getSellerProductsByShopId(
+                    shopId, search, statusFilter, categoryId, currentPage, PAGE_SIZE);
+            totalProducts = productDAO.countSellerProducts(shopId, search, statusFilter, categoryId);
+        }
 
-        int totalProducts = productDAO.countSellerProducts(shopId, search, statusFilter, categoryId);
         int totalPages = (int) Math.ceil((double) totalProducts / PAGE_SIZE);
         if (totalPages < 1) totalPages = 1;
 
-        // 4. Lấy danh sách categories cho bộ lọc dropdown
         List<Category> categories = categoryDAO.getAllCategory();
 
-        // 5. Đẩy dữ liệu ra view
         request.setAttribute("shop", shop);
         request.setAttribute("products", products);
         request.setAttribute("totalProducts", totalProducts);
@@ -105,5 +81,40 @@ public class ListSellerProductsServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
+    }
+
+    private Shop resolveCurrentShop(HttpSession session) {
+        Integer ownerId = getLoggedInUserId(session);
+        return ownerId == null ? null : shopDAO.getShopByOwnerId(ownerId);
+    }
+
+    private Integer getLoggedInUserId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object rawUserId = session.getAttribute("userId");
+        if (rawUserId instanceof Integer) {
+            return (Integer) rawUserId;
+        }
+        if (rawUserId != null) {
+            try {
+                return Integer.parseInt(rawUserId.toString());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+
+        Object rawUser = session.getAttribute("user");
+        if (rawUser instanceof User) {
+            return ((User) rawUser).getUserId();
+        }
+
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
+        return null;
     }
 }
