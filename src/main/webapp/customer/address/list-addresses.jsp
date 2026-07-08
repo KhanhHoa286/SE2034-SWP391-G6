@@ -48,9 +48,15 @@
             <header class="address-book-header">
                 <div>
                     <h1>Sổ địa chỉ</h1>
-                    <p>Quản lý địa chỉ nhận hàng và thanh toán của bạn để đặt hàng nhanh hơn.</p>
+                    <p>Quản lý địa chỉ nhận hàng.</p>
                 </div>
             </header>
+            <c:if test="${not empty sessionScope.addressError}">
+                <div class="address-message address-message--error">
+                    <c:out value="${sessionScope.addressError}" />
+                </div>
+                <c:remove var="addressError" scope="session" />
+            </c:if>
 
             <section class="address-book-grid">
 
@@ -101,15 +107,24 @@
                                 </div>
 
                                 <div class="address-card-actions">
-                                    <a href="${pageContext.request.contextPath}/customer/addresses/edit?id=${address.addressId}" class="address-action address-action--edit">
+                                    <a href="${pageContext.request.contextPath}/customer/addresses/edit?id=${address.addressId}"
+                                       class="address-action address-action--edit">
                                         <span class="material-symbols-outlined">edit</span>
                                         Chỉnh sửa
                                     </a>
 
-                                    <a href="javascript:void(0);" class="address-action address-action--delete">
-                                        <span class="material-symbols-outlined">delete</span>
-                                        Xóa
-                                    </a>
+                                    <form action="${pageContext.request.contextPath}/customer/addresses/delete"
+                                          method="post"
+                                          class="address-delete-form"
+                                          onsubmit="return confirm('Bạn xác nhận muốn xóa địa chỉ này?');">
+
+                                        <input type="hidden" name="addressId" value="${address.addressId}">
+
+                                        <button type="submit" class="address-action address-action--delete">
+                                            <span class="material-symbols-outlined">delete</span>
+                                            Xóa
+                                        </button>
+                                    </form>
                                 </div>
 
                             </article>
