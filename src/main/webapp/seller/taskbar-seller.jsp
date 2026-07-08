@@ -1,33 +1,35 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-  // Nhận diện trang đang hoạt động qua attribute "activePage" được Servlet đặt
   String activeAttr = (String) request.getAttribute("activePage");
   if (activeAttr == null) activeAttr = "";
 
-  // Nếu không có attribute, fallback sang tự detect qua URI
   if (activeAttr.isEmpty()) {
     String requestUri = request.getRequestURI();
     if (requestUri.contains("sellerDashboard") || requestUri.contains("view-seller-dashboard")) {
       activeAttr = "dashboard";
     } else if (requestUri.contains("add-shop") || requestUri.contains("view-shop") || requestUri.contains("edit-shop")) {
       activeAttr = "add-shop";
+    } else if (requestUri.contains("list-seller-products")) {
+      activeAttr = "products";
+    } else if (requestUri.contains("/seller/orders") || requestUri.contains("list-seller-orders")) {
+      activeAttr = "orders";
+    } else if (requestUri.contains("/seller/customers") || requestUri.contains("list-customers")) {
+      activeAttr = "customers";
+    } else if (requestUri.contains("edit-shipping-settings")) {
+      activeAttr = "shipping-settings";
     }
   }
 
   boolean isDashboardActive = activeAttr.equals("dashboard");
-  boolean isAddShopActive   = activeAttr.equals("add-shop") || activeAttr.equals("view-shop") || activeAttr.equals("edit-shop");
-  boolean isProductsActive  = activeAttr.equals("products");
-  boolean isOrdersActive    = activeAttr.equals("orders");
+  boolean isAddShopActive = activeAttr.equals("add-shop") || activeAttr.equals("view-shop") || activeAttr.equals("edit-shop");
+  boolean isProductsActive = activeAttr.equals("products");
+  boolean isOrdersActive = activeAttr.equals("orders");
   boolean isCustomersActive = activeAttr.equals("customers");
-  boolean isVouchersActive  = activeAttr.equals("vouchers");
-  boolean isFinanceActive   = activeAttr.equals("finance");
-  boolean isShippingActive  = activeAttr.equals("shipping");
+  boolean isVouchersActive = activeAttr.equals("vouchers");
   boolean isShippingSettingsActive = activeAttr.equals("shipping-settings");
 %>
-<!-- Sidebar (Thanh tác vụ Seller Center) -->
 <aside class="sidebar">
   <div class="sidebar-top">
-    <!-- Thương hiệu Seller Center -->
     <div class="sidebar-brand-box">
       <div class="brand-logo-icon">
         <i data-lucide="store"></i>
@@ -38,10 +40,7 @@
       </div>
     </div>
 
-    <!-- Menu Chức năng -->
     <ul class="sidebar-menu">
-
-      <!-- Tổng quan -->
       <li class="sidebar-item <%= isDashboardActive ? "active" : "" %>">
         <a href="${pageContext.request.contextPath}/sellerDashboard" class="sidebar-link">
           <i data-lucide="layout-dashboard"></i>
@@ -49,7 +48,6 @@
         </a>
       </li>
 
-      <!-- Quản lý cửa hàng -->
       <li class="sidebar-item <%= isAddShopActive ? "active" : "" %>">
         <a href="${pageContext.request.contextPath}/view-shop" class="sidebar-link">
           <i data-lucide="store"></i>
@@ -57,7 +55,6 @@
         </a>
       </li>
 
-      <!-- Quản lý sản phẩm -->
       <li class="sidebar-item <%= isProductsActive ? "active" : "" %>">
         <a href="${pageContext.request.contextPath}/list-seller-products" class="sidebar-link">
           <i data-lucide="package"></i>
@@ -65,23 +62,20 @@
         </a>
       </li>
 
-      <!-- Quản lý đơn hàng -->
       <li class="sidebar-item <%= isOrdersActive ? "active" : "" %>">
-        <a href="#" class="sidebar-link">
+        <a href="${pageContext.request.contextPath}/seller/orders" class="sidebar-link">
           <i data-lucide="shopping-cart"></i>
           <span>Quản lý đơn hàng</span>
         </a>
       </li>
 
-      <!-- Khách hàng -->
       <li class="sidebar-item <%= isCustomersActive ? "active" : "" %>">
-        <a href="#" class="sidebar-link">
+        <a href="${pageContext.request.contextPath}/seller/customers" class="sidebar-link">
           <i data-lucide="users"></i>
           <span>Khách hàng</span>
         </a>
       </li>
 
-      <!-- Khuyến mãi -->
       <li class="sidebar-item <%= isVouchersActive ? "active" : "" %>">
         <a href="#" class="sidebar-link">
           <i data-lucide="ticket"></i>
@@ -89,23 +83,6 @@
         </a>
       </li>
 
-      <!-- Tài chính -->
-      <li class="sidebar-item <%= isFinanceActive ? "active" : "" %>">
-        <a href="#" class="sidebar-link">
-          <i data-lucide="wallet"></i>
-          <span>Tài chính</span>
-        </a>
-      </li>
-
-      <!-- Giao hàng -->
-      <li class="sidebar-item <%= isShippingActive ? "active" : "" %>">
-        <a href="#" class="sidebar-link">
-          <i data-lucide="truck"></i>
-          <span>Giao hàng</span>
-        </a>
-      </li>
-
-      <!-- Cài đặt giao hàng -->
       <li class="sidebar-item <%= isShippingSettingsActive ? "active" : "" %>">
         <a href="${pageContext.request.contextPath}/edit-shipping-settings" class="sidebar-link">
           <i data-lucide="settings"></i>
