@@ -668,8 +668,8 @@ public class OrderDAO extends DBContext {
      * HoaNK - Insert 1 đơn hàng tổng
      */
     private final String INSERT_MASTER_ORDER = """
-    INSERT INTO master_orders (customer_id, total_amount, receiver_name, receiver_phone, shipping_address, payment_method, payment_status, created_at,transaction_code) 
-    VALUES (?, ?, ?, ?, ?, ?, ?,?,?, GETDATE());
+    INSERT INTO master_orders (customer_id, total_amount, receiver_name, receiver_phone, shipping_address, payment_method, payment_status, created_at) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE());
     """;
     public int insertMasterOrder(int customerId, CheckoutRequest req) throws SQLException {
         String sql = INSERT_MASTER_ORDER;
@@ -677,13 +677,12 @@ public class OrderDAO extends DBContext {
 
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, customerId);
-            stmt.setBigDecimal(2, req.getTotalAmount()); // Thằng này giờ đã là BigDecimal
+            stmt.setBigDecimal(2, req.getTotalAmount());
             stmt.setString(3, req.getReceiverName());
             stmt.setString(4, req.getReceiverPhone());
             stmt.setString(5, req.getShippingAddress());
             stmt.setString(6, req.getPaymentMethod());
             stmt.setString(7, paymentStatus);
-            stmt.setString(8,req.getTransactionCode());
             stmt.executeUpdate();
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 if (rs.next()) return rs.getInt(1);

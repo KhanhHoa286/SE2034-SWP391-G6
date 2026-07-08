@@ -35,7 +35,7 @@
         <i data-lucide="store"></i>
       </div>
       <div class="brand-logo-text">
-        <h2 class="brand-title">MODA</h2>
+        <a class="brand-title" href="${pageContext.request.contextPath}/home">MODA</a>
         <span class="brand-subtitle">QUẢN TRỊ HỆ THỐNG</span>
       </div>
     </div>
