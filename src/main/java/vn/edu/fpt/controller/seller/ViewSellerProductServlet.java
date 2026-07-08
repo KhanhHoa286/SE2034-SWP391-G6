@@ -17,10 +17,19 @@ import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @WebServlet("/view-seller-product")
 public class ViewSellerProductServlet extends HttpServlet {
+
+    private static final DateTimeFormatter VIEW_DATE_FORMAT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final ProductDAO productDAO = new ProductDAO();
     private final ShopDAO shopDAO = new ShopDAO();
@@ -30,93 +39,84 @@ public class ViewSellerProductServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession();
-        Shop shop = resolveCurrentShop(session);
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+
+        Integer productId = parseProductId(request.getParameter("id"));
+        if (productId == null) {
+            redirectToProductList(request, response);
+            return;
+        }
+
+        Shop shop = resolveCurrentShop(request.getSession(false));
         if (shop == null) {
-            response.sendRedirect(request.getContextPath() + "/list-seller-products");
+            redirectToProductList(request, response);
             return;
         }
 
-        // Lấy product ID từ request parameter
-        String idStr = request.getParameter("id");
-        if (idStr == null || idStr.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/list-seller-products");
+        Product product = productDAO.getProductById(productId);
+        if (product == null || !Objects.equals(product.getShopId(), shop.getShopId())) {
+            redirectToProductList(request, response);
             return;
         }
 
-        try {
-            int productId = Integer.parseInt(idStr.trim());
-            Product product = productDAO.getProductById(productId);
-
-            // Kiểm tra sản phẩm tồn tại và thuộc shop hiện tại
-            if (product == null || (shop != null && !product.getShopId().equals(shop.getShopId()))) {
-                response.sendRedirect(request.getContextPath() + "/list-seller-products");
-                return;
-            }
-
-            // Lấy danh sách biến thể và ảnh sản phẩm
-            List<ProductVariant> variants = productDAO.getVariantsByProductId(productId);
-            List<ProductImage> images = productDAO.getProductImagesByProductId(productId);
-
-            // Lấy thông tin category nếu có
-            if (product.getCategoryId() != null) {
-                List<Category> allCategories = categoryDAO.getAllCategory();
-                Category matchedCategory = findCategoryById(allCategories, product.getCategoryId());
-                if (matchedCategory != null) {
-                    product.setCategory(matchedCategory);
-                }
-            }
-
-            // Định dạng ngày tạo ở Controller để hiển thị ở JSP
-            String formattedCreatedAt = "Chưa có thông tin";
-            if (product.getCreatedAt() != null) {
-                try {
-                    formattedCreatedAt = product.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-                } catch (Exception e) {
-                    formattedCreatedAt = product.getCreatedAt().toString();
-                }
-            }
-
-            // Đặt các attributes để JSP sử dụng
-            request.setAttribute("product", product);
-            request.setAttribute("productVariants", variants);
-            request.setAttribute("productImagesList", images);
-            request.setAttribute("shop", shop);
-            request.setAttribute("activePage", "products");
-            request.setAttribute("formattedCreatedAt", formattedCreatedAt);
-
-            // Forward đến trang view-seller-product.jsp
-            request.getRequestDispatcher("/seller/product/view-seller-product.jsp").forward(request, response);
-
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/list-seller-products");
+        List<ProductVariant> variants = safeList(productDAO.getVariantsByProductId(productId));
+        List<ProductImage> images = safeList(productDAO.getProductImagesByProductId(productId));
+        Category category = findCategoryById(categoryDAO.getAllCategory(), product.getCategoryId());
+        if (category != null) {
+            product.setCategory(category);
         }
+
+        int totalStock = calculateTotalStock(variants);
+        String mainProductImageUrl = resolveMainImage(product, images);
+
+        request.setAttribute("product", product);
+        request.setAttribute("productVariants", variants);
+        request.setAttribute("productImagesList", images);
+        request.setAttribute("shop", shop);
+        request.setAttribute("activePage", "products");
+
+        request.setAttribute("mainProductImageUrl", mainProductImageUrl);
+        request.setAttribute("hasMainProductImage", mainProductImageUrl != null && !mainProductImageUrl.isBlank());
+        request.setAttribute("productImageCount", images.size());
+        request.setAttribute("extraImageCount", Math.max(images.size() - 4, 0));
+        request.setAttribute("productVariantCount", variants.size());
+        request.setAttribute("totalStock", totalStock);
+        request.setAttribute("stockStatusText", getStockStatusText(totalStock));
+        request.setAttribute("stockStatusClass", getStockStatusClass(totalStock));
+        request.setAttribute("categoryName", category != null ? category.getCategoryName() : "Chưa phân loại");
+        request.setAttribute("genderText", getGenderText(product));
+        request.setAttribute("activeText", Boolean.TRUE.equals(product.getIsActive()) ? "Đang hoạt động" : "Ngừng bán");
+        request.setAttribute("activeClass", Boolean.TRUE.equals(product.getIsActive()) ? "view-status-active" : "view-status-inactive");
+        request.setAttribute("formattedCreatedAt", formatCreatedAt(product));
+        request.setAttribute("formattedProductCode", String.format("PRD-%05d", product.getProductId()));
+        request.setAttribute("discountedPrice", calculateDiscountedPrice(product));
+
+        request.getRequestDispatcher("/seller/product/view-seller-product.jsp").forward(request, response);
     }
 
-    /**
-     * Tìm Category theo ID trong danh sách phẳng (bao gồm cả child categories).
-     */
-    private Category findCategoryById(List<Category> categories, int categoryId) {
-        if (categories == null) return null;
-        for (Category cat : categories) {
-            if (cat.getCategoryId() != null && cat.getCategoryId() == categoryId) {
-                return cat;
-            }
-            // Tìm trong danh mục con
-            if (cat.getListChildCategory() != null) {
-                for (Category child : cat.getListChildCategory()) {
-                    if (child.getCategoryId() != null && child.getCategoryId() == categoryId) {
-                        return child;
-                    }
-                }
-            }
+    private Integer parseProductId(String rawId) {
+        if (rawId == null || rawId.trim().isEmpty()) {
+            return null;
         }
-        return null;
+        try {
+            int id = Integer.parseInt(rawId.trim());
+            return id > 0 ? id : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private Shop resolveCurrentShop(HttpSession session) {
         Integer ownerId = getLoggedInUserId(session);
-        return ownerId == null ? null : shopDAO.getShopByOwnerId(ownerId);
+        Shop shop = ownerId == null ? null : shopDAO.getShopByOwnerId(ownerId);
+
+        if (shop != null) {
+            return shop;
+        }
+
+        List<Shop> allShops = shopDAO.getAllShops();
+        return allShops != null && !allShops.isEmpty() ? allShops.get(0) : null;
     }
 
     private Integer getLoggedInUserId(HttpSession session) {
@@ -147,5 +147,106 @@ public class ViewSellerProductServlet extends HttpServlet {
         }
 
         return null;
+    }
+
+    private <T> List<T> safeList(List<T> source) {
+        return source == null ? Collections.emptyList() : source;
+    }
+
+    private int calculateTotalStock(List<ProductVariant> variants) {
+        int total = 0;
+        for (ProductVariant variant : variants) {
+            if (variant.getStockQuantity() != null) {
+                total += variant.getStockQuantity();
+            }
+        }
+        return total;
+    }
+
+    private String resolveMainImage(Product product, List<ProductImage> images) {
+        for (ProductImage image : images) {
+            if (image != null && Boolean.TRUE.equals(image.getIsPrimary())
+                    && image.getImageUrl() != null && !image.getImageUrl().isBlank()) {
+                return image.getImageUrl();
+            }
+        }
+        for (ProductImage image : images) {
+            if (image != null && image.getImageUrl() != null && !image.getImageUrl().isBlank()) {
+                return image.getImageUrl();
+            }
+        }
+        return product.getThumbnailUrl() != null && !product.getThumbnailUrl().isBlank()
+                ? product.getThumbnailUrl()
+                : "";
+    }
+
+    private Category findCategoryById(List<Category> categories, Integer categoryId) {
+        if (categories == null || categoryId == null) {
+            return null;
+        }
+
+        List<Category> stack = new ArrayList<>(categories);
+        while (!stack.isEmpty()) {
+            Category current = stack.remove(0);
+            if (Objects.equals(current.getCategoryId(), categoryId)) {
+                return current;
+            }
+            if (current.getListChildCategory() != null) {
+                stack.addAll(current.getListChildCategory());
+            }
+        }
+        return null;
+    }
+
+    private String getStockStatusText(int totalStock) {
+        if (totalStock > 15) {
+            return "Còn hàng";
+        }
+        if (totalStock > 0) {
+            return "Sắp hết hàng";
+        }
+        return "Hết hàng";
+    }
+
+    private String getStockStatusClass(int totalStock) {
+        if (totalStock > 15) {
+            return "stock-badge-instock";
+        }
+        if (totalStock > 0) {
+            return "stock-badge-lowstock";
+        }
+        return "stock-badge-outofstock";
+    }
+
+    private String getGenderText(Product product) {
+        if (product.getGender() == null) {
+            return "Unisex";
+        }
+        return switch (product.getGender().name()) {
+            case "NAM" -> "Nam";
+            case "NU" -> "Nữ";
+            default -> "Unisex";
+        };
+    }
+
+    private String formatCreatedAt(Product product) {
+        if (product.getCreatedAt() == null) {
+            return "Chưa có thông tin";
+        }
+        return product.getCreatedAt().format(VIEW_DATE_FORMAT);
+    }
+
+    private BigDecimal calculateDiscountedPrice(Product product) {
+        BigDecimal basePrice = product.getBasePrice() != null ? product.getBasePrice() : BigDecimal.ZERO;
+        int discount = product.getDiscountPercentage() != null ? product.getDiscountPercentage() : 0;
+        BigDecimal discountAmount = basePrice
+                .multiply(BigDecimal.valueOf(discount))
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        return basePrice.subtract(discountAmount);
+    }
+
+    private void redirectToProductList(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        response.sendRedirect(request.getContextPath() + "/list-seller-products");
     }
 }
