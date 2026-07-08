@@ -1127,4 +1127,32 @@ public class UserDAO extends DBContext {
 
         return false;
     }
+
+    /*
+     * Cập nhật mật khẩu mới theo email.
+     *
+     * Dùng cho chức năng quên mật khẩu.
+     */
+    public boolean updatePasswordByEmail(String email, String passwordHash) {
+        if (email == null || email.trim().isEmpty()
+                || passwordHash == null || passwordHash.trim().isEmpty()) {
+            return false;
+        }
+
+        String sql = "UPDATE users "
+                + "SET password_hash = ? "
+                + "WHERE email = ? AND status = 'ACTIVE'";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, passwordHash);
+            ps.setString(2, email.trim().toLowerCase());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }

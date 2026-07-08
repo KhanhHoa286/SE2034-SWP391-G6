@@ -13,50 +13,193 @@ import vn.edu.fpt.model.User;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
+/*
+ * Gửi lại OTP.
+ *
+ * Dùng chung cho:
+ * - Đăng ký tài khoản: type=register
+ * - Quên mật khẩu: type=forgot
+ */
 @WebServlet("/resend-otp")
 public class ResendOtpServlet extends HttpServlet {
 
     private final UserDAO userDao = new UserDAO();
     private final EmailVerificationDAO otpDao = new EmailVerificationDAO();
 
-    private void setNoCache(HttpServletResponse response) {
-        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        response.setHeader("Pragma", "no-cache");
-        response.setDateHeader("Expires", 0);
-    }
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-    private String normalizeEmail(String email) {
-        return email == null ? "" : email.trim().toLowerCase();
-    }
+        request.setCharacterEncoding("UTF-8");
+        setNoCache(response);
 
-    private String getPendingEmailFromSession(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
+        String type = request.getParameter("type");
 
-        if (session == null) {
-            return "";
+        if ("forgot".equalsIgnoreCase(type)) {
+            resendForgotOtp(request, response);
+            return;
         }
 
-        Object value = session.getAttribute("pendingOtpEmail");
-        return value == null ? "" : normalizeEmail(String.valueOf(value));
+        resendRegisterOtp(request, response);
     }
 
-    private void clearPendingSession(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
+    /*
+     * Gửi lại OTP đăng ký tài khoản.
+     */
+    private void resendRegisterOtp(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-        if (session != null) {
-            session.removeAttribute("pendingOtpEmail");
+        String email = getEmailForRegister(request);
+
+        if (email.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/register");
+            return;
+        }
+
+        userDao.deleteExpiredPendingRegistrations(15);
+
+        User user = userDao.getUserByEmail(email);
+
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/register");
+            return;
+        }
+
+        if (user.getStatus() == UserStatus.ACTIVE) {
+            response.sendRedirect(request.getContextPath()
+                    + "/public/auth/login.jsp?verified=true");
+            return;
+        }
+
+        if (user.getStatus() != UserStatus.PENDING) {
+            response.sendRedirect(request.getContextPath() + "/register");
+            return;
+        }
+
+        try {
+            String otp = OtpUtils.generateOtp();
+
+            otpDao.createOtp(email, otp, LocalDateTime.now().plusMinutes(1));
+
+            EmailUtils.sendEmail(
+                    email,
+                    "Gửi lại mã xác thực tài khoản MODA",
+                    "Xin chào,<br><br>"
+                            + "Mã OTP mới của bạn là: <b style='font-size:18px;'>" + otp + "</b><br>"
+                            + "Mã này có hiệu lực trong 1 phút.<br><br>"
+                            + "Trân trọng,<br>"
+                            + "Đội ngũ MODA"
+            );
+
+            forwardOtp(request, response, email, "register",
+                    null,
+                    "Mã OTP mới đã được gửi. Vui lòng kiểm tra email.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            forwardOtp(request, response, email, "register",
+                    "Không gửi được mã OTP. Vui lòng thử lại.",
+                    null);
         }
     }
 
+    /*
+     * Gửi lại OTP quên mật khẩu.
+     */
+    private void resendForgotOtp(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String email = getEmailForForgot(request);
+
+        if (email.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/forgot-password");
+            return;
+        }
+
+        User user = userDao.getUserByEmail(email);
+
+        if (user == null || user.getStatus() != UserStatus.ACTIVE) {
+            response.sendRedirect(request.getContextPath() + "/forgot-password");
+            return;
+        }
+
+        try {
+            String otp = OtpUtils.generateOtp();
+
+            otpDao.createOtp(email, otp, LocalDateTime.now().plusMinutes(1));
+
+            EmailUtils.sendEmail(
+                    email,
+                    "Gửi lại mã đặt lại mật khẩu MODA",
+                    "Xin chào,<br><br>"
+                            + "Mã OTP mới để đặt lại mật khẩu của bạn là: "
+                            + "<b style='font-size:18px;'>" + otp + "</b><br>"
+                            + "Mã này có hiệu lực trong 1 phút.<br><br>"
+                            + "Trân trọng,<br>"
+                            + "Đội ngũ MODA"
+            );
+
+            forwardOtp(request, response, email, "forgot",
+                    null,
+                    "Mã OTP mới đã được gửi. Vui lòng kiểm tra email.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            forwardOtp(request, response, email, "forgot",
+                    "Không gửi được mã OTP. Vui lòng thử lại.",
+                    null);
+        }
+    }
+
+    /*
+     * Lấy email cho resend OTP đăng ký.
+     */
+    private String getEmailForRegister(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session != null && session.getAttribute("pendingOtpEmail") != null) {
+            return normalizeEmail(String.valueOf(session.getAttribute("pendingOtpEmail")));
+        }
+
+        return normalizeEmail(request.getParameter("email"));
+    }
+
+    /*
+     * Lấy email cho resend OTP quên mật khẩu.
+     */
+    private String getEmailForForgot(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session != null && session.getAttribute("forgotOtpEmail") != null) {
+            return normalizeEmail(String.valueOf(session.getAttribute("forgotOtpEmail")));
+        }
+
+        return normalizeEmail(request.getParameter("email"));
+    }
+
+    /*
+     * Forward lại màn verify-otp.jsp.
+     */
     private void forwardOtp(HttpServletRequest request,
                             HttpServletResponse response,
                             String email,
+                            String type,
                             String error,
                             String success)
             throws ServletException, IOException {
 
-        request.getSession().setAttribute("pendingOtpEmail", normalizeEmail(email));
-        request.setAttribute("email", normalizeEmail(email));
+        email = normalizeEmail(email);
+
+        if ("forgot".equalsIgnoreCase(type)) {
+            request.getSession().setAttribute("forgotOtpEmail", email);
+        } else {
+            request.getSession().setAttribute("pendingOtpEmail", email);
+        }
+
+        request.setAttribute("email", email);
+        request.setAttribute("type", type);
 
         if (error != null && !error.trim().isEmpty()) {
             request.setAttribute("error", error);
@@ -66,112 +209,23 @@ public class ResendOtpServlet extends HttpServlet {
             request.setAttribute("success", success);
         }
 
-        request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+        request.getRequestDispatcher("/public/auth/verify-otp.jsp")
+                .forward(request, response);
     }
 
-    private void sendOtp(String email) throws Exception {
-        String otp = OtpUtils.generateOtp();
-
-        /*
-         * createOtp() trong EmailVerificationDAO đã gọi invalidateOldOtp(email),
-         * nên mỗi lần gửi lại mã mới thì mã cũ tự mất hiệu lực.
-         */
-        otpDao.createOtp(email, otp, LocalDateTime.now().plusMinutes(1));
-
-        EmailUtils.sendEmail(
-                email,
-                "Gửi lại mã xác thực tài khoản MODA",
-                "Xin chào,<br><br>"
-                        + "Mã OTP mới của bạn là: <b style='font-size:18px;'>" + otp + "</b><br>"
-                        + "Mã này có hiệu lực trong 1 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.<br><br>"
-                        + "Trân trọng,<br>"
-                        + "Đội ngũ MODA"
-        );
+    /*
+     * Chuẩn hóa email.
+     */
+    private String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase();
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        request.setCharacterEncoding("UTF-8");
-        setNoCache(response);
-
-        String emailFromSession = getPendingEmailFromSession(request);
-        String emailFromRequest = normalizeEmail(request.getParameter("email"));
-
-        /*
-         * Ưu tiên email trong session.
-         * Hidden input chỉ dùng dự phòng.
-         */
-        String email = !emailFromSession.isEmpty() ? emailFromSession : emailFromRequest;
-
-        if (email.isEmpty()) {
-            clearPendingSession(request);
-            response.sendRedirect(request.getContextPath() + "/register");
-            return;
-        }
-
-        if (!emailFromSession.isEmpty()
-                && !emailFromRequest.isEmpty()
-                && !emailFromSession.equals(emailFromRequest)) {
-
-            forwardOtp(
-                    request,
-                    response,
-                    emailFromSession,
-                    "Phiên gửi lại OTP không hợp lệ.",
-                    null
-            );
-            return;
-        }
-
-        /*
-         * User PENDING chỉ tồn tại tối đa 15 phút.
-         * Trong 15 phút đó, người dùng được gửi lại OTP bất kỳ lúc nào.
-         */
-        userDao.deleteExpiredPendingRegistrations(15);
-
-        User user = userDao.getUserByEmail(email);
-
-        if (user == null) {
-            clearPendingSession(request);
-            response.sendRedirect(request.getContextPath() + "/register");
-            return;
-        }
-
-        if (user.getStatus() == UserStatus.ACTIVE) {
-            clearPendingSession(request);
-            response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp?verified=true");
-            return;
-        }
-
-        if (user.getStatus() != UserStatus.PENDING) {
-            clearPendingSession(request);
-            response.sendRedirect(request.getContextPath() + "/register");
-            return;
-        }
-
-        try {
-            sendOtp(email);
-
-            forwardOtp(
-                    request,
-                    response,
-                    email,
-                    null,
-                    "Mã OTP mới đã được gửi. Vui lòng kiểm tra email."
-            );
-
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            forwardOtp(
-                    request,
-                    response,
-                    email,
-                    "Không gửi được mã OTP. Vui lòng thử lại.",
-                    null
-            );
-        }
+    /*
+     * Chặn cache màn auth.
+     */
+    private void setNoCache(HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
     }
 }
