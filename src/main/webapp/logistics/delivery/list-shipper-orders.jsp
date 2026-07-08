@@ -116,7 +116,6 @@
                     <th>Thanh toán</th>
                     <th>Tiền thu</th>
                     <th>Trạng thái đơn</th>
-                    <th>Thao tác</th>
                 </tr>
                 </thead>
 
@@ -125,7 +124,7 @@
                     <c:when test="${not empty orders}">
                         <c:forEach var="order" items="${orders}">
                             <tr class="shipper-order-clickable-row"
-                                data-href="${pageContext.request.contextPath}/logistics/delivery/view?deliveryId=${order.deliveryId}"
+                                data-href="${pageContext.request.contextPath}/logistics/delivery/status?deliveryId=${order.deliveryId}"
                                 tabindex="0"
                                 role="link"
                                 aria-label="Xem vận đơn ${order.trackingNumber}">
@@ -192,20 +191,13 @@
                                     </small>
                                 </td>
 
-                                <td>
-                                    <a class="shipper-order-open-link"
-                                       href="${pageContext.request.contextPath}/logistics/delivery/view?deliveryId=${order.deliveryId}">
-                                        <i data-lucide="eye"></i>
-                                        <span>Xem</span>
-                                    </a>
-                                </td>
                             </tr>
                         </c:forEach>
                     </c:when>
 
                     <c:otherwise>
                         <tr>
-                            <td colspan="9" class="shipper-order-empty-state">
+                            <td colspan="8" class="shipper-order-empty-state">
                                 Bạn chưa nhận đơn vận chuyển nào.
                             </td>
                         </tr>
