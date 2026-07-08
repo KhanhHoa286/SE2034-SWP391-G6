@@ -112,8 +112,14 @@
                                 <c:if test="${order.status == 'SHIPPING'}">
                                 <button class="btn-received" onclick="updateStatusOrder('${pageContext.request.contextPath}',${order.subOrderId},'${order.paymentMethod}',${order.masterOrderId}, this)">Đã nhận được hàng</button>
                                 </c:if>
+                                <c:if test="${order.status == 'PENDING' || order.status == 'CONFIRMED'}">
+                                    <button class="btn-canceled" onclick="cancelOrder('${pageContext.request.contextPath}',${order.subOrderId}, this)">Hủy đơn hàng</button>
+                                </c:if>
                                 <c:if test="${order.status == 'DELIVERED'}">
                                     <button class="btn-received update-status-order">Đã nhận hàng</button>
+                                </c:if>
+                                <c:if test="${order.status == 'CANCELLED'}">
+                                    <button class="btn-canceled update-status-order">Đã hủy</button>
                                 </c:if>
                         <a href="${pageContext.request.contextPath}/customer/view-order?sub_order_id=${order.subOrderId}" class="btn-view-details">Xem chi tiết</a>
                             </div>
