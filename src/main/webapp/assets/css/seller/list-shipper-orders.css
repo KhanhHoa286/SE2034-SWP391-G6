@@ -9,19 +9,19 @@ body {
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-.delivery-list-shell {
+.shipper-order-shell {
     display: grid;
     grid-template-columns: 260px minmax(0, 1fr);
     min-height: 100vh;
     border-bottom: 2px solid #111111;
 }
 
-.delivery-list-main {
+.shipper-order-main {
     padding: 48px 42px 70px;
     background: #f7f8fc;
 }
 
-.delivery-list-breadcrumb {
+.shipper-order-breadcrumb {
     gap: 11px;
     margin-bottom: 32px;
     color: #07111f;
@@ -31,48 +31,55 @@ body {
     text-transform: uppercase;
 }
 
-.delivery-list-heading {
-    margin-bottom: 36px;
+.shipper-order-heading {
+    margin-bottom: 32px;
 }
 
-.delivery-list-heading h1 {
+.shipper-order-heading h1 {
     margin: 0 0 10px;
     font-size: 32px;
     line-height: 1.15;
     font-weight: 800;
 }
 
-.delivery-list-heading p {
-    max-width: 900px;
+.shipper-order-heading p {
+    max-width: 980px;
     margin: 0;
     color: #3f4a59;
     font-size: 15px;
 }
 
-.delivery-list-alert {
+.shipper-order-alert {
     gap: 10px;
     margin-bottom: 22px;
     padding: 14px 16px;
     border: 1px solid #fecaca;
+    border-radius: 0;
     background: #fef2f2;
     color: #b91c1c;
     font-size: 13px;
     font-weight: 700;
 }
 
-.delivery-list-alert svg {
+.shipper-order-alert-success {
+    border-color: #86efac;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.shipper-order-alert svg {
     width: 18px;
     height: 18px;
 }
 
-.delivery-list-metric-grid {
+.shipper-order-metric-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 18px;
     margin-bottom: 32px;
 }
 
-.delivery-list-metric-card {
+.shipper-order-metric-card {
     min-height: 110px;
     padding: 24px 26px;
     border: 1px solid #d1c7c7;
@@ -80,7 +87,7 @@ body {
     background: #ffffff;
 }
 
-.delivery-list-metric-card span {
+.shipper-order-metric-card span {
     display: block;
     margin-bottom: 12px;
     color: #565f6d;
@@ -90,7 +97,7 @@ body {
     text-transform: uppercase;
 }
 
-.delivery-list-metric-card strong {
+.shipper-order-metric-card strong {
     display: block;
     margin-bottom: 4px;
     color: #07111f;
@@ -99,12 +106,12 @@ body {
     font-weight: 800;
 }
 
-.delivery-list-metric-card small {
+.shipper-order-metric-card small {
     color: #3f4a59;
     font-size: 12px;
 }
 
-.delivery-list-filter-card {
+.shipper-order-filter-card {
     display: grid;
     grid-template-columns: 1.55fr 1fr 1fr 1.12fr 96px;
     gap: 12px;
@@ -115,7 +122,7 @@ body {
     background: #ffffff;
 }
 
-.delivery-list-filter-input {
+.shipper-order-filter-input {
     width: 100%;
     min-height: 48px;
     padding: 0 16px;
@@ -128,13 +135,13 @@ body {
     font-size: 14px;
 }
 
-.delivery-list-filter-input:focus {
+.shipper-order-filter-input:focus {
     border-color: #07111f;
     background: #ffffff;
     box-shadow: none;
 }
 
-.delivery-list-filter-card button {
+.shipper-order-filter-card button {
     min-height: 48px;
     border: 0;
     border-radius: 0;
@@ -147,28 +154,28 @@ body {
     text-transform: uppercase;
 }
 
-.delivery-list-table-card {
+.shipper-order-table-card {
     overflow-x: auto;
     border: 1px solid #d1c7c7;
     border-radius: 0;
     background: #ffffff;
 }
 
-.delivery-list-table {
+.shipper-order-table {
     width: 100%;
     min-width: 1280px;
     border-collapse: collapse;
 }
 
-.delivery-list-table th,
-.delivery-list-table td {
+.shipper-order-table th,
+.shipper-order-table td {
     padding: 17px 18px;
     border-bottom: 1px solid #dfd8d8;
     text-align: left;
     vertical-align: middle;
 }
 
-.delivery-list-table th {
+.shipper-order-table th {
     background: #f6f7fb;
     color: #565f6d;
     font-size: 11px;
@@ -177,196 +184,162 @@ body {
     text-transform: uppercase;
 }
 
-.delivery-list-table td {
+.shipper-order-table td {
     color: #07111f;
     font-size: 13px;
 }
 
-.delivery-list-table tr:last-child td {
-    border-bottom: 0;
-}
-
-.delivery-list-clickable-row {
+.shipper-order-clickable-row {
     cursor: pointer;
     transition: background-color 0.16s ease, box-shadow 0.16s ease;
 }
 
-.delivery-list-clickable-row:hover td {
+.shipper-order-clickable-row:hover td {
     background: #f1f3f8;
 }
 
-.delivery-list-clickable-row:focus {
+.shipper-order-clickable-row:focus {
     outline: none;
 }
 
-.delivery-list-clickable-row:focus-visible td {
+.shipper-order-clickable-row:focus-visible td {
     background: #eef2ff;
     box-shadow: inset 0 0 0 2px #07111f;
 }
 
-.delivery-list-table strong,
-.delivery-list-table small,
-.delivery-list-products span,
-.delivery-list-address span {
+.shipper-order-table strong,
+.shipper-order-table small,
+.shipper-order-products span {
     display: block;
 }
 
-.delivery-list-table small {
+.shipper-order-table small {
     margin-top: 4px;
     color: #6f7582;
     font-size: 11.5px;
     line-height: 1.35;
 }
 
-.delivery-list-code,
-.delivery-list-amount {
+.shipper-order-code,
+.shipper-order-amount {
     font-weight: 800;
 }
 
-.delivery-list-products {
+.shipper-order-products {
     max-width: 320px;
 }
 
-.delivery-list-products span {
+.shipper-order-products span {
     color: #07111f;
     line-height: 1.45;
 }
 
-.delivery-list-payment {
+.shipper-order-payment {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-width: 48px;
     min-height: 22px;
-    padding: 3px 8px;
-    border: 1px solid #000000;
-    color: #000000;
+    border: 1px solid #07111f;
     background: #ffffff;
-    font-size: 10px;
-    font-weight: 800;
-}
-
-.delivery-list-status-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 96px;
-    min-height: 24px;
-    padding: 5px 10px;
-    border: 1px solid #000000;
-    color: #000000;
-    background: #ffffff;
-    font-size: 10px;
+    color: #07111f;
+    font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
-    white-space: nowrap;
 }
 
-.status-ASSIGNED {
-    border-color: #1d4ed8;
-    color: #1d4ed8;
-    background: #eff6ff;
-}
-
-.status-PICKED_UP,
-.status-IN_TRANSIT {
-    border-color: #b45309;
-    color: #b45309;
-    background: #fffbeb;
-}
-
-.status-DELIVERED {
-    border-color: #000000;
-    color: #ffffff;
+.shipper-order-status-badge {
+    display: inline-flex;
+    min-width: 110px;
+    min-height: 28px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    border: 1px solid #07111f;
     background: #000000;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
-.status-FAILED {
-    border-color: #b91c1c;
-    color: #b91c1c;
-    background: #fef2f2;
+.shipper-order-status-badge.status-PREPARING {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #1d4ed8;
 }
 
-.delivery-list-address {
-    max-width: 270px;
+.shipper-order-status-badge.status-SHIPPING {
+    border-color: #ca8a04;
+    background: #fefce8;
+    color: #854d0e;
 }
 
-.delivery-list-address small {
-    line-height: 1.45;
+.shipper-order-status-badge.status-DELIVERED {
+    border-color: #16a34a;
+    background: #f0fdf4;
+    color: #166534;
 }
 
-.delivery-list-open-link {
+.shipper-order-open-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    min-width: 72px;
+    min-width: 74px;
     min-height: 32px;
-    padding: 7px 12px;
+    padding: 0 12px;
     border: 1px solid #07111f;
     background: #07111f;
-    color: #ffffff !important;
+    color: #ffffff;
     text-decoration: none;
     font-size: 11px;
     font-weight: 800;
-    line-height: 1;
     text-transform: uppercase;
-    white-space: nowrap;
-    transition: background-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
 }
 
-.delivery-list-open-link span {
-    display: inline;
-    color: #ffffff !important;
+.shipper-order-open-link:hover {
+    color: #ffffff;
+    background: #000000;
 }
 
-.delivery-list-open-link svg {
+.shipper-order-open-link svg {
     width: 14px;
     height: 14px;
-    stroke-width: 2.4;
-    color: #ffffff !important;
-    stroke: #ffffff !important;
 }
 
-.delivery-list-open-link:hover {
-    background: #ffffff;
-    color: #07111f !important;
-    text-decoration: none;
-    transform: translateY(-1px);
+.shipper-order-empty-state {
+    padding: 34px !important;
+    color: #3f4a59;
+    font-size: 14px;
 }
 
-.delivery-list-open-link:hover span {
-    color: #07111f !important;
-}
-
-.delivery-list-open-link:hover svg {
-    color: #07111f !important;
-    stroke: #07111f !important;
-}
-
-.delivery-list-empty-state {
-    padding: 32px 18px;
-    color: #6f7582;
-    text-align: center;
-}
-
-@media (max-width: 1280px) {
-    .delivery-list-metric-grid {
+@media (max-width: 1180px) {
+    .shipper-order-metric-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .delivery-list-filter-card {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .shipper-order-filter-card {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .shipper-order-filter-card button {
+        grid-column: 1 / -1;
     }
 }
 
 @media (max-width: 820px) {
-    .delivery-list-shell {
-        grid-template-columns: 260px minmax(980px, 1fr);
-        overflow-x: auto;
+    .shipper-order-shell {
+        grid-template-columns: 1fr;
     }
 
-    .delivery-list-main {
-        padding: 32px 20px 50px;
+    .shipper-order-main {
+        padding: 28px 18px 44px;
+    }
+
+    .shipper-order-metric-grid,
+    .shipper-order-filter-card {
+        grid-template-columns: 1fr;
     }
 }
