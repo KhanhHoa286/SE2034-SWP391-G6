@@ -103,7 +103,6 @@
                         <span class="payment-method-card__name">Chuyển khoản</span>
                         <span class="payment-method-card__desc">Xác nhận thủ công</span>
                     </label>
-                        <input type="hidden" id="hidden-transaction-code" name="transaction_code" value="">
                 </div>
 
                 <%-- === KHỐI THÔNG TIN CHUYỂN KHOẢN (hiện khi chọn bank_transfer) === --%>

@@ -20,9 +20,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thêm sản phẩm mới - MODA</title>
     <!-- Nhúng CSS dùng chung để đồng bộ font Outfit và layout chính -->
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260628">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260707a">
     <!-- Nhúng CSS riêng của trang add-product -->
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/add-product.css?v=20260628">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/add-product.css?v=20260707a">
     <!-- Tải Lucide Icons qua CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -223,7 +223,7 @@
                                             <i data-lucide="camera"></i>
                                             <span>ẢNH CHÍNH</span>
                                         </div>
-                                        <input type="file" id="imgInput0" name="productImages" accept="image/jpeg,image/png" style="display:none;" onchange="handleSlotImage(this, 0)">
+                                        <input type="file" id="imgInput0" name="mainProductImage" accept="image/jpeg,image/png" style="display:none;" onchange="handleSlotImage(this, 0)">
 
                                         <!-- Ô 2: Sub Image 1 -->
                                         <div class="image-slot upload-slot" onclick="document.getElementById('imgInput1').click()" id="slot1">

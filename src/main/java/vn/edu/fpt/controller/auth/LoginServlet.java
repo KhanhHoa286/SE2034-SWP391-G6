@@ -6,6 +6,7 @@ import jakarta.servlet.http.*;
 import vn.edu.fpt.common.EmailUtils;
 import vn.edu.fpt.common.OtpUtils;
 import vn.edu.fpt.common.PasswordUtils;
+import vn.edu.fpt.dao.CustomerDAO;
 import vn.edu.fpt.dao.EmailVerificationDAO;
 import vn.edu.fpt.dao.UserDAO;
 import vn.edu.fpt.enums.UserStatus;
@@ -19,6 +20,8 @@ import java.util.regex.Pattern;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
+
+    private final CustomerDAO customerDAO = new CustomerDAO();
 
     private boolean isValidEmail(String email) {
         return email != null
@@ -200,6 +203,7 @@ public class LoginServlet extends HttpServlet {
         session.setAttribute("userId", user.getUserId());
         session.setAttribute("roleId", roleId);
         session.setAttribute("fullName", user.getFirstName() + " " + user.getLastName());
+        session.setAttribute("hasSellerAccount", customerDAO.hasSellerAccount(user.getUserId()));
 
         String contextPath = request.getContextPath();
 
@@ -210,10 +214,10 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect(contextPath + "/home");
 
         } else if (roleId == 3) {
-            response.sendRedirect(contextPath + "/home");
+            response.sendRedirect(contextPath + "/seller/orders");
 
         } else if (roleId == 4) {
-            response.sendRedirect(contextPath + "/logistics/delivery/list-deliveries.jsp");
+            response.sendRedirect(contextPath + "/logistics/delivery/list");
 
         } else {
             response.sendRedirect(contextPath + "/public/home/view-home.jsp");

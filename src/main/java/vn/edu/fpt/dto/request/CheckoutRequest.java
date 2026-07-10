@@ -23,6 +23,4 @@ public class CheckoutRequest {
 
     private Integer variantId;
     private Integer quantity;
-
-    private String transactionCode;
 }

@@ -11,7 +11,6 @@ import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
-import java.util.List;
 
 @WebServlet("/edit-shipping-settings")
 public class EditShippingSettingsServlet extends HttpServlet {
@@ -23,45 +22,11 @@ public class EditShippingSettingsServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
-
-        int ownerId = (account != null) ? account.getUserId() : -1;
-        Shop shop = null;
-        if (ownerId != -1) {
-            shop = shopDAO.getShopWithAddressAndOwnerByOwnerId(ownerId);
-        }
+        Shop shop = resolveCurrentShop(session);
 
         if (shop == null) {
-            // Try to find any shop for demo mode
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                shop = shopDAO.getShopWithAddressAndOwnerByOwnerId(allShops.get(0).getOwnerId());
-            }
-        }
-
-        if (shop == null) {
-            // Fallback mock shop for demo
-            vn.edu.fpt.model.Province province = vn.edu.fpt.model.Province.builder()
-                    .name("Hà Nội")
-                    .build();
-            vn.edu.fpt.model.Ward ward = vn.edu.fpt.model.Ward.builder()
-                    .name("Dịch Vọng Hậu")
-                    .province(province)
-                    .build();
-            User owner = User.builder()
-                    .userId(-1)
-                    .email("demo@vinastudio.com")
-                    .phone("0987654321")
-                    .build();
-            shop = Shop.builder()
-                    .shopId(-1)
-                    .ownerId(-1)
-                    .owner(owner)
-                    .shopName("Atelier Luxe")
-                    .wardId(-1)
-                    .ward(ward)
-                    .streetAddress("Số 1 Cầu Giấy")
-                    .build();
+            response.sendRedirect(request.getContextPath() + "/seller-register");
+            return;
         }
 
         // Set attributes
@@ -76,5 +41,40 @@ public class EditShippingSettingsServlet extends HttpServlet {
             throws ServletException, IOException {
         // For now, simple redirect back to GET upon saving changes
         doGet(request, response);
+    }
+
+    private Shop resolveCurrentShop(HttpSession session) {
+        Integer ownerId = getLoggedInUserId(session);
+        return ownerId == null ? null : shopDAO.getShopWithAddressAndOwnerByOwnerId(ownerId);
+    }
+
+    private Integer getLoggedInUserId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object rawUserId = session.getAttribute("userId");
+        if (rawUserId instanceof Integer) {
+            return (Integer) rawUserId;
+        }
+        if (rawUserId != null) {
+            try {
+                return Integer.parseInt(rawUserId.toString());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+
+        Object rawUser = session.getAttribute("user");
+        if (rawUser instanceof User) {
+            return ((User) rawUser).getUserId();
+        }
+
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
+        return null;
     }
 }

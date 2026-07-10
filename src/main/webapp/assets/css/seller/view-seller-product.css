@@ -1,26 +1,676 @@
-.seller-page-shell {
+/* ==========================================================================
+   VIEW SELLER PRODUCT - Chi tiết sản phẩm (Seller Center)
+   Trang hiển thị thông tin chi tiết của 1 sản phẩm cho Seller xem.
+   Sử dụng các biến CSS từ seller.css (Design Tokens).
+   ========================================================================== */
+
+/* --- Breadcrumb Override --- */
+.view-breadcrumbs {
     display: flex;
-    min-height: 100vh;
-    background: var(--color-bg-app);
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--color-text-tertiary);
+    margin-bottom: 8px;
 }
 
-.seller-page-main {
-    flex: 1;
+.view-breadcrumbs a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+.view-breadcrumbs a:hover {
+    color: var(--color-accent);
+}
+
+.view-breadcrumbs .bc-separator {
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+}
+
+.view-breadcrumbs .bc-current {
+    color: var(--color-text-secondary);
+}
+
+/* --- Page Header (Title + Edit Button) --- */
+.view-product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.view-product-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    letter-spacing: -0.2px;
+    line-height: 1.2;
+}
+
+.btn-edit-product {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 11px 24px;
+    background-color: var(--color-accent);
+    color: var(--color-text-light);
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+}
+
+.btn-edit-product:hover {
+    background-color: var(--color-accent-hover);
+    transform: translateY(-1px);
+}
+
+.btn-edit-product i,
+.btn-edit-product svg {
+    width: 15px;
+    height: 15px;
+}
+
+/* ==========================================================================
+   MAIN TWO-COLUMN LAYOUT
+   ========================================================================== */
+.view-product-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 28px;
+    align-items: start;
+}
+
+@media (max-width: 1100px) {
+    .view-product-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================================================
+   LEFT COLUMN: Ảnh sản phẩm + Phân loại hàng
+   ========================================================================== */
+.view-left-column {
     display: flex;
     flex-direction: column;
-    min-width: 0;
+    gap: 24px;
 }
 
-.seller-page-content {
-    padding: 48px 44px;
+/* --- Image Gallery Card --- */
+.view-image-card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
 }
 
-.seller-page-content h1 {
-    margin-bottom: 8px;
-    font-size: 32px;
+.view-main-image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-color: #f9f9f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.view-main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.view-main-image:hover {
+    transform: scale(1.03);
+}
+
+.view-empty-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--color-text-tertiary);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.view-empty-image i,
+.view-empty-image svg {
+    width: 42px;
+    height: 42px;
+    stroke-width: 1.5;
+}
+
+/* Stock Status Badge (góc trên trái ảnh chính) */
+.view-stock-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    padding: 6px 14px;
+    font-size: 9.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-radius: 2px;
+    z-index: 2;
+}
+
+.stock-badge-instock {
+    background-color: #10b981;
+    color: #ffffff;
+}
+
+.stock-badge-lowstock {
+    background-color: #f59e0b;
+    color: #ffffff;
+}
+
+.stock-badge-outofstock {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+/* Thumbnails Row */
+.view-thumbnails-row {
+    display: flex;
+    gap: 10px;
+    padding: 14px 18px;
+    border-top: 1px solid var(--color-border);
+    background-color: #ffffff;
+}
+
+.view-thumb-item {
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    flex-shrink: 0;
+    background-color: #f4f4f5;
+    padding: 0;
+}
+
+.view-thumb-item:hover {
+    border-color: var(--color-accent);
+}
+
+.view-thumb-item.active {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.view-thumb-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Nút hiển thị "+N" ảnh thừa */
+.view-thumb-more {
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+    background-color: #f4f4f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    flex-shrink: 0;
+    border: 2px solid transparent;
+}
+
+.view-thumb-more:hover {
+    background-color: #e4e4e7;
+    border-color: var(--color-accent);
+}
+
+/* --- Variants Card (Phân loại hàng) --- */
+.view-variants-card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.view-card-header {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--color-border);
+    background-color: #ffffff;
+}
+
+.view-card-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-text-primary);
+}
+
+.view-card-body {
+    padding: 22px;
+}
+
+/* Variant Group (mỗi nhóm: MÀU SẮC, KÍCH THƯỚC) */
+.variant-group {
+    margin-bottom: 20px;
+}
+
+.variant-group:last-child {
+    margin-bottom: 0;
+}
+
+.variant-group-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--color-text-secondary);
+    margin-bottom: 10px;
+    display: block;
+}
+
+.variant-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Ô hiển thị màu (Color swatch) */
+.variant-color-swatch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    background-color: #ffffff;
+    cursor: default;
+    transition: var(--transition-fast);
+}
+
+.variant-color-swatch:hover {
+    border-color: var(--color-accent);
+}
+
+.color-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+/* Ô hiển thị size */
+.variant-size-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    padding: 8px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    background-color: #ffffff;
+    cursor: default;
+    transition: var(--transition-fast);
+}
+
+.variant-size-chip:hover {
+    border-color: var(--color-accent);
+}
+
+/* ==========================================================================
+   RIGHT COLUMN: Thông tin chung + Mô tả sản phẩm
+   ========================================================================== */
+.view-right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* --- General Info Card (Thông tin chung) --- */
+.view-info-card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.view-info-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 0;
+}
+
+.view-metric-item {
+    padding: 20px 22px;
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.view-metric-item:last-child {
+    border-right: none;
+}
+
+.view-metric-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--color-text-tertiary);
+}
+
+.view-metric-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+}
+
+.view-metric-value.price-value {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.view-metric-value.price-value.sale-price {
+    color: var(--color-text-primary);
+}
+
+.view-metric-value.view-metric-small {
+    font-size: 14px;
     font-weight: 700;
 }
 
-.seller-page-content p {
+@media (max-width: 768px) {
+    .view-info-metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .view-metric-item:nth-child(2) {
+        border-right: none;
+    }
+    .view-metric-item:nth-child(1),
+    .view-metric-item:nth-child(2) {
+        border-bottom: 1px solid var(--color-border);
+    }
+}
+
+/* --- Description Card (Mô tả sản phẩm) --- */
+.view-description-card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.view-description-body {
+    padding: 24px;
+}
+
+.view-description-text {
+    font-size: 14px;
     color: var(--color-text-secondary);
+    line-height: 1.8;
+    white-space: pre-line;
+    word-wrap: break-word;
+}
+
+.view-description-text ul {
+    margin-top: 16px;
+    padding-left: 20px;
+}
+
+.view-description-text li {
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+/* --- Variants Table Card (Bảng biến thể chi tiết) --- */
+.view-variant-table-card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.view-variant-table-wrap {
+    padding: 0;
+    overflow-x: auto;
+}
+
+.view-variant-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.view-variant-table th {
+    padding: 14px 20px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--color-text-secondary);
+    border-bottom: 2px solid var(--color-text-primary);
+    background-color: #fcfcfc;
+}
+
+.view-variant-table td {
+    padding: 14px 20px;
+    font-size: 13.5px;
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+}
+
+.view-variant-table tr:last-child td {
+    border-bottom: none;
+}
+
+.view-variant-table .variant-color-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.view-variant-table .variant-color-cell .color-dot {
+    width: 14px;
+    height: 14px;
+}
+
+.view-variant-table .stock-text {
+    font-weight: 700;
+}
+
+.view-variant-table .stock-text.stock-zero {
+    color: #ef4444;
+}
+
+.view-row-index {
+    font-weight: 700;
+    color: var(--color-text-tertiary);
+}
+
+.view-variant-size {
+    font-weight: 700;
+}
+
+.view-empty-inline {
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+}
+
+/* --- Product Meta Info (Thông tin bổ sung) --- */
+.view-meta-card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.view-meta-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.view-meta-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.view-meta-row:last-child {
+    border-bottom: none;
+}
+
+.view-meta-label {
+    width: 160px;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--color-text-tertiary);
+}
+
+.view-meta-value {
+    flex: 1;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+/* Status pill (tái sử dụng) */
+.view-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.view-status-pill .s-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.view-status-plain {
+    padding: 0;
+    background-color: transparent;
+    border-radius: 0;
+}
+
+.view-status-plain.view-status-active {
+    background-color: transparent;
+    color: #059669;
+}
+
+.view-status-plain.view-status-inactive {
+    background-color: transparent;
+}
+
+.view-status-active {
+    background-color: #ecfdf5;
+    color: #059669;
+}
+.view-status-active .s-dot {
+    background-color: #10b981;
+}
+
+.view-status-inactive {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+.view-status-inactive .s-dot {
+    background-color: #ef4444;
+}
+
+.view-status-pending {
+    background-color: #fffbeb;
+    color: #d97706;
+}
+.view-status-pending .s-dot {
+    background-color: #f59e0b;
+}
+
+/* --- Footer Spacing --- */
+.view-product-footer {
+    padding: 24px 0 0 0;
+    border-top: 1px solid var(--color-border);
+    margin-top: 12px;
+}
+
+.footer-text {
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--color-text-tertiary);
+    text-align: center;
+}
+
+/* ==========================================================================
+   DISCOUNT BADGE
+   ========================================================================== */
+.discount-badge {
+    display: block;
+    width: fit-content;
+    padding: 3px 8px;
+    background-color: #fef2f2;
+    color: #dc2626;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 2px;
+    margin: 4px auto;
+    letter-spacing: 0.3px;
+}
+
+/* Original price strike-through */
+.original-price {
+    font-size: 15px;
+    color: var(--color-text-tertiary);
+    text-decoration: line-through;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
 }

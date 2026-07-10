@@ -171,33 +171,50 @@
     gap: 24px;
 }
 
-.address-action {
+.address-delete-form {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.address-action,
+.address-delete-form button.address-action {
+    min-height: 18px;
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    color: var(--address-primary) !important;
+
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0;
+
+    font-family: Inter, sans-serif;
     font-size: 12px;
-    line-height: 1;
+    line-height: 18px;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     text-decoration: none !important;
-    transition: opacity 0.2s ease;
-}
-
-.address-action:hover {
-    opacity: 0.65;
+    cursor: pointer;
 }
 
 .address-action .material-symbols-outlined {
     font-size: 16px;
-    line-height: 1;
+    line-height: 18px;
+    display: inline-flex;
+    align-items: center;
 }
 
+.address-delete-form button.address-action {
+    font-weight: 700;
+}
 .address-action--delete {
     color: var(--address-danger) !important;
 }
-
 /* ================================
    Add Card
 ================================ */
@@ -317,4 +334,44 @@
     .address-card-actions {
         gap: 18px;
     }
+}
+
+.address-delete-form {
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+}
+
+.address-delete-form button {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    font: inherit;
+    cursor: pointer;
+}
+
+.address-delete-form .address-action {
+    line-height: 1;
+}
+
+.address-delete-form .material-symbols-outlined {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.address-message {
+    margin: 8px 0 20px;
+    color: var(--address-danger);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.5;
 }

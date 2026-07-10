@@ -139,7 +139,6 @@ public class AddOrderServlet extends HttpServlet {
         checkoutRequest.setReceiverPhone(request.getParameter("receiver_phone"));
         checkoutRequest.setShippingAddress(request.getParameter("shipping_address"));
         checkoutRequest.setTotalAmount(ParamUtil.getBigDecimal(request, "total_amount"));
-        checkoutRequest.setTransactionCode(request.getParameter("transaction_code"));
 
         if ("CART".equalsIgnoreCase(checkoutRequest.getType())) {
             checkoutRequest.setCartItemIds(request.getParameter("cartItemIds"));
