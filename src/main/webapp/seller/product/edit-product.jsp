@@ -186,6 +186,7 @@
                                                         <c:forEach var="v" items="${productVariants}">
                                                             <tr class="variant-row">
                                                                 <td>
+                                                                    <input type="hidden" name="variantId" value="${v.variantId}">
                                                                     <select name="variantColor" class="form-control form-control-sm" required>
                                                                         <option value="">Chọn màu</option>
                                                                         <c:forEach var="c" items="${colors}">
@@ -217,6 +218,7 @@
                                                         <!-- Row mặc định nếu không có biến thể -->
                                                         <tr class="variant-row">
                                                             <td>
+                                                                <input type="hidden" name="variantId" value="">
                                                                 <select name="variantColor" class="form-control form-control-sm" required>
                                                                     <option value="" selected>Chọn màu</option>
                                                                     <c:forEach var="c" items="${colors}">
@@ -522,7 +524,7 @@
         dbSizes.forEach(size => { sizeOptions += '<option value="' + size + '">' + size + '</option>'; });
 
         newRow.innerHTML =
-            '<td><select name="variantColor" class="form-control form-control-sm" required>' + colorOptions + '</select></td>' +
+            '<td><input type="hidden" name="variantId" value=""><select name="variantColor" class="form-control form-control-sm" required>' + colorOptions + '</select></td>' +
             '<td><select name="variantSize" class="form-control form-control-sm" required>' + sizeOptions + '</select></td>' +
             '<td><input type="number" name="variantStock" class="form-control form-control-sm" placeholder="Số lượng" min="0" required></td>' +
             '<td><button type="button" class="btn-delete-row" onclick="deleteVariantRow(this)" title="Xóa"><i data-lucide="trash-2"></i></button></td>';

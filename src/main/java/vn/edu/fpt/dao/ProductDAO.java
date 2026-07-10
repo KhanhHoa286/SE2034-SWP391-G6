@@ -875,6 +875,34 @@ public class ProductDAO extends DBContext {
         return false;
     }
 
+    public boolean updateProductVariant(ProductVariant variant) {
+        String sql = """
+            UPDATE product_variants
+            SET color_id = ?, size_id = ?, variant_name = ?, stock_quantity = ?
+            WHERE variant_id = ? AND product_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            if (variant.getColorId() != null) {
+                stmt.setInt(1, variant.getColorId());
+            } else {
+                stmt.setNull(1, java.sql.Types.INTEGER);
+            }
+            if (variant.getSizeId() != null) {
+                stmt.setInt(2, variant.getSizeId());
+            } else {
+                stmt.setNull(2, java.sql.Types.INTEGER);
+            }
+            stmt.setString(3, variant.getVariantName());
+            stmt.setInt(4, variant.getStockQuantity());
+            stmt.setInt(5, variant.getVariantId());
+            stmt.setInt(6, variant.getProductId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean insertProductImage(ProductImage image) {
         String sql = """
             INSERT INTO product_images (product_id, image_url, is_primary)
@@ -1161,6 +1189,34 @@ public class ProductDAO extends DBContext {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, productId);
             return stmt.executeUpdate() >= 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteVariantById(int variantId, int productId) {
+        String sql = "DELETE FROM product_variants WHERE variant_id = ? AND product_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, variantId);
+            stmt.setInt(2, productId);
+            return stmt.executeUpdate() >= 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean retireVariantById(int variantId, int productId) {
+        String sql = """
+            UPDATE product_variants
+            SET stock_quantity = 0
+            WHERE variant_id = ? AND product_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, variantId);
+            stmt.setInt(2, productId);
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
