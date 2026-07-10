@@ -257,6 +257,8 @@ public class EditDeliveryStatusServlet extends HttpServlet {
         connection.setAutoCommit(false);
 
         try {
+            ensureDeliveredAtColumn(connection);
+
             String updateDeliverySql = """
                     UPDATE deliveries
                     SET status = 'DELIVERED'
@@ -275,7 +277,8 @@ public class EditDeliveryStatusServlet extends HttpServlet {
 
             String updateOrderSql = """
                     UPDATE sub_orders
-                    SET status = 'DELIVERED'
+                    SET status = 'DELIVERED',
+                        delivered_at = COALESCE(delivered_at, GETDATE())
                     WHERE sub_order_id = ?
                       AND status = 'SHIPPING'
                     """;
@@ -307,6 +310,18 @@ public class EditDeliveryStatusServlet extends HttpServlet {
             throw ex;
         } finally {
             connection.setAutoCommit(oldAutoCommit);
+        }
+    }
+
+    private void ensureDeliveredAtColumn(Connection connection) throws Exception {
+        String sql = """
+                IF COL_LENGTH('sub_orders', 'delivered_at') IS NULL
+                BEGIN
+                    ALTER TABLE sub_orders ADD delivered_at DATETIME NULL
+                END
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.execute();
         }
     }
 
