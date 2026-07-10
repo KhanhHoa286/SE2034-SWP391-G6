@@ -10,6 +10,8 @@ import vn.edu.fpt.model.User;
 import vn.edu.fpt.model.Ward;
 import vn.edu.fpt.model.Province;
 
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -132,6 +134,111 @@ public class ShopDAO extends DBContext {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean createShopAndGrantSellerRole(Shop shop) {
+        String insertShopSql =
+                """
+                INSERT INTO shops
+                (
+                    owner_id,
+                    shop_name,
+                    logo_url,
+                    description,
+                    ward_id,
+                    street_address,
+                    approval_status,
+                    status
+                )
+                VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?)
+                """;
+
+        String sellerRoleSql = """
+                SELECT TOP 1 role_id
+                FROM roles
+                WHERE UPPER(LTRIM(RTRIM(role_name))) = 'SELLER'
+                """;
+
+        String hasSellerRoleSql = """
+                SELECT 1
+                FROM user_roles
+                WHERE user_id = ?
+                  AND role_id = ?
+                """;
+
+        String insertRoleSql = "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)";
+
+        boolean oldAutoCommit = true;
+        try {
+            oldAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement ps = connection.prepareStatement(insertShopSql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setInt(1, shop.getOwnerId());
+                ps.setString(2, shop.getShopName());
+                ps.setString(3, shop.getLogoUrl());
+                ps.setString(4, shop.getDescription());
+                ps.setInt(5, shop.getWardId());
+                ps.setString(6, shop.getStreetAddress());
+                ps.setString(7, ApprovalStatus.PENDING.name());
+                ps.setString(8, ShopStatus.ACTIVE.name());
+
+                if (ps.executeUpdate() <= 0) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            int sellerRoleId = 0;
+            try (PreparedStatement ps = connection.prepareStatement(sellerRoleSql);
+                 ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    sellerRoleId = rs.getInt("role_id");
+                }
+            }
+
+            if (sellerRoleId <= 0) {
+                connection.rollback();
+                return false;
+            }
+
+            boolean hasSellerRole = false;
+            try (PreparedStatement ps = connection.prepareStatement(hasSellerRoleSql)) {
+                ps.setInt(1, shop.getOwnerId());
+                ps.setInt(2, sellerRoleId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    hasSellerRole = rs.next();
+                }
+            }
+
+            if (!hasSellerRole) {
+                try (PreparedStatement ps = connection.prepareStatement(insertRoleSql)) {
+                    ps.setInt(1, shop.getOwnerId());
+                    ps.setInt(2, sellerRoleId);
+                    if (ps.executeUpdate() <= 0) {
+                        connection.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            connection.commit();
+            return true;
+        } catch (Exception e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ignored) {
+            }
+            e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(oldAutoCommit);
+            } catch (SQLException ignored) {
+            }
         }
 
         return false;

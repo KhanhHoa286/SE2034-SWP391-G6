@@ -16,33 +16,36 @@ public class UploadImage {
     // Khởi tạo 1 lần duy nhất khi class được load
     static {
         try {
-            // 1. Tạo đối tượng Properties để chứa cấu hình
             Properties prop = new Properties();
-            // 2. Load file config.properties từ thư mục src
             InputStream input = UploadImage.class.getClassLoader().getResourceAsStream("config.properties");
 
             if (input == null) {
                 input = UploadImage.class.getClassLoader().getResourceAsStream("vn/edu/fpt/config.properties");
             }
 
-            if (input == null) {
-                throw new RuntimeException("Không tìm thấy file config.properties!");
+            if (input != null) {
+                prop.load(input);
+                String cloudName = prop.getProperty("cloudinary.cloud_name");
+                String apiKey = prop.getProperty("cloudinary.api_key");
+                String apiSecret = prop.getProperty("cloudinary.api_secret");
+
+                if (cloudName != null && !cloudName.trim().isEmpty()
+                        && apiKey != null && !apiKey.trim().isEmpty()
+                        && apiSecret != null && !apiSecret.trim().isEmpty()) {
+                    Map<String, String> config = new HashMap<>();
+                    config.put("cloud_name", cloudName.trim());
+                    config.put("api_key", apiKey.trim());
+                    config.put("api_secret", apiSecret.trim());
+                    cloudinary = new Cloudinary(config);
+                } else {
+                    System.err.println("[UploadImage] Cloudinary configurations are missing in config.properties. Local fallback will be used.");
+                }
+            } else {
+                System.err.println("[UploadImage] config.properties not found. Local fallback will be used.");
             }
-
-            prop.load(input);
-
-            // 3. Đọc dữ liệu từ file properties
-            Map<String, String> config = new HashMap<>();
-            config.put("cloud_name", prop.getProperty("cloudinary.cloud_name"));
-            config.put("api_key", prop.getProperty("cloudinary.api_key"));
-            config.put("api_secret", prop.getProperty("cloudinary.api_secret"));
-
-            // 4. Khởi tạo đối tượng Cloudinary
-            cloudinary = new Cloudinary(config);
-
         } catch (Exception e) {
+            System.err.println("[UploadImage] Error configuring Cloudinary: " + e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("Lỗi cấu hình Cloudinary: " + e.getMessage());
         }
     }
 
@@ -66,6 +69,9 @@ public class UploadImage {
         }
 
         Cloudinary cloudinary = getInstance();
+        if (cloudinary == null) {
+            throw new Exception("Cloudinary chưa được cấu hình!");
+        }
 
         Map options = new HashMap();
         options.put("folder", folder);
@@ -97,6 +103,9 @@ public class UploadImage {
         }
 
         Cloudinary cloudinary = getInstance();
+        if (cloudinary == null) {
+            throw new Exception("Cloudinary chưa được cấu hình!");
+        }
 
         Map options = new HashMap();
         options.put("folder", folder);

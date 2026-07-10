@@ -3,6 +3,7 @@ import vn.edu.fpt.common.DBContext;
 import vn.edu.fpt.controller.admin.CustomerDTO;
 import vn.edu.fpt.controller.admin.OrderHistoryDTO;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 /**
@@ -207,6 +208,107 @@ public class CustomerDAO extends DBContext {
             }
         } catch (SQLException e) {
             System.err.println("[CustomerDAO] isWardInProvince error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean hasCompletedSellerIdentity(int userId) {
+        String sql = """
+                SELECT 1
+                FROM users
+                WHERE user_id = ?
+                  AND citizen_id IS NOT NULL
+                  AND LTRIM(RTRIM(citizen_id)) <> ''
+                  AND legal_full_name IS NOT NULL
+                  AND LTRIM(RTRIM(legal_full_name)) <> ''
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            System.err.println("[CustomerDAO] hasCompletedSellerIdentity error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean citizenIdExistsForOtherUser(String citizenId, int currentUserId) {
+        String sql = """
+                SELECT 1
+                FROM users
+                WHERE citizen_id = ?
+                  AND user_id <> ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, citizenId);
+            ps.setInt(2, currentUserId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            System.err.println("[CustomerDAO] citizenIdExistsForOtherUser error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateSellerIdentity(
+            int userId,
+            String legalFullName,
+            String citizenId,
+            LocalDate citizenIdIssueDate,
+            String citizenIdIssuePlace,
+            String permanentAddress,
+            String frontIdImage,
+            String backIdImage,
+            String businessType
+    ) {
+        String sql = """
+                UPDATE users
+                SET legal_full_name = ?,
+                    citizen_id = ?,
+                    citizen_id_issue_date = ?,
+                    citizen_id_issue_place = ?,
+                    permanent_address = ?,
+                    front_id_image = COALESCE(?, front_id_image),
+                    back_id_image = COALESCE(?, back_id_image),
+                    business_type = ?,
+                    verification_status = 'APPROVED',
+                    rejection_reason = NULL,
+                    updated_at = GETDATE()
+                WHERE user_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, legalFullName);
+            ps.setString(2, citizenId);
+            if (citizenIdIssueDate != null) {
+                ps.setDate(3, Date.valueOf(citizenIdIssueDate));
+            } else {
+                ps.setNull(3, Types.DATE);
+            }
+            ps.setString(4, citizenIdIssuePlace);
+            ps.setString(5, permanentAddress);
+            if (frontIdImage == null || frontIdImage.trim().isEmpty()) {
+                ps.setNull(6, Types.VARCHAR);
+            } else {
+                ps.setString(6, frontIdImage);
+            }
+            if (backIdImage == null || backIdImage.trim().isEmpty()) {
+                ps.setNull(7, Types.VARCHAR);
+            } else {
+                ps.setString(7, backIdImage);
+            }
+            ps.setString(8, businessType);
+            ps.setInt(9, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[CustomerDAO] updateSellerIdentity error: " + e.getMessage());
             e.printStackTrace();
         }
         return false;

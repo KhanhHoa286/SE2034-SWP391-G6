@@ -42,7 +42,7 @@ public class SellerDashboardServlet extends HttpServlet {
         // 2. Tốc độ tăng trưởng doanh thu so với ngày hôm qua (%)
         double revenueTrend = (shopId == -1) ? 0.0 : orderDAO.getRevenueTrend(shopId);
 
-        // 3. Đơn hàng mới hôm nay
+        // 3. Đơn giao thành công hôm nay
         int todayNewOrders = (shopId == -1) ? 0 : orderDAO.getTodayNewOrders(shopId);
 
         // 4. Số lượng đơn hàng chênh lệch so với hôm qua

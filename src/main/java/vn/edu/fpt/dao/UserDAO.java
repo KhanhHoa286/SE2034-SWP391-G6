@@ -155,7 +155,16 @@ public class UserDAO extends DBContext {
     }
 
     public Integer getRoleIdByUserId(int userId) {
-        String sql = "SELECT TOP 1 role_id FROM user_roles WHERE user_id = ?";
+        String sql = "SELECT TOP 1 ur.role_id "
+                + "FROM user_roles ur "
+                + "JOIN roles r ON ur.role_id = r.role_id "
+                + "WHERE ur.user_id = ? "
+                + "ORDER BY CASE UPPER(LTRIM(RTRIM(r.role_name))) "
+                + "WHEN 'ADMIN' THEN 1 "
+                + "WHEN 'SELLER' THEN 2 "
+                + "WHEN 'DELIVERY' THEN 3 "
+                + "WHEN 'CUSTOMER' THEN 4 "
+                + "ELSE 5 END";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, userId);
@@ -545,6 +554,16 @@ public class UserDAO extends DBContext {
         user.setPhone(rs.getString("phone"));
         user.setPasswordHash(rs.getString("password_hash"));
         user.setAvatarUrl(rs.getString("avatar_url"));
+        user.setIdCardNumber(rs.getString("id_card_number"));
+        user.setLegalFullName(rs.getString("legal_full_name"));
+        user.setCitizenId(rs.getString("citizen_id"));
+        user.setCitizenIdIssuePlace(rs.getString("citizen_id_issue_place"));
+        user.setPermanentAddress(rs.getString("permanent_address"));
+        user.setFrontIdImage(rs.getString("front_id_image"));
+        user.setBackIdImage(rs.getString("back_id_image"));
+        user.setBusinessType(rs.getString("business_type"));
+        user.setVerificationStatus(rs.getString("verification_status"));
+        user.setRejectionReason(rs.getString("rejection_reason"));
 
         String gender = rs.getString("gender");
         if (gender != null && !gender.trim().isEmpty()) {
@@ -560,6 +579,11 @@ public class UserDAO extends DBContext {
             user.setDateOfBirth(dob.toLocalDate());
         }
 
+        Date citizenIssueDate = rs.getDate("citizen_id_issue_date");
+        if (citizenIssueDate != null) {
+            user.setCitizenIdIssueDate(citizenIssueDate.toLocalDate());
+        }
+
         String status = rs.getString("status");
         if (status != null && !status.trim().isEmpty()) {
             try {
@@ -572,6 +596,11 @@ public class UserDAO extends DBContext {
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {
             user.setCreatedAt(createdAt.toLocalDateTime());
+        }
+
+        Timestamp updatedAt = rs.getTimestamp("updated_at");
+        if (updatedAt != null) {
+            user.setUpdatedAt(updatedAt.toLocalDateTime());
         }
 
         return user;
