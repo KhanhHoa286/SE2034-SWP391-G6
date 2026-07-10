@@ -34,9 +34,7 @@
     <!-- Main Content -->
     <main class="profile-main">
         <!-- Breadcrumb -->
-        <div class="breadcrumb">
-            <a href="javascript:history.back()" class="text-dark text-decoration-none"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
-        </div>
+        <a href="javascript:history.back()" class="back-link"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
 
         <div class="profile-container">
 

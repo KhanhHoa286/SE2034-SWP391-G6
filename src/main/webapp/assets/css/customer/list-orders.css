@@ -1,3 +1,22 @@
+/* Back link — đồng bộ với view-order.css */
+.back-link {
+    display: inline-block;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #666;
+    text-decoration: none;
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+    transition: color 0.2s ease;
+}
+.back-link:hover {
+    color: #000;
+}
+.back-link i {
+    margin-right: 5px;
+}
+
 .orders-header-container {
     display: flex;
     flex-direction: column;
@@ -20,17 +39,22 @@
 .orders-filter-bar {
     display: flex;
     align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
+    gap: 16px;
+    flex-wrap: nowrap;
     background-color: #fafafa;
     padding: 16px 20px;
     border-radius: 8px;
     border: 1px solid #eee;
+    width: 100%;
+    box-sizing: border-box;
+    margin-left: 0;
 }
 .filter-group {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
 }
 .filter-group label {
     font-size: 0.9rem;
@@ -49,6 +73,10 @@
     background-color: #fff;
     height: 38px;
     box-sizing: border-box;
+}
+.filter-input {
+    flex: 1;
+    min-width: 130px;
 }
 .filter-select {
     min-width: 150px;
@@ -151,12 +179,17 @@
 
 /* Status Badges */
 .status-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 4px 8px;
     border-radius: 2px;
     font-size: 0.65rem;
     font-weight: 600;
     text-transform: uppercase;
+    min-width: 110px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .status-pending {
@@ -166,25 +199,21 @@
 }
 
 .status-preparing {
-    background-color: #FFF0E6;
     color: #E67E22;
     border: 1px solid #FFD5B8;
 }
 
 .status-shipping {
-    background-color: #EBF5FF;
     color: #2F80ED;
     border: 1px solid #CDE4FF;
 }
 
 .status-completed {
-    background-color: #E6F9ED;
     color: #27AE60;
     border: 1px solid #C3F2D3;
 }
 
 .status-cancelled {
-    background-color: #FCE8E6;
     color: #EB5757;
     border: 1px solid #FAD1CC;
 }
@@ -211,6 +240,9 @@
     color: #555;
 }
 .btn-view-details {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: #f0f0f0;
     color: #111;
     padding: 6px 10px;
@@ -220,6 +252,9 @@
     border-radius: 2px;
     transition: background-color 0.2s;
     white-space: nowrap;
+    min-width: 85px;
+    height: 32px;
+    box-sizing: border-box;
 }
 .btn-view-details:hover {
     background-color: #e0e0e0;
@@ -227,6 +262,9 @@
 }
 
 .btn-received {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: #27AE60;
     color: #fff;
     padding: 6px 10px;
@@ -238,16 +276,19 @@
     cursor: pointer;
     transition: background-color 0.2s;
     white-space: nowrap;
+    min-width: 130px;
+    height: 32px;
+    box-sizing: border-box;
 }
 
 .btn-received:disabled,
 .btn-received.update-status-order {
-        background-color: #e0e0e0 !important;
-        border-color: #d6d6d6 !important;
-        color: #8c8c8c !important;
-        cursor: not-allowed !important;
-        pointer-events: none;
-        box-shadow: none !important;
+    background-color: #e0e0e0 !important;
+    border-color: #d6d6d6 !important;
+    color: #8c8c8c !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+    box-shadow: none !important;
 }
 
 .btn-received:hover {
@@ -256,6 +297,9 @@
 }
 
 .btn-canceled {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: #EB5757; /* Màu đỏ nổi bật nhưng dịu mắt, chuẩn UI */
     color: #fff;
     padding: 6px 10px;
@@ -267,6 +311,9 @@
     cursor: pointer;
     transition: background-color 0.2s;
     white-space: nowrap;
+    min-width: 130px;
+    height: 32px;
+    box-sizing: border-box;
 }
 
 /* Giữ nguyên logic ẩn/khóa nút khi bị disabled hoặc đang cập nhật */

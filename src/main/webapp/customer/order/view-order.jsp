@@ -32,10 +32,10 @@
 
     <!-- Main Content -->
     <main class="profile-main">
-        <div class="profile-container">
-            <!-- Back to orders -->
-            <a href="javascript:history.back()" class="back-link"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
+        <!-- Back to orders -->
+        <a href="javascript:history.back()" class="back-link"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
 
+        <div class="profile-container">
             <!-- Order Header -->
             <div class="order-detail-header">
                 <div class="order-title-group">
