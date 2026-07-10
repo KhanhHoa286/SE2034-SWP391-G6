@@ -22,7 +22,7 @@ public class CancleOrderServlet extends HttpServlet {
              Integer subOrderId = ParamUtil.getInteger(request,"sub_order_id");
              //
              if(subOrderId != null && subOrderId >= 0) {
-                 boolean checkCancel = orderDAO.cancleOrder(subOrderId);
+                 boolean checkCancel = orderDAO.cancelSubOrderTransaction(subOrderId);
                  if(checkCancel) {
                      response.getWriter().write("{\"status\":\"SUCCESS\"}");
                      return;

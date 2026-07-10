@@ -11,7 +11,6 @@ function selectPayment(method) {
 
 function addPaymentContent(userId){
     const  payMentContent = document.getElementById("paymentContent");
-    const hiddenTransferCode = document.getElementById("hidden-transaction-code");
     //
     const now = new Date();
 
@@ -22,7 +21,6 @@ function addPaymentContent(userId){
 
     stringContent = `MODA_${userId}_${hours}${minutes}${seconds}`;
         payMentContent.innerText = stringContent;
-      hiddenTransferCode.value = stringContent;
 }
 
 window.addEventListener("pageshow", function (event) {

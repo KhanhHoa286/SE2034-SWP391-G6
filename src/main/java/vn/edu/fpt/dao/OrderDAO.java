@@ -819,20 +819,86 @@ public class OrderDAO extends DBContext {
     }
 
     /**
-     * HoaNK - Cập nhật trạng thái hủy đơn hàng
+     * HoaNK - Hàm tổng xử lý Hủy đơn hàng con và hoàn kho trong 1 Transaction
      */
-    private final String CANCLE_ORDER = """
-            UPDATE sub_orders SET status = 'CANCELLED' WHERE sub_order_id = ?;
-            """;
-    public boolean cancleOrder(int subOrderId) {
-        String sql = CANCLE_ORDER;
-        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1,subOrderId);
-            stmt.executeUpdate();
+    public boolean cancelSubOrderTransaction(int subOrderId) {
+        try{
+            connection.setAutoCommit(false);
+
+            //Cập nhật trạng thái sub_order thành CANCELLED
+            updateSubOrderStatusToCancelled(subOrderId);
+
+            //Lấy danh sách sản phẩm cần hoàn kho nhét vào Map
+            Map<Integer, Integer> itemMap = this.getOrderItemsToReturn(subOrderId);
+
+            //Tiến hành cộng trả lại kho hàng bằng addBatch
+            if (!itemMap.isEmpty()) {
+                this.executeReturnStockBatch(itemMap);
+            }
+
+            connection.commit();
             return true;
-        }catch (Exception e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
         }
         return false;
+    }
+    /**
+     * HoaNK - Cập nhật trạng thái sub_order sau khi hủy
+     */
+    private final String UPDATE_SUB_ORDER_CANCLE = """
+    UPDATE sub_orders SET status = 'CANCELLED' WHERE sub_order_id = ?;
+    """;
+    public void updateSubOrderStatusToCancelled(int subOrderId) throws SQLException {
+        try (PreparedStatement stmt = connection.prepareStatement(UPDATE_SUB_ORDER_CANCLE)) {
+            stmt.setInt(1, subOrderId);
+            stmt.executeUpdate();
+        }
+    }
+
+    /**
+     * HoaNK - Lấy danh sách các biến thể được mua rồi nhét vào trong map để + lại số lượng khi hyur
+     */
+    private final String SELECT_ORDER_ITEMS_BY_SUB_ORDER = """
+    SELECT variant_id, quantity FROM order_items WHERE sub_order_id = ?;
+    """;
+    public Map<Integer, Integer> getOrderItemsToReturn(int subOrderId) throws SQLException {
+        Map<Integer, Integer> mapOrderItem = new HashMap<>();
+        try (PreparedStatement stmt = connection.prepareStatement(SELECT_ORDER_ITEMS_BY_SUB_ORDER)) {
+            stmt.setInt(1, subOrderId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int variantId = rs.getInt("variant_id");
+                    int quantity = rs.getInt("quantity");
+                    mapOrderItem.put(variantId, quantity);
+                }
+            }
+        }
+        return mapOrderItem;
+    }
+
+    /**
+     * HoaNK - Gom nhóm các biến thể cần update sau khi hủy để + lại số lượng cho nó
+     */
+    private final String UPDATE_RETURN_STOCK_VARIANT = """
+    UPDATE product_variants SET stock_quantity = stock_quantity + ? WHERE variant_id = ?;
+    """;
+    public void executeReturnStockBatch(Map<Integer, Integer> mapOrderItem) throws SQLException {
+        try (PreparedStatement stmt = connection.prepareStatement(UPDATE_RETURN_STOCK_VARIANT)) {
+            for (Map.Entry<Integer, Integer> entry : mapOrderItem.entrySet()) {
+                stmt.setInt(1, entry.getValue());
+                stmt.setInt(2, entry.getKey());
+                stmt.addBatch();
+            }
+            stmt.executeBatch();
+        }
     }
 }
