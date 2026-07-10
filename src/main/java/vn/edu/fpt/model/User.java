@@ -32,6 +32,20 @@ public class User {
 
     // users.status: PENDING / ACTIVE
     private UserStatus status;
+
+    private String idCardNumber;
+    private String legalFullName;
+    private String citizenId;
+    private LocalDate citizenIdIssueDate;
+    private String citizenIdIssuePlace;
+    private String permanentAddress;
+    private String frontIdImage;
+    private String backIdImage;
+    private String businessType;
+    private String verificationStatus;
+    private String rejectionReason;
+
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 }

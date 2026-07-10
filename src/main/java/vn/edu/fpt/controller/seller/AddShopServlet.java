@@ -8,9 +8,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
-
+import vn.edu.fpt.common.UploadImage;
+import vn.edu.fpt.dao.CustomerDAO;
 import vn.edu.fpt.dao.ProvinceDAO;
 import vn.edu.fpt.dao.ShopDAO;
+import vn.edu.fpt.dao.UserDAO;
 import vn.edu.fpt.model.Province;
 import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
@@ -29,155 +31,215 @@ import java.util.Map;
 public class AddShopServlet extends HttpServlet {
 
     private final ShopDAO shopDAO = new ShopDAO();
+    private final CustomerDAO customerDAO = new CustomerDAO();
+    private final UserDAO userDAO = new UserDAO();
     private final ProvinceDAO provinceDAO = new ProvinceDAO();
 
     @Override
-    protected void doGet(HttpServletRequest request,
-                         HttpServletResponse response)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
 
-        List<Province> provinces =
-                provinceDAO.getAllProvinces();
+        HttpSession session = request.getSession(false);
+        Integer ownerId = getLoggedInUserId(session);
+        if (ownerId == null || ownerId <= 0) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
+        if (shopDAO.existsByOwnerId(ownerId)) {
+            session.setAttribute("hasSellerAccount", true);
+            response.sendRedirect(request.getContextPath() + "/seller/orders");
+            return;
+        }
+
+        if (!customerDAO.hasCompletedSellerIdentity(ownerId)) {
+            response.sendRedirect(request.getContextPath() + "/seller-register");
+            return;
+        }
+
+        List<Province> provinces = provinceDAO.getAllProvinces();
         request.setAttribute("provinces", provinces);
-
-        request.getRequestDispatcher(
-                "/seller/shop/add-shop.jsp"
-        ).forward(request, response);
+        request.getRequestDispatcher("/seller/shop/add-shop.jsp").forward(request, response);
     }
 
     @Override
-    protected void doPost(HttpServletRequest request,
-                          HttpServletResponse response)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         request.setCharacterEncoding("UTF-8");
-        
-        Map<String, String> oldInput = new HashMap<>();
-        oldInput.put("shopName", request.getParameter("shopName"));
-        oldInput.put("shopEmail", request.getParameter("shopEmail"));
-        oldInput.put("provinceId", request.getParameter("provinceId"));
-        oldInput.put("wardId", request.getParameter("wardId"));
-        oldInput.put("streetAddress", request.getParameter("streetAddress"));
-        oldInput.put("description", request.getParameter("description"));
-        request.setAttribute("oldInput", oldInput);
+        response.setCharacterEncoding("UTF-8");
+
+        HttpSession session = request.getSession(false);
+        Integer ownerId = getLoggedInUserId(session);
+        if (ownerId == null || ownerId <= 0) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        if (!customerDAO.hasCompletedSellerIdentity(ownerId)) {
+            response.sendRedirect(request.getContextPath() + "/seller-register");
+            return;
+        }
+
+        if (shopDAO.existsByOwnerId(ownerId)) {
+            session.setAttribute("hasSellerAccount", true);
+            response.sendRedirect(request.getContextPath() + "/seller/orders");
+            return;
+        }
 
         Map<String, String> errors = new HashMap<>();
+        Map<String, String> oldInput = new HashMap<>();
+
+        String shopName = clean(request.getParameter("shopName"));
+        String provinceId = clean(request.getParameter("provinceId"));
+        String wardIdRaw = clean(request.getParameter("wardId"));
+        String streetAddress = clean(request.getParameter("streetAddress"));
+        String description = clean(request.getParameter("description"));
+
+        oldInput.put("shopName", shopName);
+        oldInput.put("provinceId", provinceId);
+        oldInput.put("wardId", wardIdRaw);
+        oldInput.put("streetAddress", streetAddress);
+        oldInput.put("description", description);
+        request.setAttribute("oldInput", oldInput);
+
+        int wardId = parseWardId(wardIdRaw, errors);
+        validateShopName(shopName, errors);
+        validateRequired(provinceId, "provinceId", "Vui lòng chọn Tỉnh/Thành phố.", errors);
+        validateRequired(streetAddress, "streetAddress", "Địa chỉ không được để trống.", errors);
+
+        if (description.length() > 250) {
+            errors.put("description", "Mô tả ngắn không được vượt quá 250 ký tự.");
+        }
+
+        Part logoPart = request.getPart("logo");
+        validateLogo(logoPart, errors);
+
+        if (!errors.isEmpty()) {
+            request.setAttribute("errors", errors);
+            request.setAttribute("popupType", "error");
+            request.setAttribute("popupMessage", "Vui lòng kiểm tra lại thông tin đăng ký.");
+            doGet(request, response);
+            return;
+        }
 
         try {
-            String shopName = request.getParameter("shopName");
-            if (shopName == null || shopName.trim().isEmpty()) {
-                errors.put("shopName", "Tên cửa hàng không được để trống.");
-            } else if (shopName.trim().length() > 100) {
-                errors.put("shopName", "Tên cửa hàng không được vượt quá 100 ký tự.");
-            } else if (shopDAO.existsByShopName(shopName.trim())) {
-                errors.put("shopName", "Tên cửa hàng đã tồn tại.");
-            }
-
-//            String shopEmail = request.getParameter("shopEmail");
-//            if (shopEmail == null || shopEmail.trim().isEmpty()) {
-//                errors.put("shopEmail", "Email cửa hàng không được để trống.");
-//            } else if (!shopEmail.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-//                errors.put("shopEmail", "Email không hợp lệ.");
-//            }
-
-            String provinceIdStr = request.getParameter("provinceId");
-            if (provinceIdStr == null || provinceIdStr.trim().isEmpty()) {
-                errors.put("provinceId", "Vui lòng chọn Tỉnh/Thành phố.");
-            }
-
-            String wardIdStr = request.getParameter("wardId");
-            int wardId = -1;
-            if (wardIdStr == null || wardIdStr.trim().isEmpty()) {
-                errors.put("wardId", "Vui lòng chọn Phường/Xã.");
-            } else {
-                try {
-                    wardId = Integer.parseInt(wardIdStr);
-                } catch (NumberFormatException e) {
-                    errors.put("wardId", "Phường/Xã không hợp lệ.");
-                }
-            }
-
-            String streetAddress = request.getParameter("streetAddress");
-            if (streetAddress == null || streetAddress.trim().isEmpty()) {
-                errors.put("streetAddress", "Địa chỉ không được để trống.");
-            }
-
-            String description = request.getParameter("description");
-            if (description != null && description.length() > 250) {
-                errors.put("description", "Mô tả ngắn không được vượt quá 250 ký tự.");
-            }
-
-            Part logoPart = request.getPart("logo");
-            if (logoPart == null || logoPart.getSize() == 0) {
-                errors.put("logo", "Vui lòng tải lên logo cửa hàng.");
-            } else {
-                String contentType = logoPart.getContentType();
-                boolean isJpgOrPng = contentType != null && (contentType.equals("image/jpeg") || contentType.equals("image/png") || contentType.equals("image/jpg"));
-                if (!isJpgOrPng) {
-                    errors.put("logo", "Chỉ hỗ trợ định dạng JPG, PNG");
-                } else if (logoPart.getSize() > 2 * 1024 * 1024) {
-                    errors.put("logo", "Kích thích file không được vượt quá 2MB");
-                }
-            }
-
-            if (!errors.isEmpty()) {
-                request.setAttribute("errors", errors);
-                request.setAttribute("popupType", "error");
-                request.setAttribute("popupMessage", "Vui lòng kiểm tra lại thông tin đăng ký.");
-                doGet(request, response);
-                return;
-            }
-
-            // Tiến hành upload logo lên Cloudinary
-            String logoUrl = vn.edu.fpt.common.UploadImage.uploadImage(logoPart, "shops");
-            if (logoUrl == null || logoUrl.isEmpty()) {
-                throw new Exception("Tải ảnh lên Cloudinary thất bại.");
-            }
-
-            // Lấy owner_id
-            HttpSession session = request.getSession();
-            User user = (User) session.getAttribute("account");
-            int ownerId;
-            if (user != null) {
-                ownerId = user.getUserId();
-            } else {
-                ownerId = shopDAO.getAvailableOwnerId();
-            }
-
-            if (ownerId == -1) {
-                throw new Exception("Không tìm thấy tài khoản người dùng hợp lệ để liên kết cửa hàng!");
-            }
-
-            if (shopDAO.existsByOwnerId(ownerId)) {
-                throw new Exception("Tài khoản này đã có cửa hàng đăng ký!");
+            String logoUrl = UploadImage.uploadImage(logoPart, "shops");
+            if (logoUrl == null || logoUrl.trim().isEmpty()) {
+                throw new Exception("Tải ảnh lên hệ thống thất bại.");
             }
 
             Shop shop = Shop.builder()
                     .ownerId(ownerId)
-                    .shopName(shopName.trim())
+                    .shopName(shopName)
                     .logoUrl(logoUrl)
-                    .description(description != null ? description.trim() : "")
+                    .description(description)
                     .wardId(wardId)
-                    .streetAddress(streetAddress.trim())
+                    .streetAddress(streetAddress)
                     .build();
 
-            boolean success = shopDAO.insertShop(shop);
-
-            if (success) {
-                request.setAttribute("popupType", "success");
-                request.setAttribute("popupMessage", "Công bố hồ sơ cửa hàng thành công!");
-                request.removeAttribute("oldInput");
-            } else {
-                throw new Exception("Lưu thông tin cửa hàng vào cơ sở dữ liệu thất bại.");
+            boolean success = shopDAO.createShopAndGrantSellerRole(shop);
+            if (!success) {
+                throw new Exception("Không thể lưu thông tin cửa hàng hoặc cấp quyền người bán.");
             }
 
+            int sellerRoleId = userDAO.getRoleIdByName("SELLER");
+            session.setAttribute("hasSellerAccount", true);
+            if (sellerRoleId > 0) {
+                session.setAttribute("roleId", sellerRoleId);
+            }
+
+            response.sendRedirect(request.getContextPath() + "/seller/orders?shopCreated=1");
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("popupType", "error");
             request.setAttribute("popupMessage", e.getMessage());
+            doGet(request, response);
+        }
+    }
+
+    private void validateShopName(String shopName, Map<String, String> errors) {
+        if (shopName.isEmpty()) {
+            errors.put("shopName", "Tên cửa hàng không được để trống.");
+        } else if (shopName.length() > 100) {
+            errors.put("shopName", "Tên cửa hàng không được vượt quá 100 ký tự.");
+        } else if (shopDAO.existsByShopName(shopName)) {
+            errors.put("shopName", "Tên cửa hàng đã tồn tại.");
+        }
+    }
+
+    private void validateRequired(String value, String field, String message, Map<String, String> errors) {
+        if (value == null || value.trim().isEmpty()) {
+            errors.put(field, message);
+        }
+    }
+
+    private int parseWardId(String wardIdRaw, Map<String, String> errors) {
+        if (wardIdRaw == null || wardIdRaw.trim().isEmpty()) {
+            errors.put("wardId", "Vui lòng chọn Phường/Xã.");
+            return -1;
         }
 
-        doGet(request, response);
+        try {
+            return Integer.parseInt(wardIdRaw);
+        } catch (NumberFormatException e) {
+            errors.put("wardId", "Phường/Xã không hợp lệ.");
+            return -1;
+        }
+    }
+
+    private void validateLogo(Part logoPart, Map<String, String> errors) {
+        if (logoPart == null || logoPart.getSize() == 0) {
+            errors.put("logo", "Vui lòng tải lên logo cửa hàng.");
+            return;
+        }
+
+        String contentType = logoPart.getContentType();
+        boolean validType = contentType != null
+                && (contentType.equals("image/jpeg")
+                || contentType.equals("image/png")
+                || contentType.equals("image/jpg"));
+
+        if (!validType) {
+            errors.put("logo", "Chỉ hỗ trợ định dạng JPG hoặc PNG.");
+        } else if (logoPart.getSize() > 2 * 1024 * 1024) {
+            errors.put("logo", "Kích thước file không được vượt quá 2MB.");
+        }
+    }
+
+    private Integer getLoggedInUserId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object rawUserId = session.getAttribute("userId");
+        if (rawUserId instanceof Integer) {
+            return (Integer) rawUserId;
+        }
+
+        if (rawUserId != null) {
+            try {
+                return Integer.parseInt(rawUserId.toString());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+
+        Object rawUser = session.getAttribute("user");
+        if (rawUser instanceof User) {
+            return ((User) rawUser).getUserId();
+        }
+
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
+        return null;
+    }
+
+    private String clean(String value) {
+        return value == null ? "" : value.trim();
     }
 }
