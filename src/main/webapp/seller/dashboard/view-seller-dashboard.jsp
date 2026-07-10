@@ -61,10 +61,10 @@
                         <div class="metric-accent-line"></div>
                     </div>
 
-                    <!-- Thống kê đơn hàng mới -->
+                    <!-- Thống kê đơn hàng giao thành công -->
                     <div class="metric-card">
                         <div class="metric-header">
-                            <span class="metric-title">Đơn hàng mới hôm nay</span>
+                            <span class="metric-title">Đơn giao thành công hôm nay</span>
                         </div>
                         <span class="metric-value">${todayNewOrders}</span>
                         <div class="metric-accent-line"></div>
@@ -114,7 +114,7 @@
                         </div>
 
                         <button class="btn-bestsellers-all"
-                                onclick="location.href='${pageContext.request.contextPath}/seller/product/list-seller-product.jsp'">
+                                onclick="location.href='${pageContext.request.contextPath}/list-seller-products'">
                             Tất cả sản phẩm
                         </button>
                     </aside>

@@ -118,7 +118,8 @@ public class OrderDAO extends DBContext {
             SELECT COUNT(*) AS today_orders
             FROM sub_orders
             WHERE shop_id = ? 
-              AND CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)
+              AND status = 'DELIVERED'
+              AND CAST(COALESCE(delivered_at, created_at) AS DATE) = CAST(GETDATE() AS DATE)
             """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
