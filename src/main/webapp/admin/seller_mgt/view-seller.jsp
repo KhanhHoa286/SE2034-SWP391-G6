@@ -94,6 +94,8 @@
         .btn-suspend:hover { background-color: var(--danger-bg); }
         .btn-approve { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; border: 1px solid #111827; background-color: #111827; color: #ffffff; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .btn-approve:hover { background-color: #1f2937; }
+        .btn-back { background-color: #ffffff; border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; }
+        .btn-back:hover { background-color: #f8fafc; }
 
         /* Grid Content Layout */
         .detail-grid { display: grid; grid-template-columns: 360px 1fr; gap: 24px; }
@@ -243,6 +245,10 @@
             </div>
             
             <div class="header-actions-area">
+                <button onclick="history.back()" class="btn-back" style="margin-right: 8px;">
+                    <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+                    Quay lại
+                </button>
                 <c:if test="${seller.status == 'PENDING'}">
                     <form action="${pageContext.request.contextPath}/admin/seller-applications/detail" method="POST" style="display: inline-block;">
                         <input type="hidden" name="id" value="${seller.applicationId}">
@@ -297,7 +303,7 @@
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Địa chỉ Shop:</span>
-                        <span class="detail-value"><c:out value="${seller.address}"/></span>
+                        <span class="detail-value"><c:out value="${seller.streetAddress}"/></span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Mô tả Shop:</span>
@@ -312,7 +318,7 @@
                     <div class="stat-card">
                         <div class="stat-info">
                             <span class="stat-label">Tổng sản phẩm</span>
-                            <span class="stat-value"><c:out value="${totalProducts}"/></span>
+                            <span class="stat-value"><c:out value="${seller.totalProducts}"/></span>
                             <span class="stat-change up">
                                 <i data-lucide="arrow-up-right" style="width:12px;height:12px;"></i>
                                 +10%
@@ -360,8 +366,15 @@
                                 <tr>
                                     <td>
                                         <div class="product-cell">
-                                            <div class="product-img">
-                                                <i data-lucide="image" style="width:16px;height:16px;"></i>
+                                            <div class="product-img" style="overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f1f5f9;">
+                                                <c:choose>
+                                                    <c:when test="${not empty p.thumbnailUrl}">
+                                                        <img src="${p.thumbnailUrl}" alt="${p.productName}" style="width: 100%; height: 100%; object-fit: cover;" />
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <i data-lucide="image" style="width:16px;height:16px; color: #94a3b8;"></i>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </div>
                                             <span class="product-name"><c:out value="${p.productName}"/></span>
                                         </div>

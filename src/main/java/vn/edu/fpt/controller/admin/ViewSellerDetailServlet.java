@@ -105,6 +105,13 @@ public class ViewSellerDetailServlet extends HttpServlet {
                                 if (dbShopName != null && !dbShopName.trim().isEmpty()) {
                                     sellerData.put("shopName", dbShopName);
                                 }
+
+                                String description = rsShop.getNString("description");
+                                if (description != null && !description.trim().isEmpty()) {
+                                    sellerData.put("shopDescription", description);
+                                } else {
+                                    sellerData.put("shopDescription", "Chưa cập nhật mô tả");
+                                }
                                 
                                 // Lấy danh sách sản phẩm thực tế
                                 String prodSql = "SELECT TOP 5 * FROM products WHERE shop_id = ? AND (is_deleted = 0 OR is_deleted IS NULL) ORDER BY created_at DESC";
@@ -118,6 +125,7 @@ public class ViewSellerDetailServlet extends HttpServlet {
                                             prod.put("productCode", "PRD-" + rsProd.getInt("product_id"));
                                             prod.put("basePrice", rsProd.getBigDecimal("base_price"));
                                             prod.put("status", rsProd.getString("status"));
+                                            prod.put("thumbnailUrl", rsProd.getString("thumbnail_url"));
                                             // Mock sold count
                                             prod.put("soldCount", 10 + rsProd.getInt("product_id") * 3);
                                             products.add(prod);
