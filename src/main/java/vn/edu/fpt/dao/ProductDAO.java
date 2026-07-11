@@ -38,7 +38,7 @@ public class ProductDAO extends DBContext {
                   WHERE so.status = 'DELIVERED'
                   GROUP BY od.product_id
              ) sold_data ON p.product_id = sold_data.product_id
-    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED'
+    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED' AND p.status = 'ACTIVE'
 """;
 
     private static final String GROUP_PRODUCT = """
@@ -201,7 +201,7 @@ public class ProductDAO extends DBContext {
                   WHERE so.status = 'DELIVERED'
                   GROUP BY od.product_id
              ) sold_data ON p.product_id = sold_data.product_id
-    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED'
+    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED' AND p.status = 'ACTIVE'
 """;
 
     public int getTotalProductFilter(ProductFilterRequest productFilterRequest) {
@@ -322,7 +322,7 @@ public class ProductDAO extends DBContext {
                 WHERE so.status = ?
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
-            WHERE p.product_id = ? AND s.status = ? AND s.approval_status = ?;
+            WHERE p.product_id = ? AND s.status = ? AND s.approval_status = ? AND p.status = 'ACTIVE';
             """;
 
     public ProductDetailResponse getProductDetailByProductId(Integer productId) {
@@ -490,7 +490,7 @@ public class ProductDAO extends DBContext {
                 WHERE so.status = 'DELIVERED'
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
-            WHERE p.shop_id = ? AND p.is_deleted = 0
+            WHERE p.shop_id = ? AND p.is_deleted = 0 AND p.status = 'ACTIVE'
             ORDER BY ISNULL(sold_data.total_sold, 0) DESC
             """;
 
@@ -563,7 +563,7 @@ public class ProductDAO extends DBContext {
     }
 
     public int countActiveProductsByShopId(int shopId) {
-        String sql = "SELECT COUNT(*) FROM products WHERE shop_id = ? AND is_active = 1 AND is_deleted = 0";
+        String sql = "SELECT COUNT(*) FROM products WHERE shop_id = ? AND is_active = 1 AND is_deleted = 0 AND status = 'ACTIVE'";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, shopId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -633,7 +633,7 @@ public class ProductDAO extends DBContext {
                 WHERE so.status = 'DELIVERED'
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
-            WHERE p.shop_id = ? AND p.is_deleted = 0
+            WHERE p.shop_id = ? AND p.is_deleted = 0 AND p.status = 'ACTIVE'
             """;
         params.add(shopId);
 
@@ -704,7 +704,7 @@ public class ProductDAO extends DBContext {
                 FROM product_variants
                 GROUP BY product_id
             ) stock_data ON p.product_id = stock_data.product_id
-            WHERE p.shop_id = ? AND p.is_deleted = 0
+            WHERE p.shop_id = ? AND p.is_deleted = 0 AND p.status = 'ACTIVE'
             """;
         params.add(shopId);
 
