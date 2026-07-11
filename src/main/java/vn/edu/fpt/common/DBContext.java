@@ -1,5 +1,4 @@
 package vn.edu.fpt.common;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;

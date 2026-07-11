@@ -1,0 +1,388 @@
+/* ================================
+   MODA - Customer Dashboard
+   Không dùng Tailwind
+   Đồng bộ visual với Stitch + profile layout
+================================ */
+
+:root {
+    --dashboard-primary: #000000;
+    --dashboard-background: #f8f9ff;
+    --dashboard-surface: #ffffff;
+    --dashboard-surface-soft: #eef4ff;
+    --dashboard-surface-muted: #e5eeff;
+    --dashboard-border: #e0e0e0;
+    --dashboard-border-dark: #000000;
+    --dashboard-text: #121c28;
+    --dashboard-muted: #4c4546;
+    --dashboard-secondary: #606365;
+    --dashboard-danger: #ba1a1a;
+}
+
+/* ================================
+   Layout
+================================ */
+
+.dashboard-body {
+    background: var(--dashboard-background);
+}
+
+.dashboard-main {
+    background: var(--dashboard-background);
+}
+
+.dashboard-container {
+    width: 100%;
+    max-width: 1080px;
+    margin: 0;
+}
+
+.dashboard-alert {
+    margin-bottom: 24px;
+    padding: 14px 18px;
+    border: 1px solid #86efac;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+/* ================================
+   Hero / Greeting
+================================ */
+
+.dashboard-hero {
+    margin-bottom: 48px;
+}
+
+.dashboard-hero h1 {
+    margin: 0;
+    color: var(--dashboard-primary);
+    font-size: 48px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+}
+
+.dashboard-hero h1 span {
+    color: var(--dashboard-primary);
+}
+
+.dashboard-hero p {
+    margin: 12px 0 0;
+    color: var(--dashboard-muted);
+    font-size: 18px;
+    line-height: 1.6;
+    font-weight: 400;
+}
+
+/* ================================
+   Stats
+================================ */
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+}
+
+.dashboard-stat-card {
+    min-height: 132px;
+    padding: 24px;
+    background: var(--dashboard-surface);
+    border: 1px solid var(--dashboard-border-dark);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.dashboard-stat-label {
+    display: block;
+    margin-bottom: 14px;
+    color: var(--dashboard-muted);
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.dashboard-stat-card strong {
+    display: block;
+    color: var(--dashboard-primary);
+    font-size: 40px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.dashboard-stat-icon {
+    color: #848484;
+    font-size: 36px;
+    line-height: 1;
+}
+
+/* ================================
+   Recent Orders
+================================ */
+
+.dashboard-orders-card {
+    width: 100%;
+    background: var(--dashboard-surface);
+    border: 1px solid var(--dashboard-border-dark);
+    overflow: hidden;
+}
+
+.dashboard-orders-head {
+    min-height: 88px;
+    padding: 22px 24px;
+    border-bottom: 1px solid var(--dashboard-border-dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.dashboard-orders-head h2 {
+    margin: 0;
+    color: var(--dashboard-primary);
+    font-size: 24px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.dashboard-orders-head p {
+    margin: 6px 0 0;
+    color: var(--dashboard-muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.dashboard-view-all {
+    color: var(--dashboard-primary) !important;
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: underline !important;
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
+}
+
+.dashboard-view-all:hover {
+    opacity: 0.65;
+}
+
+.dashboard-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.dashboard-orders-table {
+    width: 100%;
+    min-width: 820px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.dashboard-orders-table thead tr {
+    background: var(--dashboard-surface-soft);
+}
+
+.dashboard-orders-table th {
+    padding: 16px 24px;
+    color: var(--dashboard-muted);
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.dashboard-orders-table td {
+    padding: 20px 24px;
+    border-top: 1px solid #cfc4c5;
+    color: var(--dashboard-text);
+    font-size: 14px;
+    line-height: 1.5;
+    vertical-align: middle;
+}
+
+.dashboard-orders-table tbody tr {
+    background: var(--dashboard-surface);
+    transition: background 0.2s ease;
+}
+
+.dashboard-orders-table tbody tr:hover {
+    background: var(--dashboard-surface-muted);
+}
+
+.dashboard-order-code {
+    color: var(--dashboard-primary);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.dashboard-muted {
+    color: var(--dashboard-muted) !important;
+}
+
+.dashboard-order-total {
+    color: var(--dashboard-primary);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.dashboard-action-col {
+    text-align: right;
+}
+
+/* ================================
+   Status Text
+   Trạng thái chỉ để hiển thị, không phải nút bấm
+================================ */
+
+.dashboard-status {
+    display: inline;
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    white-space: nowrap;
+    cursor: default;
+    pointer-events: none;
+}
+
+.dashboard-status--pending {
+    color: #f08705;
+}
+
+.dashboard-status--confirmed {
+    color: #ff8981;
+}
+
+.dashboard-status--preparing {
+    color: #7a5fd6;
+}
+
+.dashboard-status--shipping {
+    color: #3fcee6;
+}
+
+.dashboard-status--completed {
+    color: #1e9e57;
+}
+
+.dashboard-status--cancelled {
+    color: #df3d3d;
+}
+/* ================================
+   Detail Link / Empty
+================================ */
+
+.dashboard-detail-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 10px 14px;
+    border: 1px solid var(--dashboard-primary);
+    background: transparent;
+    color: var(--dashboard-primary) !important;
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none !important;
+    white-space: nowrap;
+    transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.dashboard-detail-link:hover {
+    background: var(--dashboard-primary);
+    color: #ffffff !important;
+}
+
+.dashboard-empty {
+    padding: 36px 24px !important;
+    text-align: center;
+    color: var(--dashboard-muted) !important;
+    font-size: 14px !important;
+}
+
+/* ================================
+   Responsive
+================================ */
+
+@media (max-width: 991px) {
+    .dashboard-container {
+        max-width: 100%;
+    }
+
+    .dashboard-hero h1 {
+        font-size: 38px;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767px) {
+    .dashboard-main {
+        padding: 32px 20px;
+    }
+
+    .dashboard-hero {
+        margin-bottom: 32px;
+    }
+
+    .dashboard-hero h1 {
+        font-size: 32px;
+        line-height: 1.2;
+    }
+
+    .dashboard-hero p {
+        font-size: 15px;
+    }
+
+    .dashboard-stats {
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .dashboard-stat-card {
+        min-height: 112px;
+        padding: 20px;
+    }
+
+    .dashboard-stat-card strong {
+        font-size: 34px;
+    }
+
+    .dashboard-orders-head {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .dashboard-orders-head h2 {
+        font-size: 22px;
+    }
+
+    .dashboard-orders-table th,
+    .dashboard-orders-table td {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+}

@@ -1,0 +1,377 @@
+/* ================================
+   MODA - Customer Address Book
+   Không dùng Tailwind
+================================ */
+
+:root {
+    --address-primary: #000000;
+    --address-background: #f8f9ff;
+    --address-surface: #ffffff;
+    --address-border: #cfc4c5;
+    --address-border-dark: #000000;
+    --address-text: #121c28;
+    --address-muted: #4c4546;
+    --address-light: #eef4ff;
+    --address-danger: #ba1a1a;
+}
+
+.address-book-body {
+    background: var(--address-background);
+}
+
+.address-book-main {
+    background: var(--address-background);
+}
+
+.address-book-container {
+    width: 100%;
+    max-width: 1060px;
+    margin: 0;
+}
+
+/* ================================
+   Header
+================================ */
+
+.address-book-header {
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--address-border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+}
+
+.address-book-header h1 {
+    margin: 0 0 8px;
+    color: var(--address-primary);
+    font-size: 36px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.address-book-header p {
+    margin: 0;
+    color: var(--address-muted);
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* ================================
+   Grid
+================================ */
+
+.address-book-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+/* ================================
+   Address Card
+================================ */
+
+.address-card {
+    min-height: 220px;
+    padding: 24px;
+    border: 1px solid var(--address-border);
+    background: var(--address-surface);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.address-card--default {
+    border-color: var(--address-border-dark);
+}
+
+.address-card-main {
+    min-width: 0;
+}
+
+.address-card-top {
+    min-height: 28px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.address-default-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 7px 12px;
+    background: var(--address-primary);
+    color: #ffffff;
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.address-card-icon {
+    color: var(--address-primary);
+    opacity: 0.28;
+    font-size: 22px;
+    line-height: 1;
+}
+
+.address-card h2 {
+    margin: 0 0 10px;
+    color: var(--address-text);
+    font-size: 22px;
+    line-height: 1.3;
+    font-weight: 700;
+}
+
+.address-line {
+    margin: 0 0 8px;
+    color: var(--address-muted);
+    font-size: 14px;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.address-line:last-child {
+    margin-bottom: 0;
+}
+
+.address-line .material-symbols-outlined {
+    flex: 0 0 auto;
+    color: var(--address-muted);
+    font-size: 17px;
+    line-height: 1;
+}
+
+.address-line--location {
+    align-items: flex-start;
+}
+
+.address-line--location .material-symbols-outlined {
+    margin-top: 2px;
+}
+
+/* ================================
+   Actions
+================================ */
+
+.address-card-actions {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--address-border);
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.address-delete-form {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.address-action,
+.address-delete-form button.address-action {
+    min-height: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0;
+
+    font-family: Inter, sans-serif;
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none !important;
+    cursor: pointer;
+}
+
+.address-action .material-symbols-outlined {
+    font-size: 16px;
+    line-height: 18px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.address-delete-form button.address-action {
+    font-weight: 700;
+}
+.address-action--delete {
+    color: var(--address-danger) !important;
+}
+/* ================================
+   Add Card
+================================ */
+
+.address-add-card {
+    min-height: 220px;
+    padding: 24px;
+    border: 1px dashed var(--address-border);
+    background: transparent;
+    color: var(--address-muted) !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    text-align: center;
+    text-decoration: none !important;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.address-add-card:hover {
+    border-color: var(--address-primary);
+    color: var(--address-primary) !important;
+    background: rgba(255, 255, 255, 0.45);
+}
+
+.address-add-icon {
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--address-border);
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease;
+}
+
+.address-add-card:hover .address-add-icon {
+    border-color: var(--address-primary);
+}
+
+.address-add-icon .material-symbols-outlined {
+    font-size: 24px;
+}
+
+.address-add-card > span:last-child {
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+/* ================================
+   Empty
+================================ */
+
+.address-empty-card {
+    min-height: 220px;
+    padding: 36px 24px;
+    border: 1px solid var(--address-border);
+    background: var(--address-surface);
+    grid-column: 1 / -1;
+    text-align: center;
+}
+
+.address-empty-card .material-symbols-outlined {
+    margin-bottom: 12px;
+    color: var(--address-muted);
+    font-size: 40px;
+}
+
+.address-empty-card h2 {
+    margin: 0 0 8px;
+    color: var(--address-primary);
+    font-size: 22px;
+    line-height: 1.3;
+    font-weight: 700;
+}
+
+.address-empty-card p {
+    margin: 0;
+    color: var(--address-muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ================================
+   Responsive
+================================ */
+
+@media (max-width: 991px) {
+    .address-book-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .address-book-container {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 767px) {
+    .address-book-main {
+        padding: 32px 20px;
+    }
+
+    .address-book-header h1 {
+        font-size: 32px;
+    }
+
+    .address-card,
+    .address-add-card {
+        min-height: 200px;
+        padding: 22px;
+    }
+
+    .address-card-actions {
+        gap: 18px;
+    }
+}
+
+.address-delete-form {
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+}
+
+.address-delete-form button {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    font: inherit;
+    cursor: pointer;
+}
+
+.address-delete-form .address-action {
+    line-height: 1;
+}
+
+.address-delete-form .material-symbols-outlined {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.address-message {
+    margin: 8px 0 20px;
+    color: var(--address-danger);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.5;
+}

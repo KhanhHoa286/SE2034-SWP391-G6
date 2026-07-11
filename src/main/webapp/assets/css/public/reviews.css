@@ -1,0 +1,255 @@
+/* ===== Reviews Page Layout ===== */
+
+/* --- Header Section --- */
+.reviews-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 20px;
+}
+
+.reviews-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.reviews-product-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.reviews-product-price {
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+
+.reviews-header__rating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rating-score {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.rating-stars {
+    font-size: 1.1rem;
+    color: var(--primary-color);
+}
+
+.rating-count {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.reviews-divider {
+    border-top: 1px solid var(--border-color);
+    margin: 0 0 30px 0;
+    opacity: 1;
+}
+
+/* --- Left Column: Rating Distribution --- */
+.distribution-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+}
+
+.distribution-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.dist-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.dist-star {
+    font-size: 0.85rem;
+    font-weight: 600;
+    width: 15px;
+}
+
+.dist-bar-wrap {
+    flex-grow: 1;
+    height: 4px;
+    background-color: var(--border-color);
+    position: relative;
+}
+
+.dist-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background-color: var(--primary-color);
+}
+
+.dist-count {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    width: 30px;
+    text-align: right;
+}
+
+/* --- Right Column: Reviews List --- */
+.filter-btn {
+    height: 35px;
+    padding: 0 20px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: var(--font-main);
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+.filter-btn:hover {
+    border-color: var(--primary-color);
+}
+
+.filter-btn.active {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border-color: var(--primary-color);
+}
+
+/* Review Item */
+.review-item {
+    border-bottom: 1px solid var(--border-color);
+    padding: 30px 0;
+}
+
+.review-item:first-child {
+    border-top: 1px solid var(--border-color);
+}
+
+.reviewer-name {
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.review-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.review-verified {
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.review-content {
+    padding-left: 15px;
+}
+
+.review-stars {
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+}
+
+.review-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.review-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-main);
+    margin-bottom: 20px;
+}
+
+.review-images {
+    display: flex;
+    gap: 15px;
+}
+
+.review-images img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+}
+
+/* --- Pagination --- */
+.pagination-list {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.page-link-btn {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.page-link-btn:hover {
+    border-color: var(--primary-color);
+}
+
+.page-link-btn.active {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border-color: var(--primary-color);
+}
+
+.page-link-dots {
+    color: var(--text-muted);
+    padding: 0 5px;
+}
+
+/* Trạng thái nút lọc bình thường */
+.filter-btn {
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #dee2e6;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+}
+
+/* Khi di chuột vào nút */
+.filter-btn:hover {
+    background-color: #f8f9fa;
+    color: #000000;
+}
+
+.filter-btn.active {
+    background-color: #e9ecef !important;
+    color: #000000 !important;
+    border-color: #ced4da !important;
+    font-weight: 600;
+}
+
+.fa-star {
+    color: #f5c518;
+}

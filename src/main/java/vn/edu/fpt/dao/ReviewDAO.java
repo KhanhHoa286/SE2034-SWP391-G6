@@ -1,14 +1,151 @@
 package vn.edu.fpt.dao;
 import vn.edu.fpt.common.DBContext;
+import vn.edu.fpt.dto.request.AddReviewRequest;
+import vn.edu.fpt.dto.response.ProductReviewResponse;
+import vn.edu.fpt.dto.response.ReviewDetailResponse;
+import vn.edu.fpt.model.Product;
 
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
+import java.util.Date;
+
 public class ReviewDAO extends DBContext {
+    /**
+     * HoaNK - Lấy ra dữ liệu trả veef cho trang product reivew
+     */
+    private final String GET_INFO_REVIEW_PRODUCT = """
+    SELECT 
+        p.product_id, p.product_name, p.base_price, p.discount_percentage,pr.created_at, pr.rating,pr.review_title, pr.comment, u.avatar_url, (u.first_name + ' ' + u.last_name) AS user_name,
+        
+        -- Đếm tổng số review của bộ lọc hiện tại
+        COUNT(pr.review_id) OVER() AS total_review,
+        
+        -- Tính trung bình sao TỔNG của sản phẩm 
+        (SELECT ISNULL(AVG(CAST(rating AS FLOAT)), 0) FROM product_reviews WHERE product_id = p.product_id) AS average_rating
+        
+    FROM products p
+    LEFT JOIN product_reviews pr ON p.product_id = pr.product_id %s
+    LEFT JOIN users u ON pr.user_id = u.user_id
+    WHERE p.product_id = ?
+""";
+
+    private final String PAGING_REVIEW_PRODUCT = """
+    ORDER BY pr.created_at DESC
+    OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+""";
+
+    public ProductReviewResponse getProductReviewList(int productId, int page, int pageSize, Integer star) {
+        // Xử lý chuỗi điều kiện lọc sao động
+        String conditionStar = "";
+        boolean checkStar = (star != null && star >= 1 && star <= 5);
+        if (checkStar) {
+            conditionStar = " AND pr.rating = " + star;
+        }
+
+        // chuỗi chính sau khi lắp các điều kiện
+        String sql = String.format(GET_INFO_REVIEW_PRODUCT, conditionStar) + PAGING_REVIEW_PRODUCT;
+        ProductReviewResponse productReviewResponse = null;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            int index = 1;
+            stmt.setInt(index++, productId);
+
+            int offsetPage = (page - 1) * pageSize;
+            stmt.setInt(index++, offsetPage);
+            stmt.setInt(index++, pageSize);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+
+                    if (productReviewResponse == null) {
+                        productReviewResponse = new ProductReviewResponse();
+                        productReviewResponse.setProductId(rs.getInt("product_id"));
+                        productReviewResponse.setProductName(rs.getString("product_name"));
+                        productReviewResponse.setAverageRating(Math.floor(rs.getDouble("average_rating") * 10.0) / 10.0);
+
+                        // Nếu bộ lọc rỗng, cột total_review từ LEFT JOIN sẽ bằng 0
+                        int totalReview = rs.getInt("total_review");
+                        productReviewResponse.setTotalReview(totalReview);
+
+                        int totalPage = (int) Math.ceil((double) totalReview / pageSize);
+                        productReviewResponse.setTotalPage(totalPage);
+                        productReviewResponse.setPageNumber(page);
+
+                        Product product = new Product();
+                        product.setBasePrice(rs.getBigDecimal("base_price"));
+                        product.setDiscountPercentage(rs.getInt("discount_percentage"));
+                        productReviewResponse.setPrice(product.getDiscountedPrice());
+                    }
+
+                    // Nếu mức sao này không có ai đánh giá = kết thúc
+                    if (rs.getObject("rating") == null) {
+                        break;
+                    }
+
+                    ReviewDetailResponse detail = new ReviewDetailResponse();
+                    if (rs.getTimestamp("created_at") != null) {
+                        detail.setCreatedAt(new Date(rs.getTimestamp("created_at").getTime()));
+                    }
+                    detail.setRating(rs.getInt("rating"));
+                    detail.setComment(rs.getString("comment"));
+                    detail.setAvatarUrl(rs.getString("avatar_url"));
+                    detail.setUserName(rs.getString("user_name"));
+                    detail.setReviewTitle(rs.getString("review_title"));
+
+                    productReviewResponse.getReviewResponse().add(detail);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return productReviewResponse;
+    }
+
+    /**
+     * HoaNK - Thêm 1 review vào bảng product review
+     */
+    private final String ADD_REVIEW_PRODUCT = """
+            INSERT INTO product_reviews (product_id, user_id, order_item_id, rating, review_title, comment)VALUES
+            (?,?,?,?,?,?)
+            """;
+    public boolean addReviewProduct(AddReviewRequest addReviewRequest, int userId) {
+        String sql = ADD_REVIEW_PRODUCT;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1,addReviewRequest.getProductId());
+            stmt.setInt(2,userId);
+            stmt.setInt(3,addReviewRequest.getOrderItemId());
+            stmt.setInt(4,addReviewRequest.getRatingStar());
+            stmt.setString(5,addReviewRequest.getTitleReview());
+            stmt.setString(6,addReviewRequest.getCommentReview());
+            stmt.executeUpdate();
+            return true;
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        //
+        return false;
+    }
+
+    /**
+     * HoaNK - Kiểm tra sản phẩm đã được đánh giá hay chưa
+     */
+    private final String CHECK_REVIEW_PRODUCT = """
+            SELECT 1 FROM product_reviews WHERE product_id = ? AND order_item_id = ?
+            """;
+    public boolean checkReviewProduct(int productId,int orderItemId){
+        String sql = CHECK_REVIEW_PRODUCT;
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1,productId);
+            stmt.setInt(2,orderItemId);
+            try(ResultSet rs = stmt.executeQuery()) {
+                if(rs.next()) {
+                    return true;
+                }
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

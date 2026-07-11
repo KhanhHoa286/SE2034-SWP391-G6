@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ page import="java.util.Map, java.util.List" %>
 <%@ page import="vn.edu.fpt.model.Province" %>
 <!DOCTYPE html>
@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hồ Sơ Cửa Hàng - MODA</title>
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/seller/seller.css?v=20260611c">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -40,21 +40,12 @@
 
         <div class="content-container">
 
-            <!-- HEADER -->
-            <header class="top-header">
-                <div class="profile-section">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
-                         alt="Seller Profile" class="profile-avatar" id="profileAvatar">
-                </div>
-            </header>
 
             <main class="content-wrapper">
 
                 <!-- BREADCRUMBS -->
                 <nav class="breadcrumbs">
                     <a href="#">Đăng ký người bán</a>
-                    <span class="separator">›</span>
-                    <span class="current-page">Thêm hồ sơ cửa hàng</span>
                 </nav>
 
                 <h1 class="page-title">Hồ Sơ Cửa Hàng</h1>
@@ -123,7 +114,7 @@
                                            class="input-control <%= !err.apply("shopName").isEmpty() ? "input-error" : "" %>"
                                            placeholder="VD: Minimalist Home Decor"
                                            value="<%= old.apply("shopName") %>"
-                                           maxlength="100" required>
+                                           required>
                                 </div>
                                 <% if (!err.apply("shopName").isEmpty()) { %>
                                 <span class="field-error"><%= err.apply("shopName") %></span>

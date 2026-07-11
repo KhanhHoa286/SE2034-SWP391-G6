@@ -22,6 +22,11 @@ import java.util.regex.Pattern;
 @WebServlet("/register")
 public class RegisterAccountServlet extends HttpServlet {
 
+    private static final String REGISTER_ROLE = "CUSTOMER";
+
+    private static final String MSG_INFO_USED =
+            "Thông tin đăng ký đã được sử dụng hoặc đang chờ xác thực. Vui lòng kiểm tra lại.";
+
     private boolean isValidEmail(String email) {
         return email != null
                 && Pattern.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", email);
@@ -29,7 +34,7 @@ public class RegisterAccountServlet extends HttpServlet {
 
     private boolean isValidVietnamPhone(String phone) {
         return phone != null
-                && Pattern.matches("^(0)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-9]|9[0-9])[0-9]{7}$", phone);
+                && Pattern.matches("^(0)(3[2-9]|5[689]|7[06-9]|8[0-9]|9[0-9])[0-9]{7}$", phone);
     }
 
     private boolean isValidName(String name) {
@@ -39,14 +44,14 @@ public class RegisterAccountServlet extends HttpServlet {
                 && Pattern.matches("^[\\p{L}\\s'-]+$", name.trim());
     }
 
-    /*
-     * Mật khẩu:
-     * - Chỉ gồm chữ số 0-9
-     * - Dài từ 6 đến 32 số
-     * - Không được để trống
-     */
     private boolean isValidPassword(String password) {
         return password != null && Pattern.matches("^[0-9]{6,32}$", password);
+    }
+
+    private void setNoCache(HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
     }
 
     private void keepFormData(HttpServletRequest request,
@@ -83,7 +88,19 @@ public class RegisterAccountServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setAttribute("error", error);
-        keepFormData(request, firstName, lastName, phone, dob, gender, email, password, confirmPassword);
+
+        keepFormData(
+                request,
+                firstName,
+                lastName,
+                phone,
+                dob,
+                gender,
+                email,
+                password,
+                confirmPassword
+        );
+
         request.getRequestDispatcher("/public/auth/register.jsp").forward(request, response);
     }
 
@@ -107,10 +124,65 @@ public class RegisterAccountServlet extends HttpServlet {
         );
     }
 
+    private void redirectToVerifyOtp(HttpServletRequest request,
+                                     HttpServletResponse response,
+                                     String email)
+            throws IOException {
+
+        request.getSession().setAttribute("pendingOtpEmail", email);
+
+        String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+
+        response.sendRedirect(request.getContextPath()
+                + "/verify-otp?email=" + encodedEmail);
+    }
+
+    private void forwardVerifyOtp(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  String email,
+                                  String error)
+            throws ServletException, IOException {
+
+        request.getSession().setAttribute("pendingOtpEmail", email);
+        request.setAttribute("email", email);
+        request.setAttribute("error", error);
+        request.getRequestDispatcher("/public/auth/verify-otp.jsp").forward(request, response);
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.sendRedirect(request.getContextPath() + "/public/auth/register.jsp");
+
+        setNoCache(response);
+
+        UserDAO userDao = new UserDAO();
+
+        /*
+         * PENDING chỉ giữ tối đa 15 phút.
+         * Quá 15 phút thì xóa để người dùng đăng ký lại từ đầu.
+         */
+        userDao.deleteExpiredPendingRegistrations(15);
+
+        HttpSession session = request.getSession(false);
+
+        if (session != null) {
+            String pendingOtpEmail = (String) session.getAttribute("pendingOtpEmail");
+
+            if (pendingOtpEmail != null && !pendingOtpEmail.trim().isEmpty()) {
+                pendingOtpEmail = pendingOtpEmail.trim().toLowerCase();
+
+                User pendingUser = userDao.getUserByEmail(pendingOtpEmail);
+
+                if (pendingUser != null && pendingUser.getStatus() == UserStatus.PENDING) {
+                    redirectToVerifyOtp(request, response, pendingOtpEmail);
+                    return;
+                }
+
+                session.removeAttribute("pendingOtpEmail");
+            }
+        }
+
+        request.getRequestDispatcher("/public/auth/register.jsp").forward(request, response);
     }
 
     @Override
@@ -118,8 +190,15 @@ public class RegisterAccountServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        setNoCache(response);
 
         UserDAO userDao = new UserDAO();
+
+        /*
+         * Chỉ dọn tài khoản chưa xác thực OTP quá 15 phút.
+         * Không xử lý đăng ký shipper ở màn này nữa.
+         */
+        userDao.deleteExpiredPendingRegistrations(15);
 
         String firstName = request.getParameter("firstName");
         String lastName = request.getParameter("lastName");
@@ -154,35 +233,35 @@ public class RegisterAccountServlet extends HttpServlet {
 
         if (!isValidName(firstName)) {
             forwardRegister(request, response,
-                    "Họ không hợp lệ. Họ chỉ được chứa chữ cái, khoảng trắng, dấu nháy đơn hoặc dấu gạch ngang và tối đa 50 ký tự.",
+                    "Họ không hợp lệ.",
                     "", lastName, phone, dobStr, genderInput, email, password, confirmPassword);
             return;
         }
 
         if (!isValidName(lastName)) {
             forwardRegister(request, response,
-                    "Tên không hợp lệ. Tên chỉ được chứa chữ cái, khoảng trắng, dấu nháy đơn hoặc dấu gạch ngang và tối đa 50 ký tự.",
+                    "Tên không hợp lệ.",
                     firstName, "", phone, dobStr, genderInput, email, password, confirmPassword);
             return;
         }
 
         if (!isValidEmail(email)) {
             forwardRegister(request, response,
-                    "Email không hợp lệ. Vui lòng nhập đúng định dạng, ví dụ: example@gmail.com.",
+                    "Email không hợp lệ.",
                     firstName, lastName, phone, dobStr, genderInput, "", password, confirmPassword);
             return;
         }
 
         if (!isValidVietnamPhone(phone)) {
             forwardRegister(request, response,
-                    "Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam gồm 10 chữ số, bắt đầu bằng 0.",
+                    "Số điện thoại không hợp lệ.",
                     firstName, lastName, "", dobStr, genderInput, email, password, confirmPassword);
             return;
         }
 
         if (!isValidPassword(password)) {
             forwardRegister(request, response,
-                    "Mật khẩu chỉ được gồm các chữ số 0-9, dài từ 6 đến 32 số và không được để trống.",
+                    "Mật khẩu không hợp lệ. Mật khẩu chỉ gồm chữ số 0-9, dài từ 6 đến 32 số.",
                     firstName, lastName, phone, dobStr, genderInput, email, "", confirmPassword);
             return;
         }
@@ -220,115 +299,47 @@ public class RegisterAccountServlet extends HttpServlet {
             gender = Gender.NAM;
         } else if ("nu".equalsIgnoreCase(genderInput)) {
             gender = Gender.NU;
+        } else if (!genderInput.isEmpty()) {
+            forwardRegister(request, response,
+                    "Giới tính không hợp lệ.",
+                    firstName, lastName, phone, dobStr, "", email, password, confirmPassword);
+            return;
         }
 
-        User existingUserByEmail = userDao.getUserByEmail(email);
-        User existingUserByPhone = userDao.getUserByPhone(phone);
-
         /*
-         * Trường hợp email đã tồn tại.
+         * Check trùng email và số điện thoại.
+         * Không phân biệt PENDING hay ACTIVE vì PENDING vẫn đang giữ chỗ trong DB.
          */
+        User existingUserByEmail = userDao.getUserByEmail(email);
+
         if (existingUserByEmail != null) {
-
-            /*
-             * Nếu tài khoản đang PENDING:
-             * Cho phép đăng ký lại nếu đúng cùng email + cùng số điện thoại.
-             * Không insert user mới, chỉ update lại thông tin tạm và gửi OTP mới.
-             */
-            if (existingUserByEmail.getStatus() == UserStatus.PENDING) {
-
-                boolean samePhone = existingUserByEmail.getPhone() != null
-                        && existingUserByEmail.getPhone().equals(phone);
-
-                if (!samePhone) {
-                    forwardRegister(request, response,
-                            "Email này đang chờ xác thực với một số điện thoại khác. Vui lòng nhập đúng số điện thoại đã đăng ký trước đó.",
-                            firstName, lastName, "", dobStr, genderInput, email, password, confirmPassword);
-                    return;
-                }
-
-                if (existingUserByPhone != null
-                        && existingUserByPhone.getUserId() != null
-                        && !existingUserByPhone.getUserId().equals(existingUserByEmail.getUserId())) {
-
-                    forwardRegister(request, response,
-                            "Số điện thoại này đã được dùng cho tài khoản khác.",
-                            firstName, lastName, "", dobStr, genderInput, email, password, confirmPassword);
-                    return;
-                }
-
-                User pendingUserUpdate = User.builder()
-                        .firstName(firstName)
-                        .lastName(lastName)
-                        .email(email)
-                        .phone(phone)
-                        .passwordHash(PasswordUtils.hashPassword(password))
-                        .gender(gender)
-                        .dateOfBirth(dob)
-                        .status(UserStatus.PENDING)
-                        .createdAt(existingUserByEmail.getCreatedAt())
-                        .build();
-
-                boolean updated = userDao.updatePendingUserBeforeResendOtp(
-                        existingUserByEmail.getUserId(),
-                        pendingUserUpdate
-                );
-
-                if (!updated) {
-                    forwardRegister(request, response,
-                            "Không cập nhật được tài khoản đang chờ xác thực. Vui lòng thử lại.",
-                            firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword);
-                    return;
-                }
-
-                try {
-                    sendOtp(email);
-
-                    String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-                    response.sendRedirect(request.getContextPath() + "/public/auth/verify-otp.jsp?email=" + encodedEmail);
-                    return;
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-
-                    forwardRegister(request, response,
-                            "Tài khoản đang chờ xác thực nhưng hệ thống chưa gửi lại được OTP. Vui lòng thử lại sau.",
-                            firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword);
-                    return;
-                }
-            }
-
-            /*
-             * Email đã ACTIVE hoặc LOCKED thì không cho đăng ký lại.
-             * Chỉ xóa ô email, giữ các ô khác.
-             */
             forwardRegister(request, response,
-                    "Email đã tồn tại. Vui lòng dùng email khác hoặc đăng nhập.",
+                    MSG_INFO_USED,
                     firstName, lastName, phone, dobStr, genderInput, "", password, confirmPassword);
             return;
         }
 
-        /*
-         * Email chưa tồn tại nhưng số điện thoại đã tồn tại.
-         */
+        User existingUserByPhone = userDao.getUserByPhone(phone);
+
         if (existingUserByPhone != null) {
-
-            if (existingUserByPhone.getStatus() == UserStatus.PENDING) {
-                forwardRegister(request, response,
-                        "Số điện thoại này đang chờ xác thực với email khác. Vui lòng nhập đúng email đã đăng ký trước đó hoặc dùng số điện thoại khác.",
-                        firstName, lastName, phone, dobStr, genderInput, "", password, confirmPassword);
-                return;
-            }
-
             forwardRegister(request, response,
-                    "Số điện thoại đã tồn tại. Vui lòng dùng số điện thoại khác.",
+                    MSG_INFO_USED,
                     firstName, lastName, "", dobStr, genderInput, email, password, confirmPassword);
             return;
         }
 
-        int customerRoleId = userDao.getRoleIdByName("CUSTOMER");
+        /*
+         * Màn register bây giờ chỉ tạo CUSTOMER.
+         * Không nhận DELIVERY từ form dù form có gửi accountType.
+         */
+        int roleId = userDao.getRoleIdByName(REGISTER_ROLE);
 
-
+        if (roleId <= 0) {
+            forwardRegister(request, response,
+                    "Không tìm thấy quyền CUSTOMER trong hệ thống.",
+                    firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword);
+            return;
+        }
 
         User user = User.builder()
                 .firstName(firstName)
@@ -342,7 +353,7 @@ public class RegisterAccountServlet extends HttpServlet {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        int userId = userDao.insertUserWithRole(user, customerRoleId);
+        int userId = userDao.insertUserWithRole(user, roleId);
 
         if (userId <= 0) {
             forwardRegister(request, response,
@@ -356,13 +367,12 @@ public class RegisterAccountServlet extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
 
-            forwardRegister(request, response,
-                    "Tài khoản đã được tạo nhưng chưa gửi được mã OTP. Vui lòng kiểm tra thư rác hoặc bấm đăng ký lại bằng đúng email và số điện thoại này để gửi lại mã.",
-                    firstName, lastName, phone, dobStr, genderInput, email, password, confirmPassword);
+            forwardVerifyOtp(request, response,
+                    email,
+                    "Tài khoản đã được tạo nhưng chưa gửi được mã OTP. Vui lòng bấm Gửi lại mã.");
             return;
         }
 
-        String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-        response.sendRedirect(request.getContextPath() + "/public/auth/verify-otp.jsp?email=" + encodedEmail);
+        redirectToVerifyOtp(request, response, email);
     }
 }

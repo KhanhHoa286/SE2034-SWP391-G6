@@ -1,0 +1,431 @@
+/* --- Edit Product Page Specific Styles --- */
+
+.dashboard-header-simple {
+    margin-bottom: 24px;
+}
+
+.dashboard-header-simple .page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    letter-spacing: -0.5px;
+}
+
+/* --- Layout Grid --- */
+.add-product-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-bottom: 100px; /* Space for the sticky bottom action bar */
+}
+
+/* Responsive Layout */
+@media (max-width: 1024px) {
+    .add-product-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Form Cards --- */
+.form-card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.form-card .card-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--color-border);
+    background-color: #ffffff;
+}
+
+.form-card .card-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--color-text-primary);
+    text-transform: uppercase;
+}
+
+.form-card .card-body {
+    padding: 24px;
+}
+
+/* --- Form Control Elements --- */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group.margin-bottom-none {
+    margin-bottom: 0;
+}
+
+.form-label {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    font-family: 'Outfit', sans-serif;
+    color: var(--color-text-primary);
+    background-color: #ffffff;
+    transition: var(--transition-fast);
+}
+
+.form-control::placeholder {
+    color: var(--color-text-tertiary);
+    font-size: 13px;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.text-area-control {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* --- Validation Error Styles --- */
+.input-error {
+    border-color: #ef4444 !important;
+    background-color: #fff8f8;
+}
+
+.input-error-border {
+    border: 1px solid #ef4444 !important;
+    border-radius: var(--radius-sm);
+}
+
+.field-error {
+    display: block;
+    font-size: 11.5px;
+    color: #ef4444;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* --- Variant Table Component --- */
+.variants-table-wrapper {
+    margin-bottom: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.variants-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.variants-table th {
+    background-color: #fcfcfc;
+    border-bottom: 1px solid var(--color-border);
+    padding: 12px 16px;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    color: var(--color-text-secondary);
+    text-align: left;
+}
+
+.variants-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+}
+
+.variants-table tr:last-child td {
+    border-bottom: none;
+}
+
+.form-control-sm {
+    padding: 8px 12px;
+    font-size: 12.5px;
+}
+
+.btn-delete-row {
+    background: none;
+    border: none;
+    color: var(--color-text-tertiary);
+    cursor: pointer;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: var(--transition-fast);
+}
+
+.btn-delete-row:hover {
+    color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.btn-delete-row svg, .btn-delete-row i {
+    width: 16px;
+    height: 16px;
+}
+
+/* Add Variant Trigger Button */
+.btn-add-variant {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--color-text-primary);
+    background-color: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.btn-add-variant:hover {
+    border-color: var(--color-accent);
+    background-color: #fcfcfc;
+}
+
+/* --- Product Image Grid Component --- */
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.image-slot {
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: #fafafa;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition-smooth);
+}
+
+.upload-slot {
+    border-style: dashed;
+    gap: 8px;
+    color: var(--color-text-secondary);
+}
+
+.upload-slot svg, .upload-slot i {
+    width: 24px;
+    height: 24px;
+    color: var(--color-text-secondary);
+}
+
+.upload-slot span {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.upload-slot:hover {
+    border-color: var(--color-accent);
+    background-color: #ffffff;
+}
+
+.preview-slot {
+    cursor: default;
+}
+
+.placeholder-icon {
+    width: 20px;
+    height: 20px;
+    color: #e4e4e7;
+}
+
+.preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Image Label Overlay (MAIN / SUB) */
+.img-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 5px 0;
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-align: center;
+    text-transform: uppercase;
+    color: #ffffff;
+}
+
+.img-label-main {
+    background-color: rgba(0, 0, 0, 0.75);
+}
+
+.img-label-sub {
+    background-color: rgba(82, 82, 91, 0.65);
+}
+
+/* Remove Image Button */
+.btn-remove-img {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.55);
+    color: #ffffff;
+    border: none;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.image-slot:hover .btn-remove-img {
+    opacity: 1;
+}
+
+.btn-remove-img:hover {
+    background-color: rgba(239, 68, 68, 0.85);
+}
+
+/* Has Image State */
+.image-slot.has-image {
+    border-style: solid;
+    border-color: var(--color-border);
+}
+
+.image-slot.has-image:hover {
+    border-color: var(--color-accent);
+}
+
+.image-help-text {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin-top: 8px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* --- Category Custom Selection Box --- */
+.category-select-container {
+    position: relative;
+    width: 100%;
+}
+
+.select-control {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 40px;
+}
+
+.select-arrow-icon {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-secondary);
+    pointer-events: none;
+}
+
+/* --- Footer Action Bar (Sticky at Bottom) --- */
+.form-actions-bar {
+    position: fixed;
+    bottom: 0;
+    left: var(--width-sidebar);
+    right: 0;
+    height: 72px;
+    background-color: #ffffff;
+    border-top: 1px solid var(--color-border);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    z-index: 100;
+}
+
+/* Adjust action bar positioning if sidebar is collapsed/hidden */
+@media (max-width: 768px) {
+    .form-actions-bar {
+        left: 0;
+        padding: 0 20px;
+    }
+}
+
+.actions-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 12px 28px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    text-decoration: none;
+}
+
+.btn-cancel {
+    background-color: #ffffff;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.btn-cancel:hover {
+    border-color: var(--color-accent);
+    background-color: #fafafa;
+}
+
+.btn-save {
+    background-color: #000000;
+    border: 1px solid #000000;
+    color: #ffffff;
+}
+
+.btn-save:hover {
+    background-color: #27272a;
+    border-color: #27272a;
+}

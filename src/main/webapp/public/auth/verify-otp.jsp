@@ -1,168 +1,268 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-  String email = request.getParameter("email");
+    String ctx = request.getContextPath();
 
-  if (email == null || email.trim().isEmpty()) {
-    email = (String) request.getAttribute("email");
-  }
+    String type = request.getParameter("type");
+    if (type == null || type.trim().isEmpty()) {
+        Object typeObj = request.getAttribute("type");
+        type = typeObj == null ? "register" : String.valueOf(typeObj);
+    }
 
-  if (email == null) {
-    email = "";
-  }
+    boolean forgotMode = "forgot".equalsIgnoreCase(type);
+
+    String email = request.getParameter("email");
+    if (email == null || email.trim().isEmpty()) {
+        Object emailObj = request.getAttribute("email");
+        email = emailObj == null ? "" : String.valueOf(emailObj);
+    }
+
+    email = email == null ? "" : email.trim();
+
+    String safeEmail = email
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&#x27;");
+
+    String verifyAction = forgotMode
+            ? ctx + "/verify-forgot-otp"
+            : ctx + "/verify-otp";
+
+    String titleText = forgotMode
+            ? "XÁC THỰC QUÊN MẬT KHẨU"
+            : "XÁC THỰC TÀI KHOẢN";
+
+    String descText = forgotMode
+            ? "Vui lòng nhập mã OTP gồm 6 chữ số đã được gửi đến email"
+            : "Vui lòng nhập mã OTP gồm 6 chữ số đã được gửi đến email";
+
+    Object errorObj = request.getAttribute("error");
+    Object messageObj = request.getAttribute("message");
+    Object successObj = request.getAttribute("success");
+
+    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    response.setHeader("Pragma", "no-cache");
+    response.setDateHeader("Expires", 0);
 %>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Xác thực OTP | MODA</title>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <style>
-    .otp-input:focus {
-      outline: none;
-      border-bottom-color: black;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác thực OTP | MODA</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+          rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="<%= ctx %>/assets/css/public/verify-otp.css">
 </head>
-<body class="bg-gray-50 text-black font-body-md">
 
-<header class="w-full bg-white border-b border-gray-300 px-8 py-4 flex justify-between items-center">
-  <div class="text-xl font-bold">MODA</div>
-</header>
+<body>
+<div class="otp-page">
 
-<main class="min-h-screen flex flex-col md:flex-row">
-  <section class="hidden md:block md:w-1/2">
-    <img class="w-full h-screen object-cover"
-         src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8R4J4y0xhU_uMOtNxaIlkCrRNBAyAFrP8qotJJgFgRKwwkpi2N_iwfi4VA5wRKkkbKTkLOABi0LG9zKIuUEuEF2mnBAeS1QtHrCMJ56rilCCLWoh3JFG5JNA6J6Tx3q4Q-GdPRSeQctnZQzLWiwukBdiDJXqVuNJSyiaXxDzO02XGAEmMXR6AiMEUb7Qb-FPiWgq95tCszaa99axFFCvk62M2ID8wNnozUGNZWnwcxH4H4oGzE_0BwTy3ZJGyiFiYgMqk3pTRObs"
-         alt="Banner">
-  </section>
+    <header class="otp-header"></header>
 
-  <section class="w-full md:w-1/2 flex items-center justify-center p-6 md:p-16">
-    <div class="w-full max-w-md">
-      <h2 class="text-3xl font-bold mb-4">Xác thực OTP</h2>
+    <main class="otp-main">
+        <section class="otp-card">
 
-      <p class="text-gray-600 mb-4">
-        Nhập mã OTP 6 chữ số đã gửi đến Email đăng kí của bạn
-        <span class="font-semibold"><%= email %></span>
-      </p>
+            <% if (forgotMode) { %>
+                <a href="<%= ctx %>/login" class="back-button">
+                    <span class="material-symbols-outlined back-icon">arrow_back</span>
+                    <span>QUAY LẠI</span>
+                </a>
+            <% } else { %>
+                <form id="cancel-pending-form"
+                      action="<%= ctx %>/cancel-pending-registration"
+                      method="post"
+                      class="back-form">
 
-      <% if (request.getAttribute("error") != null) { %>
-      <div class="mb-4 text-red-600 text-sm font-medium">
-        <%= request.getAttribute("error") %>
-      </div>
-      <% } %>
+                    <input type="hidden" name="email" value="<%= safeEmail %>">
 
-      <% if (request.getAttribute("message") != null) { %>
-      <div class="mb-4 text-green-600 text-sm font-medium">
-        <%= request.getAttribute("message") %>
-      </div>
-      <% } %>
+                    <button type="submit" class="back-button">
+                        <span class="material-symbols-outlined back-icon">arrow_back</span>
+                        <span>QUAY LẠI</span>
+                    </button>
+                </form>
+            <% } %>
 
-      <form id="otp-form" class="space-y-4" action="<%= request.getContextPath() %>/verify-otp" method="post">
-        <input type="hidden" name="email" value="<%= email %>"/>
-        <input type="hidden" name="otp" id="otp"/>
+            <h1 class="otp-title"><%= titleText %></h1>
 
-        <div class="flex justify-between gap-2">
-          <input type="text" maxlength="1" inputmode="numeric" required class="otp-input w-full border-b border-gray-300 text-center py-2">
-          <input type="text" maxlength="1" inputmode="numeric" required class="otp-input w-full border-b border-gray-300 text-center py-2">
-          <input type="text" maxlength="1" inputmode="numeric" required class="otp-input w-full border-b border-gray-300 text-center py-2">
-          <input type="text" maxlength="1" inputmode="numeric" required class="otp-input w-full border-b border-gray-300 text-center py-2">
-          <input type="text" maxlength="1" inputmode="numeric" required class="otp-input w-full border-b border-gray-300 text-center py-2">
-          <input type="text" maxlength="1" inputmode="numeric" required class="otp-input w-full border-b border-gray-300 text-center py-2">
-        </div>
+            <p class="otp-description">
+                <%= descText %>
+                <strong><%= safeEmail %></strong>.
+            </p>
 
-        <div class="flex justify-between items-center mt-2">
-          <span id="timer" class="text-gray-600">01:00</span>
+            <% if (errorObj != null) { %>
+                <div class="alert alert-error">
+                    <%= errorObj %>
+                </div>
+            <% } %>
 
-          <!-- Nút gửi lại mã luôn bấm được, kể cả khi timer chưa hết -->
-          <button type="submit"
-                  form="resend-form"
-                  id="resend-btn"
-                  class="text-black hover:underline">
-            Gửi lại mã
-          </button>
-        </div>
+            <% if (messageObj != null) { %>
+                <div class="alert alert-info">
+                    <%= messageObj %>
+                </div>
+            <% } %>
 
-        <button type="submit" class="w-full bg-black text-white py-3 font-semibold uppercase hover:bg-gray-800 transition">
-          Xác nhận
-        </button>
-      </form>
+            <% if (successObj != null) { %>
+                <div class="alert alert-success">
+                    <%= successObj %>
+                </div>
+            <% } %>
 
-      <form id="resend-form" action="<%= request.getContextPath() %>/resend-otp" method="post">
-        <input type="hidden" name="email" value="<%= email %>"/>
-      </form>
-    </div>
-  </section>
-</main>
+            <form id="otp-form"
+                  action="<%= verifyAction %>"
+                  method="post"
+                  class="otp-form">
+
+                <input type="hidden" name="email" value="<%= safeEmail %>">
+                <input type="hidden" name="type" value="<%= forgotMode ? "forgot" : "register" %>">
+                <input type="hidden" name="otp" id="otp">
+
+                <div class="otp-input-group">
+                    <input class="otp-input" maxlength="1" required type="text" inputmode="numeric" autocomplete="one-time-code">
+                    <input class="otp-input" maxlength="1" required type="text" inputmode="numeric">
+                    <input class="otp-input" maxlength="1" required type="text" inputmode="numeric">
+                    <input class="otp-input" maxlength="1" required type="text" inputmode="numeric">
+                    <input class="otp-input" maxlength="1" required type="text" inputmode="numeric">
+                    <input class="otp-input" maxlength="1" required type="text" inputmode="numeric">
+                </div>
+
+                <div class="otp-action-row">
+                    <span id="timer" class="otp-timer">01:00</span>
+
+                    <button id="resend-btn"
+                            type="button"
+                            class="resend-button">
+                        Gửi lại mã
+                    </button>
+                </div>
+
+                <button id="submit-btn" type="submit" class="confirm-button">
+                    XÁC NHẬN
+                </button>
+            </form>
+
+            <form id="resend-form"
+                  action="<%= ctx %>/resend-otp"
+                  method="post"
+                  class="hidden-form">
+
+                <input type="hidden" name="email" value="<%= safeEmail %>">
+                <input type="hidden" name="type" value="<%= forgotMode ? "forgot" : "register" %>">
+            </form>
+
+        </section>
+    </main>
+
+    <footer class="otp-footer"></footer>
+</div>
 
 <script>
-  const inputs = document.querySelectorAll('.otp-input');
+    const inputs = document.querySelectorAll('.otp-input');
+    const otpForm = document.getElementById('otp-form');
+    const otpHiddenInput = document.getElementById('otp');
+    const timerElement = document.getElementById('timer');
+    const resendBtn = document.getElementById('resend-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const resendForm = document.getElementById('resend-form');
 
-  inputs.forEach((input, index) => {
-    input.addEventListener('input', e => {
-      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
 
-      if (e.target.value && index < inputs.length - 1) {
-        inputs[index + 1].focus();
-      }
-    });
+            if (e.target.value.length > 1) {
+                e.target.value = e.target.value.slice(0, 1);
+            }
 
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Backspace' && !e.target.value && index > 0) {
-        inputs[index - 1].focus();
-      }
-    });
-
-    input.addEventListener('paste', e => {
-      e.preventDefault();
-
-      const pasteData = (e.clipboardData || window.clipboardData)
-              .getData('text')
-              .replace(/[^0-9]/g, '');
-
-      if (pasteData.length === 6) {
-        inputs.forEach((otpInput, i) => {
-          otpInput.value = pasteData[i] || '';
+            if (e.target.value && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
         });
-        inputs[5].focus();
-      }
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+
+            const pastedText = (e.clipboardData || window.clipboardData)
+                .getData('text')
+                .replace(/[^0-9]/g, '')
+                .slice(0, 6);
+
+            if (!pastedText) {
+                return;
+            }
+
+            inputs.forEach((otpInput, i) => {
+                otpInput.value = pastedText[i] || '';
+            });
+
+            const focusIndex = Math.min(pastedText.length, inputs.length) - 1;
+            if (focusIndex >= 0) {
+                inputs[focusIndex].focus();
+            }
+        });
     });
-  });
 
-  /*
-   * Timer chỉ để hiển thị thời gian còn lại.
-   * Không khóa nút gửi lại mã.
-   */
-  let timeLeft = 60;
-  const timerEl = document.getElementById('timer');
+    let timeLeft = 60;
 
-  const countdown = setInterval(() => {
-    const minute = Math.floor(timeLeft / 60);
-    const second = timeLeft % 60;
+    const countdown = setInterval(() => {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
 
-    timerEl.innerText =
-            String(minute).padStart(2, '0') + ':' + String(second).padStart(2, '0');
+        timerElement.innerText =
+            String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
 
-    if (timeLeft <= 0) {
-      clearInterval(countdown);
-      timerEl.innerText = "00:00";
-      return;
-    }
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
 
-    timeLeft--;
-  }, 1000);
+            timerElement.innerText = 'Mã OTP đã hết hạn';
+            timerElement.classList.add('expired');
 
-  document.getElementById('otp-form').addEventListener('submit', e => {
-    const otpCode = Array.from(inputs).map(i => i.value).join('');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('disabled');
 
-    if (otpCode.length !== 6) {
-      e.preventDefault();
-      alert("Vui lòng nhập đầy đủ 6 chữ số.");
-      return;
-    }
+            inputs.forEach(input => {
+                input.disabled = true;
+                input.classList.add('disabled');
+            });
 
-    document.getElementById('otp').value = otpCode;
-  });
+            return;
+        }
+
+        timeLeft--;
+    }, 1000);
+
+    resendBtn.addEventListener('click', () => {
+        resendBtn.disabled = true;
+        resendBtn.innerText = 'ĐANG GỬI...';
+        resendForm.submit();
+    });
+
+    otpForm.addEventListener('submit', (e) => {
+        const otpCode = Array.from(inputs).map(input => input.value).join('');
+
+        if (otpCode.length !== 6) {
+            e.preventDefault();
+            alert('Vui lòng nhập đầy đủ 6 chữ số OTP.');
+            return;
+        }
+
+        otpHiddenInput.value = otpCode;
+
+        submitBtn.innerText = 'ĐANG XỬ LÝ...';
+        submitBtn.classList.add('disabled');
+    });
 </script>
 
 </body>

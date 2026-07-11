@@ -324,17 +324,17 @@
 }
 
 /*Khóa nút*/
-.moda-btn:disabled {
+.moda-btn:disabled,.moda-btn.disabled {
     background-color: #e4e6eb !important;
     border-color: #e4e6eb !important;
     color: #8a8d91 !important;
     opacity: 0.6;
     cursor: not-allowed !important;
-    pointer-events: unset !important;
+    pointer-events: none !important;
 }
 
 /* Chặn luôn hiệu ứng đổi màu khi di chuột qua nút đã bị khóa */
-.moda-btn:disabled:hover {
+.moda-btn:disabled:hover, .moda-btn.disabled:hover{
     background-color: #e4e6eb !important;
     color: #8a8d91 !important;
     box-shadow: none !important;

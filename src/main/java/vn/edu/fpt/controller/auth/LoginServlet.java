@@ -6,6 +6,7 @@ import jakarta.servlet.http.*;
 import vn.edu.fpt.common.EmailUtils;
 import vn.edu.fpt.common.OtpUtils;
 import vn.edu.fpt.common.PasswordUtils;
+import vn.edu.fpt.dao.CustomerDAO;
 import vn.edu.fpt.dao.EmailVerificationDAO;
 import vn.edu.fpt.dao.UserDAO;
 import vn.edu.fpt.enums.UserStatus;
@@ -20,6 +21,8 @@ import java.util.regex.Pattern;
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 
+    private final CustomerDAO customerDAO = new CustomerDAO();
+
     private boolean isValidEmail(String email) {
         return email != null
                 && Pattern.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", email);
@@ -27,13 +30,17 @@ public class LoginServlet extends HttpServlet {
 
     private void forwardLogin(HttpServletRequest request,
                               HttpServletResponse response,
-                              String error,
-                              String email)
+                              String error)
             throws ServletException, IOException {
 
         request.setAttribute("error", error);
-        request.setAttribute("email", email);
         request.getRequestDispatcher("/public/auth/login.jsp").forward(request, response);
+    }
+
+    private void setNoCache(HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
     }
 
     private void sendOtp(String email) throws Exception {
@@ -59,6 +66,21 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        setNoCache(response);
+
+        /*
+         * Người dùng bấm "Quay lại đăng nhập" từ màn OTP.
+         * Lúc này phải xóa session pendingOtpEmail.
+         */
+        if ("true".equalsIgnoreCase(request.getParameter("exitOtp"))) {
+            HttpSession session = request.getSession(false);
+
+            if (session != null) {
+                session.removeAttribute("pendingOtpEmail");
+            }
+        }
+
         response.sendRedirect(request.getContextPath() + "/public/auth/login.jsp");
     }
 
@@ -67,12 +89,24 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        setNoCache(response);
 
         /*
-         * Không để UserDAO là biến global/final ở đầu Servlet.
-         * Tạo mới trong từng request để tránh giữ connection null.
+         * Khi người dùng submit form login,
+         * coi như họ rời luồng OTP hiện tại.
          */
+        HttpSession otpSession = request.getSession(false);
+
+        if (otpSession != null) {
+            otpSession.removeAttribute("pendingOtpEmail");
+        }
+
         UserDAO userDao = new UserDAO();
+
+        /*
+         * Dọn các tài khoản PENDING quá hạn OTP.
+         */
+        userDao.deleteExpiredPendingRegistrations(15);
 
         String email = request.getParameter("email");
         String password = request.getParameter("password");
@@ -81,96 +115,112 @@ public class LoginServlet extends HttpServlet {
         password = password == null ? "" : password;
 
         if (email.isEmpty() || password.trim().isEmpty()) {
-            forwardLogin(request, response,
-                    "Vui lòng nhập đầy đủ email và mật khẩu.",
-                    email);
+            forwardLogin(request, response, "Vui lòng nhập đầy đủ email và mật khẩu.");
             return;
         }
 
         if (!isValidEmail(email)) {
-            forwardLogin(request, response,
-                    "Email không hợp lệ. Vui lòng nhập đúng định dạng, ví dụ: example@gmail.com.",
-                    email);
+            forwardLogin(request, response, "Email không hợp lệ.");
             return;
         }
 
         User user = userDao.getUserByEmail(email);
 
         if (user == null) {
-            forwardLogin(request, response,
-                    "Email hoặc mật khẩu không đúng.",
-                    email);
+            forwardLogin(request, response, "Email hoặc mật khẩu không đúng.");
             return;
         }
 
         boolean passwordMatched = PasswordUtils.checkPassword(password, user.getPasswordHash());
 
         if (!passwordMatched) {
-            forwardLogin(request, response,
-                    "Email hoặc mật khẩu không đúng.",
-                    email);
+            forwardLogin(request, response, "Email hoặc mật khẩu không đúng.");
             return;
         }
 
+        /*
+         * Nếu user chưa xác thực OTP thì gửi lại OTP và chuyển về màn verify.
+         */
         if (user.getStatus() == UserStatus.PENDING) {
             try {
                 sendOtp(email);
 
+                request.getSession().setAttribute("pendingOtpEmail", email);
+
                 String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-                response.sendRedirect(request.getContextPath() + "/public/auth/verify-otp.jsp?email=" + encodedEmail);
+
+                response.sendRedirect(
+                        request.getContextPath()
+                                + "/verify-otp?email=" + encodedEmail
+                );
                 return;
 
             } catch (Exception e) {
                 e.printStackTrace();
 
-                forwardLogin(request, response,
-                        "Tài khoản chưa xác thực OTP nhưng hệ thống chưa gửi lại được mã. Vui lòng kiểm tra thư rác hoặc thử lại sau.",
-                        email);
+                forwardLogin(
+                        request,
+                        response,
+                        "Tài khoản chưa xác thực OTP nhưng hệ thống chưa gửi lại được mã. Vui lòng thử lại sau."
+                );
                 return;
             }
         }
 
         if (user.getStatus() == UserStatus.LOCKED) {
-            forwardLogin(request, response,
-                    "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
-                    email);
+            forwardLogin(
+                    request,
+                    response,
+                    "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên."
+            );
             return;
         }
 
         if (user.getStatus() != UserStatus.ACTIVE) {
-            forwardLogin(request, response,
-                    "Trạng thái tài khoản không hợp lệ.",
-                    email);
+            forwardLogin(
+                    request,
+                    response,
+                    "Trạng thái tài khoản không hợp lệ."
+            );
             return;
         }
 
         Integer roleId = userDao.getRoleIdByUserId(user.getUserId());
 
         if (roleId == null || roleId <= 0) {
-            forwardLogin(request, response,
-                    "Tài khoản chưa được gán quyền. Vui lòng liên hệ quản trị viên.",
-                    email);
+            forwardLogin(
+                    request,
+                    response,
+                    "Tài khoản chưa được gán quyền. Vui lòng liên hệ quản trị viên."
+            );
             return;
         }
+
+
 
         HttpSession session = request.getSession();
         session.setAttribute("user", user);
         session.setAttribute("userId", user.getUserId());
         session.setAttribute("roleId", roleId);
         session.setAttribute("fullName", user.getFirstName() + " " + user.getLastName());
+        session.setAttribute("hasSellerAccount", customerDAO.hasSellerAccount(user.getUserId()));
 
         String contextPath = request.getContextPath();
 
         if (roleId == 1) {
             response.sendRedirect(contextPath + "/admin/dashboard/view-system-overview.jsp");
+
         } else if (roleId == 2) {
             response.sendRedirect(contextPath + "/home");
+
         } else if (roleId == 3) {
-            response.sendRedirect(contextPath + "/home");//seller/dashboard/view-seller-dashboard.jsp
+            response.sendRedirect(contextPath + "/seller/orders");
+
         } else if (roleId == 4) {
-            response.sendRedirect(contextPath + "/logistics/delivery/list-deliveries.jsp");
+            response.sendRedirect(contextPath + "/logistics/delivery/list");
+
         } else {
-            response.sendRedirect(contextPath + "/home");
+            response.sendRedirect(contextPath + "/public/home/view-home.jsp");
         }
     }
 }

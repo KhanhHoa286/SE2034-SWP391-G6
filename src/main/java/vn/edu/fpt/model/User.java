@@ -17,21 +17,35 @@ import java.time.LocalDateTime;
 public class User {
 
     private Integer userId;
+
     private String firstName;
     private String lastName;
     private String email;
     private String phone;
     private String passwordHash;
+
     @Builder.Default
     private String avatarUrl = "https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg";
+
     private Gender gender;
     private LocalDate dateOfBirth;
 
+    // users.status: PENDING / ACTIVE
     private UserStatus status;
 
-    private String licensePlate;
-    private String idCartNumber;
+    private String idCardNumber;
+    private String legalFullName;
+    private String citizenId;
+    private LocalDate citizenIdIssueDate;
+    private String citizenIdIssuePlace;
+    private String permanentAddress;
+    private String frontIdImage;
+    private String backIdImage;
+    private String businessType;
+    private String verificationStatus;
+    private String rejectionReason;
 
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 }

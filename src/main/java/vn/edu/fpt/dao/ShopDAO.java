@@ -3,12 +3,15 @@ package vn.edu.fpt.dao;
 import vn.edu.fpt.common.DBContext;
 import vn.edu.fpt.dto.response.ShopResponse;
 import vn.edu.fpt.enums.ApprovalStatus;
+import vn.edu.fpt.enums.ShopApplicationStatus;
 import vn.edu.fpt.enums.ShopStatus;
 import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
 import vn.edu.fpt.model.Ward;
 import vn.edu.fpt.model.Province;
 
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -136,6 +139,111 @@ public class ShopDAO extends DBContext {
         return false;
     }
 
+    public boolean createShopAndGrantSellerRole(Shop shop) {
+        String insertShopSql =
+                """
+                INSERT INTO shops
+                (
+                    owner_id,
+                    shop_name,
+                    logo_url,
+                    description,
+                    ward_id,
+                    street_address,
+                    approval_status,
+                    status
+                )
+                VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?)
+                """;
+
+        String sellerRoleSql = """
+                SELECT TOP 1 role_id
+                FROM roles
+                WHERE UPPER(LTRIM(RTRIM(role_name))) = 'SELLER'
+                """;
+
+        String hasSellerRoleSql = """
+                SELECT 1
+                FROM user_roles
+                WHERE user_id = ?
+                  AND role_id = ?
+                """;
+
+        String insertRoleSql = "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)";
+
+        boolean oldAutoCommit = true;
+        try {
+            oldAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement ps = connection.prepareStatement(insertShopSql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setInt(1, shop.getOwnerId());
+                ps.setString(2, shop.getShopName());
+                ps.setString(3, shop.getLogoUrl());
+                ps.setString(4, shop.getDescription());
+                ps.setInt(5, shop.getWardId());
+                ps.setString(6, shop.getStreetAddress());
+                ps.setString(7, ApprovalStatus.PENDING.name());
+                ps.setString(8, ShopStatus.ACTIVE.name());
+
+                if (ps.executeUpdate() <= 0) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            int sellerRoleId = 0;
+            try (PreparedStatement ps = connection.prepareStatement(sellerRoleSql);
+                 ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    sellerRoleId = rs.getInt("role_id");
+                }
+            }
+
+            if (sellerRoleId <= 0) {
+                connection.rollback();
+                return false;
+            }
+
+            boolean hasSellerRole = false;
+            try (PreparedStatement ps = connection.prepareStatement(hasSellerRoleSql)) {
+                ps.setInt(1, shop.getOwnerId());
+                ps.setInt(2, sellerRoleId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    hasSellerRole = rs.next();
+                }
+            }
+
+            if (!hasSellerRole) {
+                try (PreparedStatement ps = connection.prepareStatement(insertRoleSql)) {
+                    ps.setInt(1, shop.getOwnerId());
+                    ps.setInt(2, sellerRoleId);
+                    if (ps.executeUpdate() <= 0) {
+                        connection.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            connection.commit();
+            return true;
+        } catch (Exception e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ignored) {
+            }
+            e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(oldAutoCommit);
+            } catch (SQLException ignored) {
+            }
+        }
+
+        return false;
+    }
+
     public Shop getShopByOwnerId(int ownerId) {
         String sql = "SELECT * FROM shops WHERE owner_id = ?";
         try {
@@ -242,13 +350,15 @@ public class ShopDAO extends DBContext {
     private final String CHECK_PRODUCT_SELLER = """
             SELECT 1 FROM products p
             JOIN shops s ON p.shop_id = s.shop_id
-            WHERE p.product_id = ? AND s.owner_id = ? AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED';
+            WHERE p.product_id = ? AND s.owner_id = ? AND s.status = ? AND s.approval_status = ?;
             """;
     public boolean checkProductSeller(int pid, int ownerId) {
         String sql = CHECK_PRODUCT_SELLER;
         try(PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, pid);
             stmt.setInt(2,ownerId);
+            stmt.setString(3, ShopStatus.ACTIVE.name());
+            stmt.setString(4, ShopApplicationStatus.APPROVED.name());
             try(ResultSet rs = stmt.executeQuery()){
                 if(rs.next()) {
                     return (rs.getInt(1) == 1);
@@ -279,12 +389,14 @@ public class ShopDAO extends DBContext {
      * HoaNK - Lấy shop bởi shopid
      */
     private final String GET_SHOP_BY_ID = """
-            SELECT * FROM shops WHERE shop_id = ? AND status = 'ACTIVE' AND approval_status = 'APPROVED';
+            SELECT * FROM shops WHERE shop_id = ? AND status = ? AND approval_status = ?;
             """;
     public ShopResponse getShopById(int shopId) {
         String sql = GET_SHOP_BY_ID;
         try(PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, shopId);
+            stmt.setString(2, ShopStatus.ACTIVE.name());
+            stmt.setString(3, ShopApplicationStatus.APPROVED.name());
             try(ResultSet rs = stmt.executeQuery()) {
                 if(rs.next()) {
                     ShopResponse response = new ShopResponse();

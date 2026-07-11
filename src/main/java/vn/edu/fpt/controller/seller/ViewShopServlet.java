@@ -11,7 +11,6 @@ import vn.edu.fpt.dao.ProductDAO;
 import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
 
-import java.util.List;
 import java.io.IOException;
 
 @WebServlet("/view-shop")
@@ -25,48 +24,11 @@ public class ViewShopServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
-
-        int ownerId = (account != null) ? account.getUserId() : -1;
-        Shop shop = null;
-        if (ownerId != -1) {
-            shop = shopDAO.getShopWithAddressAndOwnerByOwnerId(ownerId);
-        }
+        Shop shop = resolveCurrentShop(session);
 
         if (shop == null) {
-            // Thử lấy shop đầu tiên trong hệ thống làm demo (không redirect)
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                shop = shopDAO.getShopWithAddressAndOwnerByOwnerId(allShops.get(0).getOwnerId());
-            }
-        }
-
-        if (shop == null) {
-            // Nếu hoàn toàn không có shop nào trong DB, sử dụng dummy/placeholder
-            vn.edu.fpt.model.Province province = vn.edu.fpt.model.Province.builder()
-                    .name("Hà Nội")
-                    .build();
-            vn.edu.fpt.model.Ward ward = vn.edu.fpt.model.Ward.builder()
-                    .name("Dịch Vọng Hậu")
-                    .province(province)
-                    .build();
-            User owner = User.builder()
-                    .userId(-1)
-                    .email("demo@vinastudio.com")
-                    .phone("0987654321")
-                    .build();
-            shop = Shop.builder()
-                    .shopId(-1)
-                    .ownerId(-1)
-                    .owner(owner)
-                    .shopName("Atelier Luxe")
-                    .description("Atelier Luxe là biểu tượng của sự tinh tế và tối giản trong thời trang cao cấp. Chúng tôi tập trung vào những thiết kế có cấu trúc rõ ràng, chất liệu thượng hạng và bảng màu monochrome bất hủ. Mỗi sản phẩm tại Atelier Luxe không chỉ là trang phục, mà là một tác phẩm kiến trúc dành cho cơ thể, tôn vinh vẻ đẹp và sự sang trọng thầm lặng của người mặc hiện đại.")
-                    .wardId(-1)
-                    .ward(ward)
-                    .streetAddress("Số 1 Cầu Giấy")
-                    .averageRating(new java.math.BigDecimal("4.9"))
-                    .createdAt(java.time.LocalDateTime.now())
-                    .build();
+            response.sendRedirect(request.getContextPath() + "/seller-register");
+            return;
         }
 
         // Generate initials for the shop name
@@ -99,5 +61,40 @@ public class ViewShopServlet extends HttpServlet {
         request.setAttribute("activePage", "view-shop");
 
         request.getRequestDispatcher("/seller/shop/view-shop.jsp").forward(request, response);
+    }
+
+    private Shop resolveCurrentShop(HttpSession session) {
+        Integer ownerId = getLoggedInUserId(session);
+        return ownerId == null ? null : shopDAO.getShopWithAddressAndOwnerByOwnerId(ownerId);
+    }
+
+    private Integer getLoggedInUserId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object rawUserId = session.getAttribute("userId");
+        if (rawUserId instanceof Integer) {
+            return (Integer) rawUserId;
+        }
+        if (rawUserId != null) {
+            try {
+                return Integer.parseInt(rawUserId.toString());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+
+        Object rawUser = session.getAttribute("user");
+        if (rawUser instanceof User) {
+            return ((User) rawUser).getUserId();
+        }
+
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
+        return null;
     }
 }
