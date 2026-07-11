@@ -17,10 +17,15 @@ import vn.edu.fpt.model.Province;
 import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @WebServlet("/add-shop")
 @MultipartConfig(
@@ -125,7 +130,7 @@ public class AddShopServlet extends HttpServlet {
         }
 
         try {
-            String logoUrl = UploadImage.uploadImage(logoPart, "shops");
+            String logoUrl = saveShopLogo(logoPart);
             if (logoUrl == null || logoUrl.trim().isEmpty()) {
                 throw new Exception("Tải ảnh lên hệ thống thất bại.");
             }
@@ -206,6 +211,73 @@ public class AddShopServlet extends HttpServlet {
         } else if (logoPart.getSize() > 2 * 1024 * 1024) {
             errors.put("logo", "Kích thước file không được vượt quá 2MB.");
         }
+    }
+
+    private String saveShopLogo(Part logoPart) throws Exception {
+        if (logoPart == null || logoPart.getSize() == 0) {
+            return null;
+        }
+
+        try {
+            String url = UploadImage.uploadImage(logoPart, "shops");
+            if (url != null && !url.trim().isEmpty()) {
+                return url;
+            }
+        } catch (Exception cloudinaryEx) {
+            System.err.println("[AddShopServlet] Cloudinary upload failed, using local fallback: " + cloudinaryEx.getMessage());
+        }
+
+        String uploadRoot = null;
+        try {
+            uploadRoot = getServletContext().getRealPath("/");
+            if (uploadRoot != null) {
+                uploadRoot = uploadRoot + File.separator + "uploads" + File.separator + "shops";
+            }
+        } catch (Exception ignored) {
+        }
+
+        if (uploadRoot == null || uploadRoot.trim().isEmpty()) {
+            String userHome = System.getProperty("user.home");
+            uploadRoot = userHome + File.separator + "moda_uploads" + File.separator + "shops";
+        }
+
+        File dir = new File(uploadRoot);
+        if (!dir.exists()) {
+            boolean created = dir.mkdirs();
+            if (!created && !dir.exists()) {
+                throw new IOException("Cannot create upload directory: " + uploadRoot);
+            }
+        }
+
+        String extension = resolveImageExtension(logoPart);
+        String fileName = "shop-logo-" + UUID.randomUUID() + extension;
+        File targetFile = new File(dir, fileName);
+
+        try (InputStream inputStream = logoPart.getInputStream()) {
+            Files.copy(inputStream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        return getServletContext().getContextPath() + "/uploads/shops/" + fileName;
+    }
+
+    private String resolveImageExtension(Part part) {
+        String submittedFileName = part.getSubmittedFileName();
+        if (submittedFileName != null) {
+            int dotIndex = submittedFileName.lastIndexOf('.');
+            if (dotIndex >= 0 && dotIndex < submittedFileName.length() - 1) {
+                String extension = submittedFileName.substring(dotIndex).toLowerCase();
+                if (".jpg".equals(extension) || ".jpeg".equals(extension) || ".png".equals(extension)) {
+                    return extension;
+                }
+            }
+        }
+
+        String contentType = part.getContentType();
+        if ("image/png".equals(contentType)) {
+            return ".png";
+        }
+
+        return ".jpg";
     }
 
     private Integer getLoggedInUserId(HttpSession session) {

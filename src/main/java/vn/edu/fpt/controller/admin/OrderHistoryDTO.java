@@ -10,8 +10,17 @@ public class OrderHistoryDTO {
     private String status;          // trạng thái hiển thị: THÀNH CÔNG, ĐANG GIAO, ĐÃ HỦY, ...
     private String paymentMethod;
     private String paymentStatus;
+    private String customerName;
+    private int customerId;
 
     public OrderHistoryDTO() {}
+
+    // Getters & Setters
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
+    public int getCustomerId() { return customerId; }
+    public void setCustomerId(int customerId) { this.customerId = customerId; }
 
     // Getters & Setters
     public int getMasterOrderId() { return masterOrderId; }
