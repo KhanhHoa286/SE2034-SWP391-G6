@@ -154,9 +154,9 @@
 <div class="app-container">
     <aside class="sidebar-wrapper">
         <div class="sidebar">
-            <div class="sidebar-brand">
-                <span class="sidebar-brand-name">MODA Admin</span>
-                <span class="sidebar-subtitle">Bảng điều khiển siêu cấp</span>
+            <div class="sidebar-brand" style="padding-bottom: 24px;">
+                <span class="sidebar-brand-name" style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">MODA Admin</span>
+                <span class="sidebar-subtitle" style="display: block; font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">Bảng điều khiển siêu cấp</span>
             </div>
             <ul class="sidebar-nav">
                 <li class="menu-item">
@@ -174,13 +174,19 @@
                 <li class="menu-item">
                     <a href="${pageContext.request.contextPath}/admin/seller-applications">
                         <i data-lucide="store" class="menu-icon"></i>
-                        <span>Nhà bán hàng</span>
+                        <span>Người bán</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/order_mgt/list-global-orders.jsp">
+                    <a href="${pageContext.request.contextPath}/admin/orders">
                         <i data-lucide="shopping-cart" class="menu-icon"></i>
-                        <span>Đơn hàng toàn cầu</span>
+                        <span>Đơn hàng hệ thống</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/products">
+                        <i data-lucide="package" class="menu-icon"></i>
+                        <span>Danh sách sản phẩm</span>
                     </a>
                 </li>
                 <li class="menu-item active">
@@ -190,6 +196,16 @@
                     </a>
                 </li>
             </ul>
+            <div style="margin-top: auto;">
+                <ul class="sidebar-nav">
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/logout">
+                            <i data-lucide="log-out" class="menu-icon"></i>
+                            <span>Đăng xuất</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </aside>
 

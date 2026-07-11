@@ -178,15 +178,31 @@
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/order_mgt/view-global-orders.jsp">
-                            <i data-lucide="globe" class="menu-icon"></i>
-                            <span class="menu-text">Đơn hàng quốc tế</span>
+                        <a href="${pageContext.request.contextPath}/admin/orders">
+                            <i data-lucide="shopping-cart" class="menu-icon"></i>
+                            <span class="menu-text">Đơn hàng hệ thống</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/products">
+                            <i data-lucide="package" class="menu-icon"></i>
+                            <span class="menu-text">Danh sách sản phẩm</span>
                         </a>
                     </li>
                     <li class="menu-item">
                         <a href="${pageContext.request.contextPath}/admin/finance/view-finance.jsp">
                             <i data-lucide="credit-card" class="menu-icon"></i>
                             <span class="menu-text">Tài chính</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div style="margin-top: auto;">
+                <ul class="sidebar-menu">
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/logout">
+                            <i data-lucide="log-out" class="menu-icon"></i>
+                            <span class="menu-text">Đăng xuất</span>
                         </a>
                     </li>
                 </ul>
@@ -253,9 +269,10 @@
                     </tr>
                     </thead>
                     <tbody>
+                    <c:set var="currentPage" value="${not empty tag ? tag : 1}" />
                     <c:choose>
                         <c:when test="${not empty userList}">
-                            <c:forEach var="u" items="${userList}">
+                            <c:forEach var="u" items="${userList}" varStatus="loopStatus">
                                 <tr>
                                     <td>
                                         <div class="user-cell">
@@ -269,7 +286,7 @@
                                             </div>
                                             <div>
                                                 <span class="user-name"><c:out value="${u.fullName}"/></span>
-                                                <span class="user-id">#<c:out value="${u.userId}"/></span>
+                                                <span class="user-id">#${(currentPage - 1) * 5 + loopStatus.count}</span>
                                             </div>
                                         </div>
                                     </td>

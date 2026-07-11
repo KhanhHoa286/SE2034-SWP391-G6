@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet(urlPatterns = { "/admin/product/edit-status", "/admin/seller-applications/license" })
+@WebServlet(urlPatterns = { "/admin/product/edit-status" })
 public class EditProductStatusServlet extends HttpServlet {
 
     @Override
@@ -172,50 +172,32 @@ public class EditProductStatusServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String productIdStr = request.getParameter("productId");
-        String action = request.getParameter("action"); // approve, request-edit, reject
+        String newStatus = request.getParameter("status"); 
+        String oldStatus = request.getParameter("oldStatus");
         String note = request.getParameter("note");
-        String isHidden = request.getParameter("isHidden"); // "on" / "off"
+        
+        vn.edu.fpt.model.User user = (vn.edu.fpt.model.User) request.getSession().getAttribute("user");
+        int actorId = (user != null) ? user.getUserId() : 1; // Fallback to 1 if no user session
 
         try {
-            DBContext db = new DBContext();
-            Connection conn = db.getConnection();
-
-            if (conn != null && productIdStr != null) {
+            if (productIdStr != null && newStatus != null) {
                 int prodId = Integer.parseInt(productIdStr);
-                String newStatus = "ACTIVE";
-                if ("reject".equalsIgnoreCase(action)) {
-                    newStatus = "BANNED";
-                } else if ("request-edit".equalsIgnoreCase(action)) {
-                    newStatus = "PENDING";
-                }
-
-                // Nếu người dùng bật công tắc Ẩn khỏi hệ thống
-                if ("on".equals(isHidden)) {
-                    newStatus = "HIDDEN";
-                }
-
-                // Cập nhật trạng thái sản phẩm
-                String updateSql = "UPDATE products SET status = ? WHERE product_id = ?";
-                try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
-                    ps.setString(1, newStatus);
-                    ps.setInt(2, prodId);
-                    ps.executeUpdate();
-                }
-
-                // Lưu log lịch sử kiểm duyệt
-                String logSql = "INSERT INTO product_status_logs (product_id, actor_id, old_status, new_status, note) VALUES (?, 1, NULL, ?, ?)";
-                try (PreparedStatement psLog = conn.prepareStatement(logSql)) {
-                    psLog.setInt(1, prodId);
-                    psLog.setString(2, newStatus);
-                    psLog.setNString(3, note != null ? note : "");
-                    psLog.executeUpdate();
+                
+                vn.edu.fpt.dao.ProductDAO dao = new vn.edu.fpt.dao.ProductDAO();
+                boolean success = dao.updateProductStatusWithLog(prodId, actorId, oldStatus, newStatus, note != null ? note : "");
+                
+                if (success) {
+                    request.getSession().setAttribute("msgSuccess", "Cập nhật trạng thái sản phẩm thành công!");
+                } else {
+                    request.getSession().setAttribute("msgError", "Cập nhật trạng thái thất bại. Vui lòng thử lại!");
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
+            request.getSession().setAttribute("msgError", "Lỗi hệ thống: " + e.getMessage());
         }
 
-        // Redirect lại danh sách người bán
-        response.sendRedirect(request.getContextPath() + "/admin/seller-applications");
+        // Redirect lại danh sách sản phẩm
+        response.sendRedirect(request.getContextPath() + "/admin/products");
     }
 }

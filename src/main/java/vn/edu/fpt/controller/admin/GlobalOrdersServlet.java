@@ -1,31 +1,34 @@
 package vn.edu.fpt.controller.admin;
-import vn.edu.fpt.dao.SellerApplicationDAO;
+
+import vn.edu.fpt.dao.OrderDAO;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
 import java.io.IOException;
 import java.util.List;
-@WebServlet("/admin/seller-applications")
-public class ListSellerApplicationsServlet extends HttpServlet {
+
+@WebServlet("/admin/orders")
+public class GlobalOrdersServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
 
         String search = request.getParameter("search");
         String status = request.getParameter("status");
-        String date = request.getParameter("date");
+        String pageParam = request.getParameter("page");
+
         if (status == null || status.trim().isEmpty()) {
-            status = "PENDING";
+            status = "all";
         }
 
-        String pageParam = request.getParameter("page");
         int page = 1;
         int pageSize = 10;
-
         if (pageParam != null && !pageParam.trim().isEmpty()) {
             try {
                 page = Integer.parseInt(pageParam);
@@ -33,20 +36,19 @@ public class ListSellerApplicationsServlet extends HttpServlet {
             } catch (NumberFormatException ignored) {}
         }
 
-        SellerApplicationDAO dao = new SellerApplicationDAO();
-        int totalApps = dao.getTotalApplications(search, status, date);
-        int totalPages = (int) Math.ceil((double) totalApps / pageSize);
+        OrderDAO orderDAO = new OrderDAO();
+        int totalOrders = orderDAO.getTotalGlobalOrders(search, status);
+        int totalPages = (int) Math.ceil((double) totalOrders / pageSize);
 
-        List<SellerApplication> list = dao.getApplications(search, status, date, page, pageSize);
+        List<OrderHistoryDTO> orderList = orderDAO.getGlobalOrders(search, status, page, pageSize);
 
-        request.setAttribute("applicationList", list);
+        request.setAttribute("orderList", orderList);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
-        request.setAttribute("totalApps", totalApps);
+        request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("search", search);
         request.setAttribute("status", status);
-        request.setAttribute("date", date);
 
-        request.getRequestDispatcher("/admin/seller_mgt/list-seller-applications.jsp").forward(request, response);
+        request.getRequestDispatcher("/admin/order_mgt/view-global-orders.jsp").forward(request, response);
     }
 }

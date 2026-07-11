@@ -164,9 +164,9 @@
 <div class="app-container">
     <aside class="sidebar-wrapper">
         <div class="sidebar">
-            <div class="sidebar-brand">
-                <span class="sidebar-brand-name">MODA Admin</span>
-                <span class="sidebar-subtitle">Bảng điều khiển siêu cấp</span>
+            <div class="sidebar-brand" style="padding-bottom: 24px;">
+                <span class="sidebar-brand-name" style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">MODA Admin</span>
+                <span class="sidebar-subtitle" style="display: block; font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">Bảng điều khiển siêu cấp</span>
             </div>
             <ul class="sidebar-nav">
                 <li class="menu-item">
@@ -188,9 +188,15 @@
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/order_mgt/view-global-orders.jsp">
-                        <i data-lucide="globe" class="menu-icon"></i>
-                        <span>Đơn hàng quốc tế</span>
+                    <a href="${pageContext.request.contextPath}/admin/orders">
+                        <i data-lucide="shopping-cart" class="menu-icon"></i>
+                        <span>Đơn hàng hệ thống</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/products">
+                        <i data-lucide="package" class="menu-icon"></i>
+                        <span>Danh sách sản phẩm</span>
                     </a>
                 </li>
                 <li class="menu-item">
@@ -200,6 +206,16 @@
                     </a>
                 </li>
             </ul>
+            <div style="margin-top: auto;">
+                <ul class="sidebar-nav">
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/logout">
+                            <i data-lucide="log-out" class="menu-icon"></i>
+                            <span>Đăng xuất</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </aside>
 
@@ -222,19 +238,20 @@
                     <section class="card product-detail-card">
                         <div class="product-img-wrapper">
                             <c:choose>
-                                <c:when test="${not empty product.thumbnailUrl}">
-                                    <img src="${product.thumbnailUrl}" alt="Product image" class="product-img">
+                                <c:when test="${not empty images}">
+                                    <img src="${images[0].imageUrl}" alt="${product.productName}" class="product-img">
                                 </c:when>
                                 <c:otherwise>
-                                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);">
+                                    <div class="product-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-muted);">
                                         <i data-lucide="image" style="width:48px;height:48px;"></i>
                                     </div>
                                 </c:otherwise>
                             </c:choose>
                         </div>
+
                         <div class="product-info-wrapper">
                             <div class="code-price-row">
-                                <span class="product-code-badge"><c:out value="${product.productCode}"/></span>
+                                <span class="product-code-badge">Mã SP: <c:out value="${product.productCode}"/></span>
                                 <span class="product-price">
                                     <fmt:formatNumber value="${product.basePrice}" type="number"/> đ
                                 </span>
@@ -242,45 +259,42 @@
 
                             <h2 class="product-name-title"><c:out value="${product.productName}"/></h2>
                             
-                            <span class="product-cat">Danh mục: <strong><c:out value="${product.categoryName}"/></strong></span>
-                            
+                            <span class="product-cat">
+                                Danh mục: <strong><c:out value="${categoryName != null ? categoryName : 'Thời trang'}"/></strong>
+                            </span>
+
                             <div class="section-divider"></div>
 
-                            <div>
-                                <h3 class="desc-title">Mô tả sản phẩm</h3>
-                                <p class="desc-text"><c:out value="${product.description}"/></p>
-                                <ul class="spec-list">
-                                    <li>Chất liệu: 100% Silk Satin</li>
-                                    <li>Màu sắc: Champagne / Ngọc Trai</li>
-                                    <li>Hướng dẫn giặt: Giặt hấp chuyên dụng</li>
-                                </ul>
-                            </div>
+                            <h3 class="desc-title">Mô tả sản phẩm</h3>
+                            <p class="desc-text"><c:out value="${product.description}"/></p>
 
+                            <div class="section-divider"></div>
+
+                            <h3 class="desc-title">Thông tin cửa hàng</h3>
                             <div class="shop-card">
                                 <div class="shop-info">
                                     <div class="shop-icon">
                                         <i data-lucide="store" style="width:18px;height:18px;"></i>
                                     </div>
                                     <div>
-                                        <span class="shop-name-lbl">Cung cấp bởi</span>
-                                        <div class="shop-name-val"><c:out value="${product.shopName}"/></div>
+                                        <span class="shop-name-lbl">Cửa hàng</span>
+                                        <h4 class="shop-name-val"><c:out value="${shopName != null ? shopName : 'MODA Partner'}"/></h4>
                                     </div>
                                 </div>
-                                <a href="${pageContext.request.contextPath}/shop?shop_id=${product.shopId != null ? product.shopId : 1}" target="_blank" class="btn-view-shop">Xem hồ sơ shop</a>
+                                <a href="${pageContext.request.contextPath}/admin/seller-applications/view?id=${product.sellerId}" class="btn-view-shop">
+                                    Chi tiết Shop →
+                                </a>
                             </div>
                         </div>
                     </section>
 
                     <section class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <h3 class="desc-title" style="margin-bottom:0;">Lịch sử kiểm duyệt</h3>
-                            <i data-lucide="history" style="width:16px;height:16px;color:var(--text-muted);"></i>
-                        </div>
+                        <h3 class="desc-title" style="margin-bottom:12px;">Lịch sử kiểm duyệt sản phẩm</h3>
                         <div class="log-table-wrapper">
                             <table class="log-table">
                                 <thead>
                                 <tr>
-                                    <th>Ngày thực hiện</th>
+                                    <th>Thời gian</th>
                                     <th>Người thực hiện</th>
                                     <th>Hành động</th>
                                     <th>Chi tiết / Lý do</th>

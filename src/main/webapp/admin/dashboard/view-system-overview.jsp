@@ -123,7 +123,7 @@
             .sidebar { padding: 16px; }
             .sidebar-header { padding-bottom: 16px; }
             .main-content { padding: 16px; }
-            .topbar { justify-content: flex-end; } /* Đảm bảo avatar luôn ở bên phải trên Mobile */
+            .topbar { justify-content: flex-end; }
             .topbar-avatar-wrapper { display: flex; justify-content: flex-end; }
             .page-header { flex-direction: column; gap: 16px; }
             .date-picker-btn { width: 100%; justify-content: center; }
@@ -164,15 +164,31 @@
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/order_mgt/view-global-orders.jsp">
-                            <i data-lucide="globe" class="menu-icon"></i>
-                            <span class="menu-text">Đơn hàng quốc tế</span>
+                        <a href="${pageContext.request.contextPath}/admin/orders">
+                            <i data-lucide="shopping-cart" class="menu-icon"></i>
+                            <span class="menu-text">Đơn hàng hệ thống</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/products">
+                            <i data-lucide="package" class="menu-icon"></i>
+                            <span class="menu-text">Danh sách sản phẩm</span>
                         </a>
                     </li>
                     <li class="menu-item">
                         <a href="${pageContext.request.contextPath}/admin/finance/view-finance.jsp">
                             <i data-lucide="credit-card" class="menu-icon"></i>
                             <span class="menu-text">Tài chính</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div style="margin-top: auto;">
+                <ul class="sidebar-menu">
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/logout">
+                            <i data-lucide="log-out" class="menu-icon"></i>
+                            <span class="menu-text">Đăng xuất</span>
                         </a>
                     </li>
                 </ul>
@@ -223,9 +239,9 @@
                     <span class="stat-value">
                         <c:choose>
                             <c:when test="${not empty totalRevenue}">
-                                <fmt:formatNumber value="${totalRevenue}" type="currency" currencySymbol="$" maxFractionDigits="0"/>
+                                <fmt:formatNumber value="${totalRevenue}" type="number" groupingUsed="true"/> VND
                             </c:when>
-                            <c:otherwise>$3.170.000</c:otherwise>
+                            <c:otherwise>3.170.000 VND</c:otherwise>
                         </c:choose>
                     </span>
                 </div>
@@ -346,7 +362,7 @@
             data: {
                 labels: finalLabels,
                 datasets: [{
-                    label: 'Số tiền nhận được ($)',
+                    label: 'Số tiền nhận được (VND)',
                     data: finalData,
                     backgroundColor: [
                         '#5850ec', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'
@@ -364,7 +380,7 @@
                         backgroundColor: '#0f172a',
                         callbacks: {
                             label: function(context) {
-                                return ' Đã nhận: $' + context.parsed.y.toLocaleString('en-US');
+                                return ' Đã nhận: ' + context.parsed.y.toLocaleString('vi-VN') + ' VND';
                             }
                         }
                     }
@@ -379,7 +395,7 @@
                         grid: { color: 'rgba(226, 232, 240, 0.6)' },
                         ticks: {
                             color: '#64748b',
-                            callback: function(value) { return '$' + value.toLocaleString('en-US'); }
+                            callback: function(value) { return value.toLocaleString('vi-VN') + ' VND'; }
                         }
                     }
                 }

@@ -158,9 +158,9 @@
 <div class="app-container">
     <aside class="sidebar-wrapper">
         <div class="sidebar">
-            <div class="sidebar-brand">
-                <span class="sidebar-brand-name">MODA Admin</span>
-                <span class="sidebar-subtitle">Bảng điều khiển siêu cấp</span>
+            <div class="sidebar-brand" style="padding-bottom: 24px;">
+                <span class="sidebar-brand-name" style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">MODA Admin</span>
+                <span class="sidebar-subtitle" style="display: block; font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">Bảng điều khiển siêu cấp</span>
             </div>
             <ul class="sidebar-nav">
                 <li class="menu-item">
@@ -182,9 +182,15 @@
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/order_mgt/view-global-orders.jsp">
-                        <i data-lucide="globe" class="menu-icon"></i>
-                        <span>Đơn hàng quốc tế</span>
+                    <a href="${pageContext.request.contextPath}/admin/orders">
+                        <i data-lucide="shopping-cart" class="menu-icon"></i>
+                        <span>Đơn hàng hệ thống</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/products">
+                        <i data-lucide="package" class="menu-icon"></i>
+                        <span>Danh sách sản phẩm</span>
                     </a>
                 </li>
                 <li class="menu-item">
@@ -194,6 +200,16 @@
                     </a>
                 </li>
             </ul>
+            <div style="margin-top: auto;">
+                <ul class="sidebar-nav">
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/logout">
+                            <i data-lucide="log-out" class="menu-icon"></i>
+                            <span>Đăng xuất</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </aside>
 
@@ -225,113 +241,93 @@
                     </c:otherwise>
                 </c:choose>
             </div>
+            
             <div class="header-actions-area">
-                <%-- Nút Đình chỉ --%>
-                <form action="${pageContext.request.contextPath}/admin/seller-applications/detail" method="POST" style="display:inline;">
-                    <input type="hidden" name="id" value="${param.id != null ? param.id : seller.userId}">
-                    <input type="hidden" name="action" value="suspend">
-                    <button type="submit" class="btn-suspend">
-                        <i data-lucide="slash" style="width:16px;height:16px;"></i>
-                        Đình chỉ
-                    </button>
-                </form>
-
-                <%-- Nút Phê duyệt yêu cầu --%>
                 <c:if test="${seller.status == 'PENDING'}">
-                    <form action="${pageContext.request.contextPath}/admin/seller-applications/approve" method="POST" style="display:inline;">
-                        <input type="hidden" name="id" value="${param.id != null ? param.id : seller.userId}">
-                        <button type="submit" class="btn-approve">
-                            <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
-                            Phê duyệt yêu cầu
-                        </button>
+                    <form action="${pageContext.request.contextPath}/admin/seller-applications/detail" method="POST" style="display: inline-block;">
+                        <input type="hidden" name="id" value="${seller.applicationId}">
+                        <input type="hidden" name="action" value="suspend">
+                        <button type="submit" class="btn-suspend">Từ chối đơn</button>
+                    </form>
+                    <form action="${pageContext.request.contextPath}/admin/seller-applications/approve" method="POST" style="display: inline-block;">
+                        <input type="hidden" name="id" value="${seller.applicationId}">
+                        <button type="submit" class="btn-approve">Phê duyệt đối tác</button>
+                    </form>
+                </c:if>
+                <c:if test="${seller.status == 'APPROVED' || seller.status == 'ACTIVE'}">
+                    <form action="${pageContext.request.contextPath}/admin/seller-applications/detail" method="POST" style="display: inline-block;">
+                        <input type="hidden" name="id" value="${seller.applicationId}">
+                        <input type="hidden" name="action" value="suspend">
+                        <button type="submit" class="btn-suspend">Đình chỉ hoạt động</button>
                     </form>
                 </c:if>
             </div>
         </section>
 
         <div class="detail-grid">
-            <aside class="profile-card">
+            <!-- Cột trái: Thông tin Shop -->
+            <div class="profile-card">
                 <div class="profile-header">
                     <div class="profile-avatar">
-                        <c:out value="${fn:substring(seller.shopName, 0, 1)}"/>
+                        <c:choose>
+                            <c:when test="${not empty seller.shopName}">
+                                <c:out value="${fn:substring(seller.shopName, 0, 1)}"/>
+                            </c:when>
+                            <c:otherwise>?</c:otherwise>
+                        </c:choose>
                     </div>
                     <div class="profile-title-group">
                         <h2><c:out value="${seller.shopName}"/></h2>
-                        <p>Tham gia: <c:out value="${seller.createdAt}"/></p>
+                        <p>Đối tác cấp 1 MODA</p>
                     </div>
                 </div>
+
                 <div class="profile-details-list">
                     <div class="detail-item">
-                        <span class="detail-label">Mã người bán</span>
-                        <span class="detail-value"><c:out value="${seller.sellerCode}"/></span>
+                        <span class="detail-label">Chủ cửa hàng:</span>
+                        <span class="detail-value"><c:out value="${seller.fullName}"/></span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Mã số thuế</span>
-                        <span class="detail-value"><c:out value="${seller.taxCode}"/></span>
+                        <span class="detail-label">Email liên hệ:</span>
+                        <span class="detail-value"><c:out value="${seller.email}"/></span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Người đại diện</span>
-                        <span class="detail-value"><c:out value="${seller.ownerName}"/></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Số điện thoại</span>
+                        <span class="detail-label">Số điện thoại:</span>
                         <span class="detail-value"><c:out value="${seller.phone}"/></span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Địa chỉ</span>
-                        <span class="detail-value"><c:out value="${seller.streetAddress}"/></span>
+                        <span class="detail-label">Địa chỉ Shop:</span>
+                        <span class="detail-value"><c:out value="${seller.address}"/></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Mô tả Shop:</span>
+                        <span class="detail-value"><c:out value="${seller.shopDescription}"/></span>
                     </div>
                 </div>
-            </aside>
+            </div>
 
-            <div style="display:flex; flex-direction:column; gap:24px;">
+            <!-- Cột phải: Thống kê & Sản phẩm -->
+            <div style="display: flex; flex-direction: column; gap: 24px;">
                 <section class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-info">
-                            <span class="stat-label">Tổng doanh thu</span>
-                            <span class="stat-value"><c:out value="${seller.totalRevenue}"/> đ</span>
-                            <span class="stat-change up">
-                                <i data-lucide="trending-up" style="width:12px;height:12px;"></i>
-                                +12.5% so với tháng trước
-                            </span>
-                        </div>
-                        <div class="stat-icon-wrapper">
-                            <i data-lucide="dollar-sign" style="width:20px;height:20px;"></i>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-info">
                             <span class="stat-label">Tổng sản phẩm</span>
-                            <span class="stat-value"><c:out value="${seller.totalProducts}"/></span>
-                            <span class="stat-change up" style="color:var(--text-muted); font-weight:500;">
-                                Sản phẩm đang bán: <c:out value="${seller.totalProducts - 38 > 0 ? seller.totalProducts - 38 : 0}"/>
+                            <span class="stat-value"><c:out value="${totalProducts}"/></span>
+                            <span class="stat-change up">
+                                <i data-lucide="arrow-up-right" style="width:12px;height:12px;"></i>
+                                +10%
                             </span>
                         </div>
                         <div class="stat-icon-wrapper">
                             <i data-lucide="package" style="width:20px;height:20px;"></i>
                         </div>
                     </div>
+
                     <div class="stat-card">
                         <div class="stat-info">
-                            <span class="stat-label">Đơn hàng hoàn thành</span>
+                            <span class="stat-label">Đánh giá Shop</span>
                             <span class="stat-value">
-                                <fmt:formatNumber value="${seller.completedOrders}" type="number" />
-                            </span>
-                            <span class="stat-change down">
-                                <i data-lucide="trending-down" style="width:12px;height:12px;"></i>
-                                Tỷ lệ hủy: 1.2%
-                            </span>
-                        </div>
-                        <div class="stat-icon-wrapper">
-                            <i data-lucide="shopping-cart" style="width:20px;height:20px;"></i>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-info">
-                            <span class="stat-label">Đánh giá trung bình</span>
-                            <span class="stat-value"><c:out value="${seller.averageRating}"/> / 5.0</span>
-                            <span class="stat-change up" style="color:var(--text-muted); font-weight:500;">
-                                Dựa trên 1,200 đánh giá
+                                <c:out value="${seller.rating != null ? seller.rating : '4.8'}"/> / 5.0
                             </span>
                         </div>
                         <div class="stat-icon-wrapper">

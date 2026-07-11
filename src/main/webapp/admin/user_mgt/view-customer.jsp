@@ -22,51 +22,60 @@
     <%-- ═══════════════════════════════════════
          SIDEBAR
          ═══════════════════════════════════════ --%>
-    <aside class="sidebar-wrapper">
+        <aside class="sidebar-wrapper">
         <div class="sidebar">
-            <!-- Brand -->
-            <div class="sidebar-brand">
-                <span class="sidebar-brand-name">MODA Admin</span>
-                <span class="sidebar-subtitle">Bảng điều khiển Super Admin</span>
+            <div class="sidebar-brand" style="padding-bottom: 24px;">
+                <span class="sidebar-brand-name" style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">MODA Admin</span>
+                <span class="sidebar-subtitle" style="display: block; font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">Bảng điều khiển siêu cấp</span>
             </div>
-
-            <!-- Navigation -->
-            <nav class="sidebar-nav">
-                <ul>
+            <ul class="sidebar-nav">
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/dashboard/overview">
+                        <i data-lucide="layout-dashboard" class="menu-icon"></i>
+                        <span>Tổng quan</span>
+                    </a>
+                </li>
+                <li class="menu-item active">
+                    <a href="${pageContext.request.contextPath}/admin/user-management">
+                        <i data-lucide="users" class="menu-icon"></i>
+                        <span>Người dùng</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/seller-applications">
+                        <i data-lucide="store" class="menu-icon"></i>
+                        <span>Người bán</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/orders">
+                        <i data-lucide="shopping-cart" class="menu-icon"></i>
+                        <span>Đơn hàng hệ thống</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/products">
+                        <i data-lucide="package" class="menu-icon"></i>
+                        <span>Danh sách sản phẩm</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/finance/view-finance.jsp">
+                        <i data-lucide="credit-card" class="menu-icon"></i>
+                        <span>Tài chính</span>
+                    </a>
+                </li>
+            </ul>
+            <div style="margin-top: auto;">
+                <ul class="sidebar-nav">
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/dashboard/overview">
-                            <i data-lucide="layout-dashboard" class="menu-icon"></i>
-                            <span>Tổng quan</span>
+                        <a href="${pageContext.request.contextPath}/logout">
+                            <i data-lucide="log-out" class="menu-icon"></i>
+                            <span>Đăng xuất</span>
                         </a>
                     </li>
-                    <li class="menu-item active">
-                        <a href="${pageContext.request.contextPath}/admin/user-management">
-                            <i data-lucide="users" class="menu-icon"></i>
-                            <span>Người dùng</span>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/seller-applications">
-                            <i data-lucide="store" class="menu-icon"></i>
-                            <span>Người bán</span>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/order_mgt/view-global-orders.jsp">
-                            <i data-lucide="globe" class="menu-icon"></i>
-                            <span>Đơn hàng quốc tế</span>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/finance/view-finance.jsp">
-                            <i data-lucide="credit-card" class="menu-icon"></i>
-                            <span>Tài chính</span>
-                        </a>
-                    </li>
-
                 </ul>
-            </nav>
-
+            </div>
         </div>
     </aside>
 
@@ -225,7 +234,7 @@
                 <div class="orders-card">
                     <div class="orders-card-header">
                         <h2 class="orders-card-title">Lịch sử mua hàng</h2>
-                        <a href="${pageContext.request.contextPath}/admin/order_mgt/view-global-orders.jsp?customerId=${customer.userId}"
+                        <a href="${pageContext.request.contextPath}/admin/orders?customerId=${customer.userId}"
                            class="btn-view-all" id="btn-view-all-orders">
                             Xem tất cả
                             <i data-lucide="arrow-right" style="width:13px;height:13px;"></i>
@@ -359,3 +368,5 @@
 </script>
 </body>
 </html>
+
+

@@ -386,6 +386,8 @@ public class UserDAO extends DBContext {
         if (!"all".equals(role)) {
             sql += " AND EXISTS (SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.role_id = r2.role_id WHERE ur2.user_id = u.user_id AND r2.role_name = ?) ";
         }
+        
+        sql += " AND NOT EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.role_id = r3.role_id WHERE ur3.user_id = u.user_id AND r3.role_name = 'ADMIN') ";
 
         // Thực hiện phân trang an toàn
         sql += " ORDER BY u.user_id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
@@ -439,6 +441,8 @@ public class UserDAO extends DBContext {
         if (!"all".equals(role)) {
             sql += " AND EXISTS (SELECT 1 FROM user_roles ur2 JOIN roles r2 ON ur2.role_id = r2.role_id WHERE ur2.user_id = u.user_id AND r2.role_name = ?) ";
         }
+        
+        sql += " AND NOT EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.role_id = r3.role_id WHERE ur3.user_id = u.user_id AND r3.role_name = 'ADMIN') ";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             int paramIndex = 1;

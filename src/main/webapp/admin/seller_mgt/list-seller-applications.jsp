@@ -27,7 +27,7 @@
             <div class="sidebar-nav-group">
                 <div class="sidebar-header">
                     <span class="sidebar-brand-title">MODA Admin</span>
-                    <span class="sidebar-subtitle">Bảng điều khiển siêu cấp</span>
+                    <span class="sidebar-subtitle">Bảng điều khiển Super Admin</span>
                 </div>
                 <ul class="sidebar-menu">
                     <li class="menu-item">
@@ -49,9 +49,15 @@
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/order_mgt/view-global-orders.jsp">
+                        <a href="${pageContext.request.contextPath}/admin/orders">
                             <i data-lucide="shopping-cart" class="menu-icon"></i>
-                            <span class="menu-text">Đơn hàng quốc tế</span>
+                            <span class="menu-text">Đơn hàng hệ thống</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/products">
+                            <i data-lucide="package" class="menu-icon"></i>
+                            <span class="menu-text">Danh sách sản phẩm</span>
                         </a>
                     </li>
                     <li class="menu-item">
@@ -60,7 +66,16 @@
                             <span class="menu-text">Tài chính</span>
                         </a>
                     </li>
-
+                </ul>
+            </div>
+            <div style="margin-top: auto;">
+                <ul class="sidebar-menu">
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/logout">
+                            <i data-lucide="log-out" class="menu-icon"></i>
+                            <span class="menu-text">Đăng xuất</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -185,235 +200,32 @@
                             </c:forEach>
                         </c:when>
                         <c:otherwise>
-                            <!-- Dữ liệu Mock tĩnh hiển thị giống hệt trong ảnh mẫu của người dùng khi không có servlet -->
-                            <c:if test="${status == 'PENDING' or status == 'ALL' or empty status}">
-                                <c:if test="${empty date or date == '2023-10-24'}">
-                                    <tr>
-                                        <td>
-                                            <a href="#" class="app-id-link">#APP-8421</a>
-                                        </td>
-                                        <td>
-                                            <span class="owner-name">Nguyễn Văn An</span>
-                                        </td>
-                                        <td>
-                                            <span class="shop-name">AnFashion VN</span>
-                                        </td>
-                                        <td>
-                                            <div class="business-info">
-                                                <span class="mst-text">MST: 0312456789</span>
-                                                <a href="${pageContext.request.contextPath}/admin/seller-applications/license?id=8421" class="license-link">
-                                                    <i data-lucide="file-text" class="license-icon"></i>
-                                                    Xem GPKD
-                                                </a>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="date-container">
-                                                <span class="date-text">24/10/2023</span>
-                                                <span class="time-text">09:30</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge status-pending">Chờ duyệt</span>
-                                        </td>
-                                        <td>
-                                            <div class="actions-cell">
-                                                <button class="action-btn-circle view-details" title="Xem chi tiết">
-                                                    <i data-lucide="eye" class="action-btn-icon"></i>
-                                                </button>
-                                                <form action="${pageContext.request.contextPath}/admin/seller-applications/approve" method="POST" style="display:inline;">
-                                                    <input type="hidden" name="id" value="8421">
-                                                    <button type="submit" class="action-btn-circle approve-btn" title="Duyệt yêu cầu">
-                                                        <i data-lucide="check-circle" class="action-btn-icon"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </c:if>
-                                <c:if test="${empty date or date == '2023-10-23'}">
-                                    <tr>
-                                        <td>
-                                            <a href="#" class="app-id-link">#APP-8420</a>
-                                        </td>
-                                        <td>
-                                            <span class="owner-name">Trần Thị Bích</span>
-                                        </td>
-                                        <td>
-                                            <span class="shop-name">Bich Store Cosmetics</span>
-                                        </td>
-                                        <td>
-                                            <div class="business-info">
-                                                <span class="mst-text">MST: 0108765432</span>
-                                                <a href="${pageContext.request.contextPath}/admin/seller-applications/license?id=8420" class="license-link">
-                                                    <i data-lucide="file-text" class="license-icon"></i>
-                                                    Xem GPKD
-                                                </a>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="date-container">
-                                                <span class="date-text">23/10/2023</span>
-                                                <span class="time-text">15:45</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge status-pending">Chờ duyệt</span>
-                                        </td>
-                                        <td>
-                                            <div class="actions-cell">
-                                                <button class="action-btn-circle view-details" title="Xem chi tiết">
-                                                    <i data-lucide="eye" class="action-btn-icon"></i>
-                                                </button>
-                                                <form action="${pageContext.request.contextPath}/admin/seller-applications/approve" method="POST" style="display:inline;">
-                                                    <input type="hidden" name="id" value="8420">
-                                                    <button type="submit" class="action-btn-circle approve-btn" title="Duyệt yêu cầu">
-                                                        <i data-lucide="check-circle" class="action-btn-icon"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </c:if>
-                                <c:if test="${empty date or date == '2023-10-22'}">
-                                    <tr>
-                                        <td>
-                                            <a href="#" class="app-id-link">#APP-8418</a>
-                                        </td>
-                                        <td>
-                                            <span class="owner-name">Lê Hoàng Nam</span>
-                                        </td>
-                                        <td>
-                                            <span class="shop-name">NamTech Electronics</span>
-                                        </td>
-                                        <td>
-                                            <div class="business-info">
-                                                <span class="mst-text">MST: 0401122334</span>
-                                                <a href="${pageContext.request.contextPath}/admin/seller-applications/license?id=8418" class="license-link">
-                                                    <i data-lucide="file-text" class="license-icon"></i>
-                                                    Xem GPKD
-                                                </a>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="date-container">
-                                                <span class="date-text">22/10/2023</span>
-                                                <span class="time-text">10:12</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge status-pending">Chờ duyệt</span>
-                                        </td>
-                                        <td>
-                                            <div class="actions-cell">
-                                                <button class="action-btn-circle view-details" title="Xem chi tiết">
-                                                    <i data-lucide="eye" class="action-btn-icon"></i>
-                                                </button>
-                                                <form action="${pageContext.request.contextPath}/admin/seller-applications/approve" method="POST" style="display:inline;">
-                                                    <input type="hidden" name="id" value="8418">
-                                                    <button type="submit" class="action-btn-circle approve-btn" title="Duyệt yêu cầu">
-                                                        <i data-lucide="check-circle" class="action-btn-icon"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </c:if>
-                            </c:if>
-                            <c:if test="${status == 'APPROVED' or status == 'ALL'}">
-                                <c:if test="${empty date or date == '2023-10-20'}">
-                                    <tr>
-                                        <td>
-                                            <a href="#" class="app-id-link">#APP-8415</a>
-                                        </td>
-                                        <td>
-                                            <span class="owner-name">Phạm Văn Cường</span>
-                                        </td>
-                                        <td>
-                                            <span class="shop-name">CuongSport Shop</span>
-                                        </td>
-                                        <td>
-                                            <div class="business-info">
-                                                <span class="mst-text">MST: 0209876543</span>
-                                                <a href="${pageContext.request.contextPath}/admin/seller-applications/license?id=8415" class="license-link">
-                                                    <i data-lucide="file-text" class="license-icon"></i>
-                                                    Xem GPKD
-                                                </a>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="date-container">
-                                                <span class="date-text">20/10/2023</span>
-                                                <span class="time-text">14:20</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge status-approved">Đã duyệt</span>
-                                        </td>
-                                        <td>
-                                            <div class="actions-cell">
-                                                <button class="action-btn-circle view-details" title="Xem chi tiết">
-                                                    <i data-lucide="eye" class="action-btn-icon"></i>
-                                                </button>
-                                        </div>
-                                        </td>
-                                    </tr>
-                                </c:if>
-                                <c:if test="${empty date or date == '2023-10-18'}">
-                                    <tr>
-                                        <td>
-                                            <a href="#" class="app-id-link">#APP-8412</a>
-                                        </td>
-                                        <td>
-                                            <span class="owner-name">Hoàng Thị Dung</span>
-                                        </td>
-                                        <td>
-                                            <span class="shop-name">DungFashion Store</span>
-                                        </td>
-                                        <td>
-                                            <div class="business-info">
-                                                <span class="mst-text">MST: 0308765431</span>
-                                                <a href="${pageContext.request.contextPath}/admin/seller-applications/license?id=8412" class="license-link">
-                                                    <i data-lucide="file-text" class="license-icon"></i>
-                                                    Xem GPKD
-                                                </a>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="date-container">
-                                                <span class="date-text">18/10/2023</span>
-                                                <span class="time-text">08:45</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge status-approved">Đã duyệt</span>
-                                        </td>
-                                        <td>
-                                            <div class="actions-cell">
-                                                <button class="action-btn-circle view-details" title="Xem chi tiết">
-                                                    <i data-lucide="eye" class="action-btn-icon"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </c:if>
-                            </c:if>
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                                    <i data-lucide="inbox" style="width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.4;"></i>
+                                    <p style="font-size: 15px; font-weight: 600;">Không có yêu cầu đăng ký nào</p>
+                                    <p style="font-size: 13px; margin-top: 4px;">Hiện tại chưa có đơn đăng ký nào phù hợp với bộ lọc.</p>
+                                </td>
+                            </tr>
                         </c:otherwise>
                     </c:choose>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Thanh phân trang bên dưới bảng -->
+            <!-- Thanh phân trang động -->
             <div class="table-footer">
                 <div class="pagination-list">
-                    <button type="button" class="page-link nav-text" disabled>&lt; Trước</button>
-                    <button type="button" class="page-link active">1</button>
-                    <button type="button" class="page-link">2</button>
-                    <button type="button" class="page-link">3</button>
-                    <span class="page-dots">...</span>
-                    <button type="button" class="page-link">10</button>
-                    <button type="button" class="page-link nav-text">Tiếp &gt;</button>
+                    <c:if test="${currentPage > 1}">
+                        <a href="${pageContext.request.contextPath}/admin/seller-applications?page=${currentPage - 1}&status=${status}&search=${search}&date=${date}" class="page-link nav-text">&lt; Trước</a>
+                    </c:if>
+                    <c:forEach begin="1" end="${totalPages}" var="i">
+                        <a href="${pageContext.request.contextPath}/admin/seller-applications?page=${i}&status=${status}&search=${search}&date=${date}"
+                           class="page-link ${currentPage == i ? 'active' : ''}">${i}</a>
+                    </c:forEach>
+                    <c:if test="${currentPage < totalPages}">
+                        <a href="${pageContext.request.contextPath}/admin/seller-applications?page=${currentPage + 1}&status=${status}&search=${search}&date=${date}" class="page-link nav-text">Tiếp &gt;</a>
+                    </c:if>
                 </div>
             </div>
         </section>

@@ -9,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Quản lý Đơn Hàng Quốc Tế - MODA Admin</title>
+    <title>Quản lý Đơn Hàng Hệ Thống - MODA Admin</title>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -35,6 +35,8 @@
             --warning: #f59e0b;
             --warning-bg: #fffbeb;
             --warning-text: #b45309;
+            --delivering-bg: #eff6ff;
+            --delivering-text: #1d4ed8;
             --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --sidebar-w: 260px;
@@ -127,9 +129,9 @@
 <div class="app-container">
     <aside class="sidebar-wrapper">
         <div class="sidebar">
-            <div class="sidebar-brand">
-                <span class="sidebar-brand-name">MODA Admin</span>
-                <span class="sidebar-subtitle">Bảng điều khiển Super Admin</span>
+            <div class="sidebar-brand" style="padding-bottom: 24px;">
+                <span class="sidebar-brand-name" style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">MODA Admin</span>
+                <span class="sidebar-subtitle" style="display: block; font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">Bảng điều khiển siêu cấp</span>
             </div>
             <ul class="sidebar-nav">
                 <li class="menu-item">
@@ -151,9 +153,15 @@
                     </a>
                 </li>
                 <li class="menu-item active">
-                    <a href="${pageContext.request.contextPath}/admin/order_mgt/view-global-orders.jsp">
-                        <i data-lucide="globe" class="menu-icon"></i>
-                        <span>Đơn hàng quốc tế</span>
+                    <a href="${pageContext.request.contextPath}/admin/orders">
+                        <i data-lucide="shopping-cart" class="menu-icon"></i>
+                        <span>Đơn hàng hệ thống</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/products">
+                        <i data-lucide="package" class="menu-icon"></i>
+                        <span>Danh sách sản phẩm</span>
                     </a>
                 </li>
                 <li class="menu-item">
@@ -163,6 +171,16 @@
                     </a>
                 </li>
             </ul>
+            <div style="margin-top: auto;">
+                <ul class="sidebar-nav">
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/logout">
+                            <i data-lucide="log-out" class="menu-icon"></i>
+                            <span>Đăng xuất</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </aside>
 
@@ -175,30 +193,29 @@
 
         <section class="page-header">
             <div class="header-info">
-                <h1>Đơn hàng quốc tế</h1>
-                <p>Danh sách và quản lý các giao dịch mua sắm quốc tế trên hệ thống.</p>
+                <h1>Đơn hàng hệ thống</h1>
+                <p>Danh sách và quản lý các giao dịch mua sắm trên hệ thống.</p>
             </div>
         </section>
 
         <section class="filter-card">
-            <form action="" method="GET" class="filter-form">
+            <form action="${pageContext.request.contextPath}/admin/orders" method="GET" class="filter-form">
                 <div class="form-group">
-                    <label for="searchTxt">Mã đơn hàng hoặc Khách hàng</label>
-                    <input type="text" id="searchTxt" name="search" class="form-input" placeholder="Nhập từ khóa..." value="${param.search}">
+                    <label>Tìm kiếm đơn hàng</label>
+                    <input type="text" name="search" class="form-input" placeholder="Mã đơn hàng, tên khách hàng..." value="${search}">
                 </div>
                 <div class="form-group">
-                    <label for="statusFilter">Trạng thái</label>
-                    <select id="statusFilter" name="status" class="form-select">
-                        <option value="all">Tất cả trạng thái</option>
-                        <option value="success">Thành công</option>
-                        <option value="delivering">Đang giao</option>
-                        <option value="canceled">Đã hủy</option>
-                        <option value="pending">Chờ xác nhận</option>
+                    <label>Trạng thái</label>
+                    <select name="status" class="form-select">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="PENDING" ${status == 'PENDING' ? 'selected' : ''}>Chờ xử lý</option>
+                        <option value="SHIPPING" ${status == 'SHIPPING' ? 'selected' : ''}>Đang giao</option>
+                        <option value="DELIVERED" ${status == 'DELIVERED' ? 'selected' : ''}>Đã giao</option>
+                        <option value="CANCELLED" ${status == 'CANCELLED' ? 'selected' : ''}>Đã hủy</option>
                     </select>
                 </div>
-                <button type="button" class="btn-secondary">
-                    <i data-lucide="filter" style="width:16px;height:16px;"></i>
-                    <span>Lọc dữ liệu</span>
+                <button type="submit" class="btn-secondary">
+                    <i data-lucide="search" style="width:16px;height:16px;"></i> Lọc kết quả
                 </button>
             </form>
         </section>
@@ -217,87 +234,48 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <%-- Nếu có tham số customerId = 5 (Trần Thị Buyer) --%>
                     <c:choose>
-                        <c:when test="${param.customerId == '5'}">
-                            <tr>
-                                <td><a href="#" class="order-id-link">#ORD-001</a></td>
-                                <td>Trần Thị Buyer (#5)</td>
-                                <td>29/06/2026</td>
-                                <td>435,000</td>
-                                <td><span class="badge status-success">Thành công</span></td>
-                                <td>
-                                    <div class="actions-cell">
-                                        <button class="btn-icon" title="Xem chi tiết"><i data-lucide="eye" class="action-icon"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><a href="#" class="order-id-link">#ORD-007</a></td>
-                                <td>Trần Thị Buyer (#5)</td>
-                                <td>29/06/2026</td>
-                                <td>850,000</td>
-                                <td><span class="badge status-success">Thành công</span></td>
-                                <td>
-                                    <div class="actions-cell">
-                                        <button class="btn-icon" title="Xem chi tiết"><i data-lucide="eye" class="action-icon"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><a href="#" class="order-id-link">#ORD-014</a></td>
-                                <td>Trần Thị Buyer (#5)</td>
-                                <td>29/06/2026</td>
-                                <td>610,000</td>
-                                <td><span class="badge status-success">Thành công</span></td>
-                                <td>
-                                    <div class="actions-cell">
-                                        <button class="btn-icon" title="Xem chi tiết"><i data-lucide="eye" class="action-icon"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
+                        <c:when test="${not empty orderList}">
+                            <c:forEach var="order" items="${orderList}">
+                                <tr>
+                                    <td><a href="${pageContext.request.contextPath}/admin/order-detail?id=${order.masterOrderId}" class="order-id-link"><c:out value="${order.orderCode}"/></a></td>
+                                    <td><c:out value="${order.customerName}"/> (#<c:out value="${order.customerId}"/>)</td>
+                                    <td><fmt:formatDate value="${order.createdAt}" pattern="dd/MM/yyyy"/></td>
+                                    <td><fmt:formatNumber value="${order.totalAmount}" type="number" maxFractionDigits="0"/></td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${order.status == 'DELIVERED'}">
+                                                <span class="badge status-success">${order.statusLabel}</span>
+                                            </c:when>
+                                            <c:when test="${order.status == 'SHIPPING'}">
+                                                <span class="badge status-delivering">${order.statusLabel}</span>
+                                            </c:when>
+                                            <c:when test="${order.status == 'CANCELLED'}">
+                                                <span class="badge status-canceled">${order.statusLabel}</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="badge status-pending">${order.statusLabel}</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td>
+                                        <div class="actions-cell">
+                                            <a href="${pageContext.request.contextPath}/admin/order-detail?id=${order.masterOrderId}" class="btn-icon" title="Xem chi tiết">
+                                                <i data-lucide="eye" class="action-icon"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </c:forEach>
                         </c:when>
                         <c:otherwise>
-                            <%-- Mock Data Tổng quan các khách hàng --%>
                             <tr>
-                                <td><a href="#" class="order-id-link">#ORD-001</a></td>
-                                <td>Trần Thị Buyer (#5)</td>
-                                <td>29/06/2026</td>
-                                <td>435,000</td>
-                                <td><span class="badge status-success">Thành công</span></td>
-                                <td><div class="actions-cell"><button class="btn-icon" title="Xem chi tiết"><i data-lucide="eye" class="action-icon"></i></button></div></td>
-                            </tr>
-                            <tr>
-                                <td><a href="#" class="order-id-link">#ORD-002</a></td>
-                                <td>Nguyễn Văn An (#3)</td>
-                                <td>28/06/2026</td>
-                                <td>1,250,000</td>
-                                <td><span class="badge status-success">Thành công</span></td>
-                                <td><div class="actions-cell"><button class="btn-icon" title="Xem chi tiết"><i data-lucide="eye" class="action-icon"></i></button></div></td>
-                            </tr>
-                            <tr>
-                                <td><a href="#" class="order-id-link">#ORD-003</a></td>
-                                <td>Lê Hoàng Nam (#4)</td>
-                                <td>28/06/2026</td>
-                                <td>850,000</td>
-                                <td><span class="badge status-delivering">Đang giao</span></td>
-                                <td><div class="actions-cell"><button class="btn-icon" title="Xem chi tiết"><i data-lucide="eye" class="action-icon"></i></button></div></td>
-                            </tr>
-                            <tr>
-                                <td><a href="#" class="order-id-link">#ORD-007</a></td>
-                                <td>Trần Thị Buyer (#5)</td>
-                                <td>27/06/2026</td>
-                                <td>850,000</td>
-                                <td><span class="badge status-success">Thành công</span></td>
-                                <td><div class="actions-cell"><button class="btn-icon" title="Xem chi tiết"><i data-lucide="eye" class="action-icon"></i></button></div></td>
-                            </tr>
-                            <tr>
-                                <td><a href="#" class="order-id-link">#ORD-014</a></td>
-                                <td>Trần Thị Buyer (#5)</td>
-                                <td>25/06/2026</td>
-                                <td>610,000</td>
-                                <td><span class="badge status-success">Thành công</span></td>
-                                <td><div class="actions-cell"><button class="btn-icon" title="Xem chi tiết"><i data-lucide="eye" class="action-icon"></i></button></div></td>
+                                <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+                                        <i data-lucide="inbox" style="width:40px;height:40px;opacity:0.4;"></i>
+                                        <span>Không có đơn hàng nào.</span>
+                                    </div>
+                                </td>
                             </tr>
                         </c:otherwise>
                     </c:choose>
@@ -306,9 +284,24 @@
             </div>
 
             <div class="table-footer">
-                <span class="footer-text">Hiển thị dữ liệu thực tế hệ thống (Tổng số bản ghi: <b>${param.customerId == '5' ? 3 : 5}</b>)</span>
+                <span class="footer-text">Hiển thị dữ liệu thực tế hệ thống (Tổng số bản ghi: <b>${totalOrders != null ? totalOrders : 0}</b>)</span>
                 <div class="pagination-list">
-                    <a href="#" class="page-link active">1</a>
+                    <c:if test="${currentPage > 1}">
+                        <a href="${pageContext.request.contextPath}/admin/orders?page=${currentPage-1}&amp;search=${search}&amp;status=${status}" class="page-link nav-text">&lt; Trước</a>
+                    </c:if>
+                    <c:if test="${currentPage <= 1}">
+                        <button type="button" class="page-link nav-text" disabled>&lt; Trước</button>
+                    </c:if>
+                    <c:forEach begin="1" end="${totalPages != null ? totalPages : 1}" var="i">
+                        <a href="${pageContext.request.contextPath}/admin/orders?page=${i}&amp;search=${search}&amp;status=${status}"
+                           class="page-link ${currentPage == i ? 'active' : ''}">${i}</a>
+                    </c:forEach>
+                    <c:if test="${currentPage < totalPages}">
+                        <a href="${pageContext.request.contextPath}/admin/orders?page=${currentPage+1}&amp;search=${search}&amp;status=${status}" class="page-link nav-text">Tiếp &gt;</a>
+                    </c:if>
+                    <c:if test="${currentPage >= totalPages || totalPages == null}">
+                        <button type="button" class="page-link nav-text" disabled>Tiếp &gt;</button>
+                    </c:if>
                 </div>
             </div>
         </section>

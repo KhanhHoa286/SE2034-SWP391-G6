@@ -75,8 +75,13 @@ public class ViewSellerDetailServlet extends HttpServlet {
                         status = "ACTIVE";
                     }
                     Timestamp createdAt = rs.getTimestamp("created_at");
+                    int applicationId = 0;
+                    try {
+                        applicationId = rs.getInt("application_id");
+                    } catch (SQLException ignored) {}
 
                     sellerData.put("userId", userId);
+                    sellerData.put("applicationId", applicationId);
                     sellerData.put("shopName", shopName);
                     sellerData.put("ownerName", ownerName);
                     sellerData.put("phone", phone);
@@ -174,6 +179,7 @@ public class ViewSellerDetailServlet extends HttpServlet {
             sellerData.put("status", "APPROVED"); // Đang hoạt động
             sellerData.put("createdAt", "12/05/2023");
             sellerData.put("sellerCode", "SLR-9942");
+            sellerData.put("applicationId", 8421);
             sellerData.put("streetAddress", "Tầng 4, Tòa nhà Bitexco, Q1, TP.HCM");
             sellerData.put("totalRevenue", "1,245.50M");
             sellerData.put("totalProducts", 428);
@@ -256,16 +262,20 @@ public class ViewSellerDetailServlet extends HttpServlet {
         try {
             DBContext db = new DBContext();
             Connection conn = db.getConnection();
-            if (conn != null && idStr != null) {
-                int appId = Integer.parseInt(idStr);
+            if (conn != null && idStr != null && !idStr.trim().isEmpty()) {
+                try {
+                    int appId = Integer.parseInt(idStr.trim());
 
-                if ("suspend".equalsIgnoreCase(action)) {
-                    // Update user or shop status
-                    String sql = "UPDATE shop_applications SET status = 'REJECTED' WHERE application_id = ?";
-                    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                        ps.setInt(1, appId);
-                        ps.executeUpdate();
+                    if ("suspend".equalsIgnoreCase(action)) {
+                        // Update user or shop status
+                        String sql = "UPDATE shop_applications SET status = 'REJECTED' WHERE application_id = ?";
+                        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                            ps.setInt(1, appId);
+                            ps.executeUpdate();
+                        }
                     }
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
                 }
             }
         } catch (Exception e) {

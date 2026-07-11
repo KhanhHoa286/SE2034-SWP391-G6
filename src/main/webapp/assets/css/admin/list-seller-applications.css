@@ -150,9 +150,8 @@ button, input, select {
 
 .menu-item.active a {
     color: #ffffff;
-    background-color: var(--sidebar-item-active);
-    border-left: 3px solid var(--accent-purple);
-    border-radius: 0 8px 8px 0;
+    background-color: #5850ec;
+    box-shadow: 0 4px 12px rgba(88, 80, 236, 0.25);
 }
 
 .menu-icon {

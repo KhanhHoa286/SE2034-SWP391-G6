@@ -16,12 +16,15 @@ public class ApproveApplicationServlet extends HttpServlet {
 
         String appIdStr = request.getParameter("id");
 
-        if (appIdStr != null) {
-            int appId = Integer.parseInt(appIdStr);
-
-            // Gọi lớp xử lý logic duyệt đơn từ DAO
-            SellerApplicationDAO dao = new SellerApplicationDAO();
-            dao.approveApplication(appId);
+        if (appIdStr != null && !appIdStr.trim().isEmpty()) {
+            try {
+                int appId = Integer.parseInt(appIdStr.trim());
+                // Gọi lớp xử lý logic duyệt đơn từ DAO
+                SellerApplicationDAO dao = new SellerApplicationDAO();
+                dao.approveApplication(appId);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
         }
 
         // Quay trở lại trang danh sách sau khi thực hiện xong hành động
