@@ -12,8 +12,8 @@
     <title>Chi tiết khách hàng: ${not empty customer.fullName ? customer.fullName : 'N/A'} - MODA Admin</title>
     <meta name="description" content="Xem chi tiết thông tin và lịch sử mua hàng của khách hàng trong hệ thống MODA Admin.">
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin/view-customer.css">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin/view-customer.css?v=1.2">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
@@ -22,64 +22,59 @@
     <%-- ═══════════════════════════════════════
          SIDEBAR
          ═══════════════════════════════════════ --%>
-    <aside class="sidebar-wrapper">
+        <aside class="sidebar-wrapper">
         <div class="sidebar">
-            <!-- Brand -->
-            <div class="sidebar-brand">
-                <span class="sidebar-brand-name">MODA Admin</span>
-                <span class="sidebar-subtitle">Bảng điều khiển</span>
+            <div class="sidebar-brand" style="padding-bottom: 24px;">
+                <span class="sidebar-brand-name" style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">MODA Admin</span>
+                <span class="sidebar-subtitle" style="display: block; font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">Bảng điều khiển siêu cấp</span>
             </div>
-
-            <!-- Navigation -->
-            <nav class="sidebar-nav">
-                <ul>
+            <ul class="sidebar-nav">
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/dashboard/overview">
+                        <i data-lucide="layout-dashboard" class="menu-icon"></i>
+                        <span>Tổng quan</span>
+                    </a>
+                </li>
+                <li class="menu-item active">
+                    <a href="${pageContext.request.contextPath}/admin/user-management">
+                        <i data-lucide="users" class="menu-icon"></i>
+                        <span>Người dùng</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/seller-applications">
+                        <i data-lucide="store" class="menu-icon"></i>
+                        <span>Người bán</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/orders">
+                        <i data-lucide="shopping-cart" class="menu-icon"></i>
+                        <span>Đơn hàng hệ thống</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/products">
+                        <i data-lucide="package" class="menu-icon"></i>
+                        <span>Danh sách sản phẩm</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/finance/view-finance.jsp">
+                        <i data-lucide="credit-card" class="menu-icon"></i>
+                        <span>Tài chính</span>
+                    </a>
+                </li>
+            </ul>
+            <div style="margin-top: auto;">
+                <ul class="sidebar-nav">
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/dashboard/overview">
-                            <i data-lucide="layout-dashboard" class="menu-icon"></i>
-                            <span>Tổng quan</span>
-                        </a>
-                    </li>
-                    <li class="menu-item active">
-                        <a href="${pageContext.request.contextPath}/admin/user-management">
-                            <i data-lucide="users" class="menu-icon"></i>
-                            <span>Người dùng</span>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/seller-management">
-                            <i data-lucide="home" class="menu-icon"></i>
-                            <span>Người bán</span>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/order-management">
-                            <i data-lucide="globe" class="menu-icon"></i>
-                            <span>Đơn hàng quốc tế</span>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/finance">
-                            <i data-lucide="credit-card" class="menu-icon"></i>
-                            <span>Tài chính</span>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/settings">
-                            <i data-lucide="settings" class="menu-icon"></i>
-                            <span>Cài đặt hệ thống</span>
+                        <a href="${pageContext.request.contextPath}/logout">
+                            <i data-lucide="log-out" class="menu-icon"></i>
+                            <span>Đăng xuất</span>
                         </a>
                     </li>
                 </ul>
-            </nav>
-
-            <!-- Footer -->
-            <div class="sidebar-footer">
-                <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg"
-                     alt="Admin Avatar" class="sidebar-footer-avatar" />
-                <div>
-                    <span class="sidebar-footer-name">Quản trị viên</span>
-                    <span class="sidebar-footer-role">admin@moda.com</span>
-                </div>
             </div>
         </div>
     </aside>
@@ -90,11 +85,7 @@
     <main class="main-content">
 
         <%-- Topbar --%>
-        <div class="topbar">
-            <div class="topbar-search">
-                <i data-lucide="search" class="topbar-search-icon"></i>
-                <input type="text" class="topbar-search-input" placeholder="Tìm kiếm hệ thống...">
-            </div>
+        <div class="topbar" style="justify-content: flex-end;">
             <div class="topbar-actions">
                 <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg"
                      alt="Avatar" class="topbar-avatar" />
@@ -118,11 +109,11 @@
             </div>
 
             <%-- Ban / Unban button --%>
-            <form action="${pageContext.request.contextPath}/admin/user-management" method="POST" style="display:inline;">
-                <input type="hidden" name="id" value="${customer.userId}">
+            <form action="${pageContext.request.contextPath}/admin/user_mgt/view-customer" method="POST" style="display:inline;">
+                <input type="hidden" name="userId" value="${customer.userId}">
                 <c:choose>
                     <c:when test="${customer.status == 'BANNED'}">
-                        <input type="hidden" name="action" value="unban">
+                        <input type="hidden" name="action" value="unlock">
                         <button type="submit" class="btn-ban" id="btn-unban-account"
                                 style="color:#047857;border-color:#6ee7b7;background:#ecfdf5;">
                             <i data-lucide="shield-check" class="btn-ban-icon"></i>
@@ -130,7 +121,7 @@
                         </button>
                     </c:when>
                     <c:otherwise>
-                        <input type="hidden" name="action" value="ban">
+                        <input type="hidden" name="action" value="lock">
                         <button type="submit" class="btn-ban" id="btn-ban-account">
                             <i data-lucide="shield-alert" class="btn-ban-icon"></i>
                             Khóa tài khoản
@@ -199,7 +190,7 @@
                         </li>
                         <li class="contact-item">
                             <i data-lucide="map-pin" class="contact-icon"></i>
-                            <span><c:out value="${not empty customer.address ? customer.address : 'Chưa cập nhật'}"/></span>
+                            <span>Chưa cập nhật</span>
                         </li>
                         <li class="contact-item">
                             <i data-lucide="calendar" class="contact-icon"></i>
@@ -216,25 +207,19 @@
                 </div>
 
                 <%-- Stats Cards --%>
-                <div class="stats-grid">
+                <div class="stats-grid" style="display: flex; flex-direction: column; gap: 12px;">
                     <div class="stat-card">
                         <p class="stat-label">Tổng đơn hàng</p>
                         <p class="stat-value" id="total-orders">
                             <c:out value="${not empty totalOrders ? totalOrders : 0}"/>
                         </p>
                     </div>
-                    <div class="stat-card">
-                        <p class="stat-label">Tỷ lệ hoàn trả</p>
-                        <p class="stat-value" id="return-rate">
-                            <c:out value="${not empty returnRate ? returnRate : '0.0'}"/>%
-                        </p>
-                    </div>
                     <div class="stat-card full-width">
                         <p class="stat-label">Tổng chi tiêu (VNĐ)</p>
                         <p class="stat-value" id="total-spent">
                             <c:choose>
-                                <c:when test="${not empty totalSpent}">
-                                    <fmt:formatNumber value="${totalSpent}" type="number" groupingUsed="true"/>
+                                <c:when test="${not empty customer.totalSpent}">
+                                    <fmt:formatNumber value="${customer.totalSpent}" type="number" groupingUsed="true"/>
                                 </c:when>
                                 <c:otherwise>0</c:otherwise>
                             </c:choose>
@@ -249,7 +234,7 @@
                 <div class="orders-card">
                     <div class="orders-card-header">
                         <h2 class="orders-card-title">Lịch sử mua hàng</h2>
-                        <a href="${pageContext.request.contextPath}/admin/order-management?customerId=${customer.userId}"
+                        <a href="${pageContext.request.contextPath}/admin/orders?customerId=${customer.userId}"
                            class="btn-view-all" id="btn-view-all-orders">
                             Xem tất cả
                             <i data-lucide="arrow-right" style="width:13px;height:13px;"></i>
@@ -272,15 +257,15 @@
                                     <c:forEach var="order" items="${orderHistory}">
                                         <tr>
                                             <td>
-                                                <a href="${pageContext.request.contextPath}/admin/order-detail?id=${order.orderId}"
+                                                <a href="${pageContext.request.contextPath}/admin/order-detail?id=${order.masterOrderId}"
                                                    class="order-id-link">
-                                                    #<c:out value="${order.orderId}"/>
+                                                    <c:out value="${order.orderCode}"/>
                                                 </a>
                                             </td>
                                             <td class="col-date">
                                                 <c:choose>
-                                                    <c:when test="${not empty order.orderDate}">
-                                                        <fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy"/>
+                                                    <c:when test="${not empty order.createdAt}">
+                                                        <fmt:formatDate value="${order.createdAt}" pattern="dd/MM/yyyy"/>
                                                     </c:when>
                                                     <c:otherwise>—</c:otherwise>
                                                 </c:choose>
@@ -290,10 +275,10 @@
                                             </td>
                                             <td>
                                                 <c:choose>
-                                                    <c:when test="${order.status == 'SUCCESS' or order.status == 'COMPLETED' or order.status == 'THANH_CONG'}">
+                                                    <c:when test="${order.status == 'SUCCESS' or order.status == 'COMPLETED' or order.status == 'THANH_CONG' or order.status == 'DELIVERED'}">
                                                         <span class="order-badge badge-success">Thành công</span>
                                                     </c:when>
-                                                    <c:when test="${order.status == 'DELIVERING' or order.status == 'SHIPPING' or order.status == 'DANG_GIAO'}">
+                                                    <c:when test="${order.status == 'DELIVERING' or order.status == 'SHIPPING' or order.status == 'DANG_GIAO' or order.status == 'PREPARING' or order.status == 'CONFIRMED'}">
                                                         <span class="order-badge badge-delivering">Đang giao</span>
                                                     </c:when>
                                                     <c:when test="${order.status == 'CANCELED' or order.status == 'CANCELLED' or order.status == 'DA_HUY'}">
@@ -301,7 +286,7 @@
                                                     </c:when>
                                                     <c:otherwise>
                                                         <span class="order-badge badge-pending">
-                                                            <c:out value="${order.status}"/>
+                                                            <c:out value="${order.status == 'PENDING' ? 'Chờ xác nhận' : order.status}"/>
                                                         </span>
                                                     </c:otherwise>
                                                 </c:choose>
@@ -383,3 +368,5 @@
 </script>
 </body>
 </html>
+
+
