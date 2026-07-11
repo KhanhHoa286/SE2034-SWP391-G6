@@ -39,18 +39,18 @@ public class ViewSellerDetailServlet extends HttpServlet {
 
                 if (idStr != null && !idStr.trim().isEmpty()) {
                     int appId = Integer.parseInt(idStr);
-                    String sql = "SELECT sa.*, u.user_id AS u_user_id, u.first_name, u.last_name, u.phone, u.email " +
-                                 "FROM shop_applications sa " +
-                                 "JOIN users u ON sa.user_id = u.user_id " +
-                                 "WHERE sa.application_id = ?";
+                    String sql = "SELECT s.shop_id AS application_id, s.*, u.user_id AS u_user_id, u.first_name, u.last_name, u.phone, u.email, u.citizen_id AS tax_code " +
+                                 "FROM shops s " +
+                                 "JOIN users u ON s.owner_id = u.user_id " +
+                                 "WHERE s.shop_id = ?";
                     ps = conn.prepareStatement(sql);
                     ps.setInt(1, appId);
                     rs = ps.executeQuery();
                 } else if (userIdStr != null && !userIdStr.trim().isEmpty()) {
                     int userId = Integer.parseInt(userIdStr);
-                    String sql = "SELECT sa.*, u.user_id AS u_user_id, u.first_name, u.last_name, u.phone, u.email " +
+                    String sql = "SELECT s.shop_id AS application_id, s.*, u.user_id AS u_user_id, u.first_name, u.last_name, u.phone, u.email, u.citizen_id AS tax_code " +
                                  "FROM users u " +
-                                 "LEFT JOIN shop_applications sa ON u.user_id = sa.user_id " +
+                                 "LEFT JOIN shops s ON u.user_id = s.owner_id " +
                                  "WHERE u.user_id = ?";
                     ps = conn.prepareStatement(sql);
                     ps.setInt(1, userId);
@@ -70,9 +70,9 @@ public class ViewSellerDetailServlet extends HttpServlet {
                     String phone = rs.getString("phone");
                     String email = rs.getString("email");
                     String taxCode = rs.getString("tax_code");
-                    String status = rs.getString("status");
+                    String status = rs.getString("approval_status");
                     if (status == null || status.trim().isEmpty()) {
-                        status = "ACTIVE";
+                        status = "PENDING";
                     }
                     Timestamp createdAt = rs.getTimestamp("created_at");
                     int applicationId = 0;
@@ -276,7 +276,7 @@ public class ViewSellerDetailServlet extends HttpServlet {
 
                     if ("suspend".equalsIgnoreCase(action)) {
                         // Update user or shop status
-                        String sql = "UPDATE shop_applications SET status = 'REJECTED' WHERE application_id = ?";
+                        String sql = "UPDATE shops SET approval_status = 'REJECTED' WHERE shop_id = ?";
                         try (PreparedStatement ps = conn.prepareStatement(sql)) {
                             ps.setInt(1, appId);
                             ps.executeUpdate();

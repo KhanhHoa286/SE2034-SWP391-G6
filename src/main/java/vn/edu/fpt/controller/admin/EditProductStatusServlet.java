@@ -43,8 +43,7 @@ public class EditProductStatusServlet extends HttpServlet {
                     // Lấy sản phẩm của shop liên quan đến đơn ứng tuyển này
                     String findProdSql = "SELECT TOP 1 p.product_id FROM products p " +
                                          "JOIN shops s ON p.shop_id = s.shop_id " +
-                                         "JOIN shop_applications sa ON s.owner_id = sa.user_id " +
-                                         "WHERE sa.application_id = ?";
+                                         "WHERE s.shop_id = ?";
                     try (PreparedStatement psFind = conn.prepareStatement(findProdSql)) {
                         psFind.setInt(1, Integer.parseInt(idStr));
                         try (ResultSet rsFind = psFind.executeQuery()) {

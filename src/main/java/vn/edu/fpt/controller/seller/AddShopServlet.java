@@ -53,12 +53,16 @@ public class AddShopServlet extends HttpServlet {
             return;
         }
 
-        if (shopDAO.existsByOwnerId(ownerId)) {
-            session.setAttribute("hasSellerAccount", true);
-            response.sendRedirect(request.getContextPath() + "/seller/orders");
+        Shop existingShop = shopDAO.getShopByOwnerId(ownerId);
+        if (existingShop != null) {
+            if (existingShop.getApprovalStatus().name().equals("APPROVED")) {
+                session.setAttribute("hasSellerAccount", true);
+                response.sendRedirect(request.getContextPath() + "/seller/orders");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/customer/dashboard?shopPending=1");
+            }
             return;
         }
-
         if (!customerDAO.hasCompletedSellerIdentity(ownerId)) {
             response.sendRedirect(request.getContextPath() + "/seller-register");
             return;
@@ -87,12 +91,16 @@ public class AddShopServlet extends HttpServlet {
             return;
         }
 
-        if (shopDAO.existsByOwnerId(ownerId)) {
-            session.setAttribute("hasSellerAccount", true);
-            response.sendRedirect(request.getContextPath() + "/seller/orders");
+        Shop existingShop = shopDAO.getShopByOwnerId(ownerId);
+        if (existingShop != null) {
+            if (existingShop.getApprovalStatus().name().equals("APPROVED")) {
+                session.setAttribute("hasSellerAccount", true);
+                response.sendRedirect(request.getContextPath() + "/seller/orders");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/customer/dashboard?shopPending=1");
+            }
             return;
         }
-
         Map<String, String> errors = new HashMap<>();
         Map<String, String> oldInput = new HashMap<>();
 
@@ -144,18 +152,12 @@ public class AddShopServlet extends HttpServlet {
                     .streetAddress(streetAddress)
                     .build();
 
-            boolean success = shopDAO.createShopAndGrantSellerRole(shop);
+            boolean success = shopDAO.insertShop(shop);
             if (!success) {
-                throw new Exception("Không thể lưu thông tin cửa hàng hoặc cấp quyền người bán.");
+                throw new Exception("Không thể lưu thông tin cửa hàng.");
             }
 
-            int sellerRoleId = userDAO.getRoleIdByName("SELLER");
-            session.setAttribute("hasSellerAccount", true);
-            if (sellerRoleId > 0) {
-                session.setAttribute("roleId", sellerRoleId);
-            }
-
-            response.sendRedirect(request.getContextPath() + "/seller/orders?shopCreated=1");
+            response.sendRedirect(request.getContextPath() + "/customer/dashboard?shopPending=1");
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("popupType", "error");
