@@ -1,6 +1,6 @@
 :root {
     --edit-primary: #000000;
-    --edit-background: #f8f9ff;
+    --edit-background: var(--secondary-color, #ffffff);
     --edit-text: #121c28;
     --edit-muted: #4c4546;
     --edit-outline: #7e7576;
@@ -18,7 +18,7 @@
 .edit-address-content {
     width: 100%;
     max-width: 900px;
-    margin: 0;
+    margin: 0 auto;
 }
 
 .edit-address-header {
