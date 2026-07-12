@@ -6,7 +6,7 @@
 
 :root {
     --dashboard-primary: #000000;
-    --dashboard-background: #f8f9ff;
+    --dashboard-background: var(--secondary-color, #ffffff);
     --dashboard-surface: #ffffff;
     --dashboard-surface-soft: #eef4ff;
     --dashboard-surface-muted: #e5eeff;
@@ -33,7 +33,7 @@
 .dashboard-container {
     width: 100%;
     max-width: 1080px;
-    margin: 0;
+    margin: 0 auto;
 }
 
 .dashboard-alert {

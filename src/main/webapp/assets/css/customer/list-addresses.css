@@ -5,7 +5,7 @@
 
 :root {
     --address-primary: #000000;
-    --address-background: #f8f9ff;
+    --address-background: var(--secondary-color, #ffffff);
     --address-surface: #ffffff;
     --address-border: #cfc4c5;
     --address-border-dark: #000000;
@@ -26,7 +26,7 @@
 .address-book-container {
     width: 100%;
     max-width: 1060px;
-    margin: 0;
+    margin: 0 auto;
 }
 
 /* ================================

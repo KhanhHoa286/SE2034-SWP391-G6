@@ -259,6 +259,8 @@ public class ShopDAO extends DBContext {
                         .description(rs.getString("description"))
                         .wardId(rs.getInt("ward_id"))
                         .streetAddress(rs.getString("street_address"))
+                        .approvalStatus(ApprovalStatus.valueOf(rs.getString("approval_status")))
+                        .status(ShopStatus.valueOf(rs.getString("status")))
                         .build();
             }
         } catch (Exception e) {

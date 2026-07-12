@@ -5,7 +5,7 @@
 
 :root {
     --add-primary: #000000;
-    --add-background: #f8f9ff;
+    --add-background: var(--secondary-color, #ffffff);
     --add-text: #121c28;
     --add-muted: #4c4546;
     --add-outline: #7e7576;
@@ -24,7 +24,7 @@
 .add-address-content {
     width: 100%;
     max-width: 900px;
-    margin: 0;
+    margin: 0 auto;
 }
 
 /* ================================
