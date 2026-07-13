@@ -181,7 +181,7 @@
             <span class="breadcrumbs-separator">&gt;</span>
             <a href="${pageContext.request.contextPath}/admin/seller-applications/detail?id=${app.id}"><c:out value="${app.shopName}"/></a>
             <span class="breadcrumbs-separator">&gt;</span>
-            <span>Giấy phép Kinh doanh</span>
+            <span>Thông tin cá nhân</span>
         </nav>
 
         <section class="page-header">
@@ -223,7 +223,7 @@
                         <span class="info-value"><c:out value="${app.ownerName}"/></span>
                     </div>
                     <div class="info-item">
-                        <span class="info-label">Mã số thuế:</span>
+                        <span class="info-label">Số CCCD:</span>
                         <span class="info-value"><c:out value="${app.mst}"/></span>
                     </div>
                     <div class="info-item">
@@ -239,7 +239,7 @@
                 <div style="margin-top: 16px; padding: 16px; background-color: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
                     <p style="font-size: 13px; font-weight: 500; color: #15803d; line-height: 1.5;">
                         <i data-lucide="check-circle" style="width:16px; height:16px; display:inline-block; vertical-align:middle; margin-right:4px;"></i>
-                        Tài liệu này đã được xác thực mã số thuế doanh nghiệp hợp lệ trên Cổng thông tin Tổng cục Thuế Việt Nam.
+                        Tài liệu này đã được xác thực số CCCD hợp lệ trên cơ sở dữ liệu quốc gia về dân cư.
                     </p>
                 </div>
             </div>
@@ -278,15 +278,7 @@
                 </div>
             </div>
 
-            <!-- Giấy phép kinh doanh thực tế -->
-            <div class="document-card">
-                <div class="document-card-header">
-                    <span class="document-card-title">Ảnh chụp Giấy phép Kinh doanh (GPKD)</span>
-                </div>
-                <div class="image-wrapper">
-                    <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780447385/business_license_example_ok7y2c.png" alt="Giấy phép kinh doanh thực tế" class="document-image" />
-                </div>
-            </div>
+
         </div>
     </main>
 </div>

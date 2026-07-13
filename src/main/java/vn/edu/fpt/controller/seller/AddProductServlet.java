@@ -259,7 +259,7 @@ public class AddProductServlet extends HttpServlet {
                     .thumbnailUrl(imageUrls.get(0)) // Ảnh chính là ảnh đầu tiên
                     .isActive(true)
                     .isDeleted(false)
-                    .status(ProductStatus.ACTIVE)
+                    .status(ProductStatus.PENDING)
                     .createdAt(LocalDateTime.now())
                     .build();
 
