@@ -60,6 +60,12 @@
             </a>
         </div>
 
+        <c:if test="${not empty successMessage}">
+            <div class="profile-alert profile-alert--success">
+                <c:out value="${successMessage}" />
+            </div>
+        </c:if>
+
         <!-- Header & Action -->
         <div class="profile-title-row">
             <div>

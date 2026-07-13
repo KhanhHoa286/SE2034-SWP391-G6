@@ -57,9 +57,12 @@ public class AddShopServlet extends HttpServlet {
         if (existingShop != null) {
             if (existingShop.getApprovalStatus().name().equals("APPROVED")) {
                 session.setAttribute("hasSellerAccount", true);
+                session.setAttribute("hasPendingSellerRegistration", false);
                 response.sendRedirect(request.getContextPath() + "/seller/orders");
             } else {
-                response.sendRedirect(request.getContextPath() + "/customer/dashboard?shopPending=1");
+                session.setAttribute("hasSellerAccount", false);
+                session.setAttribute("hasPendingSellerRegistration", true);
+                response.sendRedirect(request.getContextPath() + "/customer/profile?shopPending=1");
             }
             return;
         }
@@ -95,9 +98,12 @@ public class AddShopServlet extends HttpServlet {
         if (existingShop != null) {
             if (existingShop.getApprovalStatus().name().equals("APPROVED")) {
                 session.setAttribute("hasSellerAccount", true);
+                session.setAttribute("hasPendingSellerRegistration", false);
                 response.sendRedirect(request.getContextPath() + "/seller/orders");
             } else {
-                response.sendRedirect(request.getContextPath() + "/customer/dashboard?shopPending=1");
+                session.setAttribute("hasSellerAccount", false);
+                session.setAttribute("hasPendingSellerRegistration", true);
+                response.sendRedirect(request.getContextPath() + "/customer/profile?shopPending=1");
             }
             return;
         }
@@ -157,7 +163,9 @@ public class AddShopServlet extends HttpServlet {
                 throw new Exception("Không thể lưu thông tin cửa hàng.");
             }
 
-            response.sendRedirect(request.getContextPath() + "/customer/dashboard?shopPending=1");
+            session.setAttribute("hasSellerAccount", false);
+            session.setAttribute("hasPendingSellerRegistration", true);
+            response.sendRedirect(request.getContextPath() + "/customer/profile?shopCreated=1");
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("popupType", "error");

@@ -117,19 +117,6 @@
                             <small class="seller-register-error"><c:out value="${errors.permanentAddress}" /></small>
                         </c:if>
                     </div>
-
-                    <div class="seller-register-field">
-                        <label for="businessType">Loại hình người bán</label>
-                        <select id="businessType" name="businessType">
-                            <option value="">Chọn loại hình</option>
-                            <option value="INDIVIDUAL" ${oldInput.businessType == 'INDIVIDUAL' ? 'selected' : ''}>Cá nhân</option>
-                            <option value="HOUSEHOLD" ${oldInput.businessType == 'HOUSEHOLD' ? 'selected' : ''}>Hộ kinh doanh</option>
-                            <option value="COMPANY" ${oldInput.businessType == 'COMPANY' ? 'selected' : ''}>Doanh nghiệp</option>
-                        </select>
-                        <c:if test="${not empty errors.businessType}">
-                            <small class="seller-register-error"><c:out value="${errors.businessType}" /></small>
-                        </c:if>
-                    </div>
                 </div>
 
                 <div class="seller-register-card">

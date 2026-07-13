@@ -97,8 +97,15 @@ public class ViewProfileServlet extends HttpServlet {
         session.setAttribute("userId", profileUser.getUserId());
         session.setAttribute("fullName", fullNameText);
         boolean hasSellerAccount = customerDAO.hasSellerAccount(profileUser.getUserId());
+        boolean hasPendingSellerRegistration = !hasSellerAccount && customerDAO.hasPendingSellerRegistration(profileUser.getUserId());
         session.setAttribute("hasSellerAccount", hasSellerAccount);
+        session.setAttribute("hasPendingSellerRegistration", hasPendingSellerRegistration);
         request.setAttribute("hasSellerAccount", hasSellerAccount);
+        request.setAttribute("hasPendingSellerRegistration", hasPendingSellerRegistration);
+
+        if ("1".equals(request.getParameter("shopCreated")) || "1".equals(request.getParameter("shopPending"))) {
+            request.setAttribute("successMessage", "Tạo shop thành công, yêu cầu tạo đang được kiểm duyệt.");
+        }
 
         request.getRequestDispatcher("/customer/account/view-profile.jsp")
                 .forward(request, response);

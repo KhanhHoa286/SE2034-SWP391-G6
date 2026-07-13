@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <c:set var="hasSellerAccount" value="${requestScope.hasSellerAccount or sessionScope.hasSellerAccount}" />
+<c:set var="hasPendingSellerRegistration" value="${requestScope.hasPendingSellerRegistration or sessionScope.hasPendingSellerRegistration}" />
 
 <aside class="profile-sidebar">
     <div class="profile-sidebar__head">
@@ -36,6 +37,8 @@
                    href="${pageContext.request.contextPath}/seller/orders">
                     <span>Trang người bán</span>
                 </a>
+            </c:when>
+            <c:when test="${hasPendingSellerRegistration}">
             </c:when>
             <c:otherwise>
                 <a class="profile-side-link ${param.active == 'seller' ? 'active' : ''}"

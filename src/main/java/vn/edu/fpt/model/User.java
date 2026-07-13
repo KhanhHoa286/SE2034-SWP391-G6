@@ -41,9 +41,6 @@ public class User {
     private String permanentAddress;
     private String frontIdImage;
     private String backIdImage;
-    private String businessType;
-    private String verificationStatus;
-    private String rejectionReason;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

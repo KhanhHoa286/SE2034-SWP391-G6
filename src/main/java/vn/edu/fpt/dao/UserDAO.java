@@ -561,9 +561,6 @@ public class UserDAO extends DBContext {
         user.setPermanentAddress(rs.getString("permanent_address"));
         user.setFrontIdImage(rs.getString("front_id_image"));
         user.setBackIdImage(rs.getString("back_id_image"));
-        user.setBusinessType(rs.getString("business_type"));
-        user.setVerificationStatus(rs.getString("verification_status"));
-        user.setRejectionReason(rs.getString("rejection_reason"));
 
         String gender = rs.getString("gender");
         if (gender != null && !gender.trim().isEmpty()) {
