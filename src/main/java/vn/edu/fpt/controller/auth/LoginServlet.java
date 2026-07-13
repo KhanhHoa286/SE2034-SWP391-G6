@@ -203,7 +203,10 @@ public class LoginServlet extends HttpServlet {
         session.setAttribute("userId", user.getUserId());
         session.setAttribute("roleId", roleId);
         session.setAttribute("fullName", user.getFirstName() + " " + user.getLastName());
-        session.setAttribute("hasSellerAccount", customerDAO.hasSellerAccount(user.getUserId()));
+        boolean hasSellerAccount = customerDAO.hasSellerAccount(user.getUserId());
+        boolean hasPendingSellerRegistration = !hasSellerAccount && customerDAO.hasPendingSellerRegistration(user.getUserId());
+        session.setAttribute("hasSellerAccount", hasSellerAccount);
+        session.setAttribute("hasPendingSellerRegistration", hasPendingSellerRegistration);
 
         String contextPath = request.getContextPath();
 

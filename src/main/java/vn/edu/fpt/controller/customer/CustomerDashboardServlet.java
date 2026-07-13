@@ -113,7 +113,9 @@ public class CustomerDashboardServlet extends HttpServlet {
         List<OrderHistoryResponse> recentOrders =
                 orderDAO.getRecentSubOrdersByCustomerId(userId, 5);
         boolean hasSellerAccount = customerDAO.hasSellerAccount(userId);
+        boolean hasPendingSellerRegistration = !hasSellerAccount && customerDAO.hasPendingSellerRegistration(userId);
         session.setAttribute("hasSellerAccount", hasSellerAccount);
+        session.setAttribute("hasPendingSellerRegistration", hasPendingSellerRegistration);
 
         /*
          * Đẩy dữ liệu sang JSP.
@@ -124,8 +126,14 @@ public class CustomerDashboardServlet extends HttpServlet {
         request.setAttribute("shippingOrders", shippingOrders);
         request.setAttribute("recentOrders", recentOrders);
         request.setAttribute("hasSellerAccount", hasSellerAccount);
+        request.setAttribute("hasPendingSellerRegistration", hasPendingSellerRegistration);
 
-        if ("1".equals(request.getParameter("sellerRegistered"))) {
+        if ("1".equals(request.getParameter("shopPending")) || "1".equals(request.getParameter("shopCreated"))) {
+            request.setAttribute(
+                    "successMessage",
+                    "Tạo shop thành công, yêu cầu tạo đang được kiểm duyệt."
+            );
+        } else if ("1".equals(request.getParameter("sellerRegistered"))) {
             request.setAttribute(
                     "successMessage",
                     "Đăng ký người bán thành công. Bạn có thể vào trang người bán để quản lý đơn hàng."

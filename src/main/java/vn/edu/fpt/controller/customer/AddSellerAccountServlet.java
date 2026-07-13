@@ -55,7 +55,15 @@ public class AddSellerAccountServlet extends HttpServlet {
 
         if (customerDAO.hasSellerAccount(userId)) {
             session.setAttribute("hasSellerAccount", true);
+            session.setAttribute("hasPendingSellerRegistration", false);
             response.sendRedirect(request.getContextPath() + "/seller/orders");
+            return;
+        }
+
+        if (customerDAO.hasPendingSellerRegistration(userId)) {
+            session.setAttribute("hasSellerAccount", false);
+            session.setAttribute("hasPendingSellerRegistration", true);
+            response.sendRedirect(request.getContextPath() + "/customer/profile?shopPending=1");
             return;
         }
 
@@ -82,7 +90,15 @@ public class AddSellerAccountServlet extends HttpServlet {
 
         if (customerDAO.hasSellerAccount(userId)) {
             session.setAttribute("hasSellerAccount", true);
+            session.setAttribute("hasPendingSellerRegistration", false);
             response.sendRedirect(request.getContextPath() + "/seller/orders");
+            return;
+        }
+
+        if (customerDAO.hasPendingSellerRegistration(userId)) {
+            session.setAttribute("hasSellerAccount", false);
+            session.setAttribute("hasPendingSellerRegistration", true);
+            response.sendRedirect(request.getContextPath() + "/customer/profile?shopPending=1");
             return;
         }
 
