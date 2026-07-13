@@ -374,7 +374,7 @@ public class OrderDAO extends DBContext {
     }
 
     /**
-     * HoaNK - Trả về 1 đối tượng orderItemResponse chứa bên trong 1 list shopOrderResponse (chứa bên trong 1 list orderItemDetailResponse)
+     * HoaNK - Trả về 1 đối tượng orderItemResponse chứa bên trong 1 list shopOrderResponse (chứa bên trong 1 list orderItemDetailResponse nữa)
      */
     private final String GET_ORDER_ITEMS = """
             SELECT so.sub_order_id,p.product_id,p.product_name,p.thumbnail_url,s.shop_id,s.shop_name,c.color_name, si.size_name,
