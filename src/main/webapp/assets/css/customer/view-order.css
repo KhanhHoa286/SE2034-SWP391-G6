@@ -1,21 +1,6 @@
 /* order-detail.css */
 
-.back-link {
-    display: inline-block;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #666;
-    text-decoration: none;
-    margin-bottom: 20px;
-    letter-spacing: 0.5px;
-    transition: color 0.2s ease;
-}
-.back-link:hover {
-    color: #000;
-}
-.back-link i {
-    margin-right: 5px;
-}
+
 
 .order-detail-header {
     display: flex;
@@ -48,31 +33,31 @@
 }
 
 .status-pending {
-    background-color: #FFF9E6;
+    background-color: transparent;
     color: #D4A373;
     border: 1px solid #FFE3A8;
 }
 
 .status-preparing {
-    background-color: #FFF0E6;
+    background-color: transparent;
     color: #E67E22;
     border: 1px solid #FFD5B8;
 }
 
 .status-shipping {
-    background-color: #EBF5FF;
+    background-color: transparent;
     color: #2F80ED;
     border: 1px solid #CDE4FF;
 }
 
 .status-completed {
-    background-color: #E6F9ED;
+    background-color: transparent;
     color: #27AE60;
     border: 1px solid #C3F2D3;
 }
 
 .status-cancelled {
-    background-color: #FCE8E6;
+    background-color: transparent;
     color: #EB5757;
     border: 1px solid #FAD1CC;
 }
