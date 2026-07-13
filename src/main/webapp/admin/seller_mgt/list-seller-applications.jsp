@@ -161,10 +161,10 @@
                                     </td>
                                     <td>
                                         <div class="business-info">
-                                            <span class="mst-text">MST: <c:out value="${app.mst}"/></span>
+                                            <span class="mst-text">CCCD: <c:out value="${app.mst}"/></span>
                                             <a href="${pageContext.request.contextPath}/admin/seller-applications/license?id=${app.id}" class="license-link">
                                                 <i data-lucide="file-text" class="license-icon"></i>
-                                                Xem GPKD
+                                                Xem TTCN
                                             </a>
                                         </div>
                                     </td>
