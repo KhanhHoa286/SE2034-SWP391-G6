@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -92,7 +91,6 @@ public class AddSellerAccountServlet extends HttpServlet {
         String issueDateRaw = clean(request.getParameter("citizenIdIssueDate"));
         String citizenIdIssuePlace = clean(request.getParameter("citizenIdIssuePlace"));
         String permanentAddress = clean(request.getParameter("permanentAddress"));
-        String businessType = clean(request.getParameter("businessType"));
 
         Map<String, String> errors = new HashMap<>();
         Map<String, String> oldInput = new HashMap<>();
@@ -101,7 +99,6 @@ public class AddSellerAccountServlet extends HttpServlet {
         oldInput.put("citizenIdIssueDate", issueDateRaw);
         oldInput.put("citizenIdIssuePlace", citizenIdIssuePlace);
         oldInput.put("permanentAddress", permanentAddress);
-        oldInput.put("businessType", businessType);
 
         LocalDate citizenIdIssueDate = parseIssueDate(issueDateRaw, errors);
 
@@ -117,10 +114,6 @@ public class AddSellerAccountServlet extends HttpServlet {
 
         validateText(errors, "citizenIdIssuePlace", citizenIdIssuePlace, "Vui lòng nhập nơi cấp căn cước công dân.", 3, 255);
         validateText(errors, "permanentAddress", permanentAddress, "Vui lòng nhập địa chỉ thường trú.", 5, 500);
-
-        if (!isValidBusinessType(businessType)) {
-            errors.put("businessType", "Vui lòng chọn loại hình người bán hợp lệ.");
-        }
 
         Part frontPart = getPartSafely(request, "frontIdImage");
         Part backPart = getPartSafely(request, "backIdImage");
@@ -173,8 +166,7 @@ public class AddSellerAccountServlet extends HttpServlet {
                 citizenIdIssuePlace,
                 permanentAddress,
                 frontImageUrl,
-                backImageUrl,
-                businessType
+                backImageUrl
         );
 
         if (!updated) {
@@ -248,12 +240,6 @@ public class AddSellerAccountServlet extends HttpServlet {
         } else if (value.length() < minLength || value.length() > maxLength) {
             errors.put(field, "Độ dài phải từ " + minLength + " đến " + maxLength + " ký tự.");
         }
-    }
-
-    private boolean isValidBusinessType(String businessType) {
-        return "INDIVIDUAL".equals(businessType)
-                || "HOUSEHOLD".equals(businessType)
-                || "COMPANY".equals(businessType);
     }
 
     private Part getPartSafely(HttpServletRequest request, String name) {

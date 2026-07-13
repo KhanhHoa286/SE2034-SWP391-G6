@@ -265,8 +265,7 @@ public class CustomerDAO extends DBContext {
             String citizenIdIssuePlace,
             String permanentAddress,
             String frontIdImage,
-            String backIdImage,
-            String businessType
+            String backIdImage
     ) {
         String sql = """
                 UPDATE users
@@ -277,9 +276,6 @@ public class CustomerDAO extends DBContext {
                     permanent_address = ?,
                     front_id_image = COALESCE(?, front_id_image),
                     back_id_image = COALESCE(?, back_id_image),
-                    business_type = ?,
-                    verification_status = 'APPROVED',
-                    rejection_reason = NULL,
                     updated_at = GETDATE()
                 WHERE user_id = ?
                 """;
@@ -304,8 +300,7 @@ public class CustomerDAO extends DBContext {
             } else {
                 ps.setString(7, backIdImage);
             }
-            ps.setString(8, businessType);
-            ps.setInt(9, userId);
+            ps.setInt(8, userId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("[CustomerDAO] updateSellerIdentity error: " + e.getMessage());
