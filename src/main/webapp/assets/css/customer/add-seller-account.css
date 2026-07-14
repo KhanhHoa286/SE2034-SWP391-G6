@@ -126,7 +126,6 @@
 }
 
 .seller-register-field input,
-.seller-register-field select,
 .seller-register-field textarea {
     width: 100%;
     min-height: 52px;
@@ -187,15 +186,9 @@
 }
 
 .seller-register-field input:focus,
-.seller-register-field select:focus,
 .seller-register-field textarea:focus {
     border-color: #020817;
     background: #ffffff;
-}
-
-.seller-register-field select:disabled {
-    cursor: not-allowed;
-    color: #94a3b8;
 }
 
 .seller-register-error {

@@ -157,22 +157,37 @@ public class CustomerDAO extends DBContext {
                 SELECT 1
                 FROM shops s
                 WHERE s.owner_id = ?
-                UNION
-                SELECT 1
-                FROM user_roles ur
-                INNER JOIN roles r ON r.role_id = ur.role_id
-                WHERE ur.user_id = ?
-                  AND UPPER(LTRIM(RTRIM(r.role_name))) = 'SELLER'
+                  AND UPPER(LTRIM(RTRIM(s.approval_status))) = 'APPROVED'
+                  AND UPPER(LTRIM(RTRIM(s.status))) = 'ACTIVE'
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, userId);
-            ps.setInt(2, userId);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }
         } catch (SQLException e) {
             System.err.println("[CustomerDAO] hasSellerAccount error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean hasPendingSellerRegistration(int userId) {
+        String sql = """
+                SELECT 1
+                FROM shops s
+                WHERE s.owner_id = ?
+                  AND UPPER(LTRIM(RTRIM(s.approval_status))) = 'PENDING'
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            System.err.println("[CustomerDAO] hasPendingSellerRegistration error: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -265,8 +280,7 @@ public class CustomerDAO extends DBContext {
             String citizenIdIssuePlace,
             String permanentAddress,
             String frontIdImage,
-            String backIdImage,
-            String businessType
+            String backIdImage
     ) {
         String sql = """
                 UPDATE users
@@ -277,9 +291,6 @@ public class CustomerDAO extends DBContext {
                     permanent_address = ?,
                     front_id_image = COALESCE(?, front_id_image),
                     back_id_image = COALESCE(?, back_id_image),
-                    business_type = ?,
-                    verification_status = 'APPROVED',
-                    rejection_reason = NULL,
                     updated_at = GETDATE()
                 WHERE user_id = ?
                 """;
@@ -304,8 +315,7 @@ public class CustomerDAO extends DBContext {
             } else {
                 ps.setString(7, backIdImage);
             }
-            ps.setString(8, businessType);
-            ps.setInt(9, userId);
+            ps.setInt(8, userId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("[CustomerDAO] updateSellerIdentity error: " + e.getMessage());

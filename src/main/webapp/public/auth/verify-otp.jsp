@@ -50,7 +50,10 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
     <title>Xác thực OTP | MODA</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
@@ -59,38 +62,65 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="<%= ctx %>/assets/css/public/verify-otp.css">
+   <link rel="stylesheet"
+         href="<%= ctx %>/assets/css/public/verify-otp.css?v=20260713-2">
 </head>
 
 <body>
+
 <div class="otp-page">
 
     <header class="otp-header"></header>
 
     <main class="otp-main">
+
         <section class="otp-card">
 
-            <% if (forgotMode) { %>
-                <a href="<%= ctx %>/login" class="back-button">
-                    <span class="material-symbols-outlined back-icon">arrow_back</span>
-                    <span>QUAY LẠI</span>
-                </a>
-            <% } else { %>
-                <form id="cancel-pending-form"
-                      action="<%= ctx %>/cancel-pending-registration"
-                      method="post"
-                      class="back-form">
+            <%-- Khu vực nút quay lại ở góc trên bên trái khung trắng --%>
+            <div class="otp-back">
 
-                    <input type="hidden" name="email" value="<%= safeEmail %>">
+                <% if (forgotMode) { %>
 
-                    <button type="submit" class="back-button">
-                        <span class="material-symbols-outlined back-icon">arrow_back</span>
+                    <a href="<%= ctx %>/login"
+                       class="back-button">
+
+                        <span class="material-symbols-outlined back-icon">
+                            arrow_back
+                        </span>
+
                         <span>QUAY LẠI</span>
-                    </button>
-                </form>
-            <% } %>
+                    </a>
 
-            <h1 class="otp-title"><%= titleText %></h1>
+                <% } else { %>
+
+                    <form id="cancel-pending-form"
+                          action="<%= ctx %>/cancel-pending-registration"
+                          method="post"
+                          class="back-form">
+
+                        <input type="hidden"
+                               name="email"
+                               value="<%= safeEmail %>">
+
+                        <button type="submit"
+                                class="back-button">
+
+                            <span class="material-symbols-outlined back-icon">
+                                arrow_back
+                            </span>
+
+                            <span>QUAY LẠI</span>
+                        </button>
+
+                    </form>
+
+                <% } %>
+
+            </div>
+
+            <h1 class="otp-title">
+                <%= titleText %>
+            </h1>
 
             <p class="otp-description">
                 <%= descText %>
@@ -98,21 +128,27 @@
             </p>
 
             <% if (errorObj != null) { %>
+
                 <div class="alert alert-error">
                     <%= errorObj %>
                 </div>
+
             <% } %>
 
             <% if (messageObj != null) { %>
+
                 <div class="alert alert-info">
                     <%= messageObj %>
                 </div>
+
             <% } %>
 
             <% if (successObj != null) { %>
+
                 <div class="alert alert-success">
                     <%= successObj %>
                 </div>
+
             <% } %>
 
             <form id="otp-form"
@@ -120,32 +156,80 @@
                   method="post"
                   class="otp-form">
 
-                <input type="hidden" name="email" value="<%= safeEmail %>">
-                <input type="hidden" name="type" value="<%= forgotMode ? "forgot" : "register" %>">
-                <input type="hidden" name="otp" id="otp">
+                <input type="hidden"
+                       name="email"
+                       value="<%= safeEmail %>">
+
+                <input type="hidden"
+                       name="type"
+                       value="<%= forgotMode ? "forgot" : "register" %>">
+
+                <input type="hidden"
+                       name="otp"
+                       id="otp">
 
                 <div class="otp-input-group">
-                    <input class="otp-input" maxlength="1" required type="text" inputmode="numeric" autocomplete="one-time-code">
-                    <input class="otp-input" maxlength="1" required type="text" inputmode="numeric">
-                    <input class="otp-input" maxlength="1" required type="text" inputmode="numeric">
-                    <input class="otp-input" maxlength="1" required type="text" inputmode="numeric">
-                    <input class="otp-input" maxlength="1" required type="text" inputmode="numeric">
-                    <input class="otp-input" maxlength="1" required type="text" inputmode="numeric">
+
+                    <input class="otp-input"
+                           maxlength="1"
+                           required
+                           type="text"
+                           inputmode="numeric"
+                           autocomplete="one-time-code">
+
+                    <input class="otp-input"
+                           maxlength="1"
+                           required
+                           type="text"
+                           inputmode="numeric">
+
+                    <input class="otp-input"
+                           maxlength="1"
+                           required
+                           type="text"
+                           inputmode="numeric">
+
+                    <input class="otp-input"
+                           maxlength="1"
+                           required
+                           type="text"
+                           inputmode="numeric">
+
+                    <input class="otp-input"
+                           maxlength="1"
+                           required
+                           type="text"
+                           inputmode="numeric">
+
+                    <input class="otp-input"
+                           maxlength="1"
+                           required
+                           type="text"
+                           inputmode="numeric">
+
                 </div>
 
                 <div class="otp-action-row">
-                    <span id="timer" class="otp-timer">01:00</span>
+
+                    <span id="timer"
+                          class="otp-timer">
+                        01:00
+                    </span>
 
                     <button id="resend-btn"
                             type="button"
                             class="resend-button">
                         Gửi lại mã
                     </button>
+
                 </div>
 
-                <button id="submit-btn" type="submit" class="confirm-button">
+                <button id="submit-btn"
+                        type="submit"
+                        class="confirm-button">
                     XÁC NHẬN
                 </button>
+
             </form>
 
             <form id="resend-form"
@@ -153,14 +237,22 @@
                   method="post"
                   class="hidden-form">
 
-                <input type="hidden" name="email" value="<%= safeEmail %>">
-                <input type="hidden" name="type" value="<%= forgotMode ? "forgot" : "register" %>">
+                <input type="hidden"
+                       name="email"
+                       value="<%= safeEmail %>">
+
+                <input type="hidden"
+                       name="type"
+                       value="<%= forgotMode ? "forgot" : "register" %>">
+
             </form>
 
         </section>
+
     </main>
 
     <footer class="otp-footer"></footer>
+
 </div>
 
 <script>
@@ -173,6 +265,7 @@
     const resendForm = document.getElementById('resend-form');
 
     inputs.forEach((input, index) => {
+
         input.addEventListener('input', (e) => {
             e.target.value = e.target.value.replace(/[^0-9]/g, '');
 
@@ -186,7 +279,10 @@
         });
 
         input.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            if (e.key === 'Backspace'
+                && !e.target.value
+                && index > 0) {
+
                 inputs[index - 1].focus();
             }
         });
@@ -194,10 +290,11 @@
         input.addEventListener('paste', (e) => {
             e.preventDefault();
 
-            const pastedText = (e.clipboardData || window.clipboardData)
-                .getData('text')
-                .replace(/[^0-9]/g, '')
-                .slice(0, 6);
+            const pastedText =
+                (e.clipboardData || window.clipboardData)
+                    .getData('text')
+                    .replace(/[^0-9]/g, '')
+                    .slice(0, 6);
 
             if (!pastedText) {
                 return;
@@ -207,7 +304,9 @@
                 otpInput.value = pastedText[i] || '';
             });
 
-            const focusIndex = Math.min(pastedText.length, inputs.length) - 1;
+            const focusIndex =
+                Math.min(pastedText.length, inputs.length) - 1;
+
             if (focusIndex >= 0) {
                 inputs[focusIndex].focus();
             }
@@ -221,7 +320,9 @@
         const seconds = timeLeft % 60;
 
         timerElement.innerText =
-            String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+            String(minutes).padStart(2, '0')
+            + ':'
+            + String(seconds).padStart(2, '0');
 
         if (timeLeft <= 0) {
             clearInterval(countdown);
@@ -246,15 +347,21 @@
     resendBtn.addEventListener('click', () => {
         resendBtn.disabled = true;
         resendBtn.innerText = 'ĐANG GỬI...';
+
         resendForm.submit();
     });
 
     otpForm.addEventListener('submit', (e) => {
-        const otpCode = Array.from(inputs).map(input => input.value).join('');
+        const otpCode =
+            Array.from(inputs)
+                .map(input => input.value)
+                .join('');
 
         if (otpCode.length !== 6) {
             e.preventDefault();
+
             alert('Vui lòng nhập đầy đủ 6 chữ số OTP.');
+
             return;
         }
 
