@@ -159,14 +159,10 @@
 
         </div>
 
-        <%-- ============================
-             CỘT PHẢI: TÓM TẮT ĐƠN HÀNG
-             ============================ --%>
         <aside>
             <div class="order-summary-panel">
                 <h2 class="order-summary-panel__title">Tóm tắt đơn hàng</h2>
 
-                <%-- ===== KHU VỰC SCROLL SẢN PHẨM ===== --%>
                 <div class="summary-products-scroll" id="summaryScroll">
 
                     <%-- Shop 1 — 2 sản phẩm --%>
@@ -224,7 +220,7 @@
                             </div>
                         </c:if>
                 </div>
-                <%-- ===== FOOTER CỐ ĐỊNH: Tổng tiền + Nút thanh toán ===== --%>
+                <%-- Tổng tiền + Nút thanh toán--%>
                 <div class="summary-footer">
                     <div class="summary-totals">
                         <div class="summary-row summary-row--total">
