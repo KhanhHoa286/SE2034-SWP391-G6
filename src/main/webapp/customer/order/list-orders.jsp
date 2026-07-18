@@ -34,9 +34,9 @@
     <!-- Main Content -->
     <main class="profile-main">
         <!-- Breadcrumb -->
-        <div class="breadcrumb">
-            <a href="${pageContext.request.contextPath}/home" class="text-dark text-decoration-none"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
-        </div>
+<%--        <div class="breadcrumb">--%>
+<%--            <a href="${pageContext.request.contextPath}/home" class="text-dark text-decoration-none"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>--%>
+<%--        </div>--%>
 
         <div class="profile-container">
 

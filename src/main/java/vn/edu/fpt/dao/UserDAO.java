@@ -554,16 +554,12 @@ public class UserDAO extends DBContext {
         user.setPhone(rs.getString("phone"));
         user.setPasswordHash(rs.getString("password_hash"));
         user.setAvatarUrl(rs.getString("avatar_url"));
-        user.setIdCardNumber(rs.getString("id_card_number"));
         user.setLegalFullName(rs.getString("legal_full_name"));
         user.setCitizenId(rs.getString("citizen_id"));
         user.setCitizenIdIssuePlace(rs.getString("citizen_id_issue_place"));
         user.setPermanentAddress(rs.getString("permanent_address"));
         user.setFrontIdImage(rs.getString("front_id_image"));
         user.setBackIdImage(rs.getString("back_id_image"));
-        user.setBusinessType(rs.getString("business_type"));
-        user.setVerificationStatus(rs.getString("verification_status"));
-        user.setRejectionReason(rs.getString("rejection_reason"));
 
         String gender = rs.getString("gender");
         if (gender != null && !gender.trim().isEmpty()) {

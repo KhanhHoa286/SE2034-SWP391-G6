@@ -1,7 +1,7 @@
 package vn.edu.fpt.dao;
 import vn.edu.fpt.common.DBContext;
 import vn.edu.fpt.controller.admin.CustomerDTO;
-import vn.edu.fpt.controller.admin.OrderHistoryDTO;
+
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -55,60 +55,6 @@ public class CustomerDAO extends DBContext {
         return null;
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  2. LẤY LỊCH SỬ MUA HÀNG (có phân trang)
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Lấy danh sách master_orders của khách hàng, mỗi đơn kèm trạng thái tổng hợp.
-     * Trạng thái tổng hợp = trạng thái "xấu nhất" trong sub_orders của đơn:
-     *   SHIPPING > PENDING/CONFIRMED/PREPARING > DELIVERED > CANCELLED
-     *
-     * @param userId   ID khách hàng
-     * @param page     Trang hiện tại (bắt đầu từ 1)
-     * @param pageSize Số đơn mỗi trang
-     * @return         Danh sách OrderHistoryDTO
-     */
-    public List<OrderHistoryDTO> getOrderHistory(int userId, int page, int pageSize) {
-        int offset = (page - 1) * pageSize;
-
-        // Lấy trạng thái tổng hợp: ưu tiên SHIPPING → PENDING → DELIVERED → CANCELLED
-        String sql =
-                "SELECT mo.master_order_id, mo.created_at, mo.total_amount, " +
-                        "       mo.payment_method, mo.payment_status, " +
-                        "       CASE " +
-                        "           WHEN SUM(CASE WHEN so.status = 'SHIPPING'   THEN 1 ELSE 0 END) > 0 THEN 'SHIPPING' " +
-                        "           WHEN SUM(CASE WHEN so.status = 'PREPARING'  THEN 1 ELSE 0 END) > 0 THEN 'PREPARING' " +
-                        "           WHEN SUM(CASE WHEN so.status = 'CONFIRMED'  THEN 1 ELSE 0 END) > 0 THEN 'CONFIRMED' " +
-                        "           WHEN SUM(CASE WHEN so.status = 'PENDING'    THEN 1 ELSE 0 END) > 0 THEN 'PENDING' " +
-                        "           WHEN SUM(CASE WHEN so.status = 'DELIVERED'  THEN 1 ELSE 0 END) = COUNT(so.sub_order_id) THEN 'DELIVERED' " +
-                        "           WHEN SUM(CASE WHEN so.status = 'CANCELLED'  THEN 1 ELSE 0 END) = COUNT(so.sub_order_id) THEN 'CANCELLED' " +
-                        "           ELSE 'PENDING' " +
-                        "       END AS agg_status " +
-                        "FROM master_orders mo " +
-                        "LEFT JOIN sub_orders so ON so.master_order_id = mo.master_order_id " +
-                        "WHERE mo.customer_id = ? " +
-                        "GROUP BY mo.master_order_id, mo.created_at, mo.total_amount, mo.payment_method, mo.payment_status " +
-                        "ORDER BY mo.created_at DESC " +
-                        "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-
-        List<OrderHistoryDTO> list = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            ps.setInt(2, offset);
-            ps.setInt(3, pageSize);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapOrder(rs));
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("[CustomerDAO] getOrderHistory error: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return list;
-    }
-
     /**
      * Đếm tổng số đơn hàng của khách hàng (dùng cho phân trang).
      */
@@ -157,22 +103,37 @@ public class CustomerDAO extends DBContext {
                 SELECT 1
                 FROM shops s
                 WHERE s.owner_id = ?
-                UNION
-                SELECT 1
-                FROM user_roles ur
-                INNER JOIN roles r ON r.role_id = ur.role_id
-                WHERE ur.user_id = ?
-                  AND UPPER(LTRIM(RTRIM(r.role_name))) = 'SELLER'
+                  AND UPPER(LTRIM(RTRIM(s.approval_status))) = 'APPROVED'
+                  AND UPPER(LTRIM(RTRIM(s.status))) = 'ACTIVE'
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, userId);
-            ps.setInt(2, userId);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }
         } catch (SQLException e) {
             System.err.println("[CustomerDAO] hasSellerAccount error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean hasPendingSellerRegistration(int userId) {
+        String sql = """
+                SELECT 1
+                FROM shops s
+                WHERE s.owner_id = ?
+                  AND UPPER(LTRIM(RTRIM(s.approval_status))) = 'PENDING'
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            System.err.println("[CustomerDAO] hasPendingSellerRegistration error: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -265,8 +226,7 @@ public class CustomerDAO extends DBContext {
             String citizenIdIssuePlace,
             String permanentAddress,
             String frontIdImage,
-            String backIdImage,
-            String businessType
+            String backIdImage
     ) {
         String sql = """
                 UPDATE users
@@ -277,9 +237,6 @@ public class CustomerDAO extends DBContext {
                     permanent_address = ?,
                     front_id_image = COALESCE(?, front_id_image),
                     back_id_image = COALESCE(?, back_id_image),
-                    business_type = ?,
-                    verification_status = 'APPROVED',
-                    rejection_reason = NULL,
                     updated_at = GETDATE()
                 WHERE user_id = ?
                 """;
@@ -304,8 +261,7 @@ public class CustomerDAO extends DBContext {
             } else {
                 ps.setString(7, backIdImage);
             }
-            ps.setString(8, businessType);
-            ps.setInt(9, userId);
+            ps.setInt(8, userId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("[CustomerDAO] updateSellerIdentity error: " + e.getMessage());
@@ -486,25 +442,6 @@ public class CustomerDAO extends DBContext {
         dto.setTotalOrders(rs.getInt("total_orders"));
         dto.setTotalSpent(rs.getDouble("total_spent"));
         dto.setReturnRate(rs.getDouble("return_rate"));
-
-        return dto;
-    }
-
-    private OrderHistoryDTO mapOrder(ResultSet rs) throws SQLException {
-        OrderHistoryDTO dto = new OrderHistoryDTO();
-        int id = rs.getInt("master_order_id");
-        dto.setMasterOrderId(id);
-
-        // Mã đơn: #ORD-001
-        dto.setOrderCode(String.format("#ORD-%03d", id));
-
-        java.sql.Timestamp createdAt = rs.getTimestamp("created_at");
-        if (createdAt != null) dto.setCreatedAt(new java.util.Date(createdAt.getTime()));
-
-        dto.setTotalAmount(rs.getDouble("total_amount"));
-        dto.setStatus(rs.getString("agg_status"));
-        dto.setPaymentMethod(rs.getString("payment_method"));
-        dto.setPaymentStatus(rs.getString("payment_status"));
 
         return dto;
     }

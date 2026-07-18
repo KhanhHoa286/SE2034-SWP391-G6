@@ -26,8 +26,6 @@ public class ProductVariant {
 
     private String variantName;
 
-    private BigDecimal price;
-
     private Integer stockQuantity;
 
 }

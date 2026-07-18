@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=4">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/add-seller-account.css?v=20260710-id-required">
@@ -117,19 +118,6 @@
                             <small class="seller-register-error"><c:out value="${errors.permanentAddress}" /></small>
                         </c:if>
                     </div>
-
-                    <div class="seller-register-field">
-                        <label for="businessType">Loại hình người bán</label>
-                        <select id="businessType" name="businessType">
-                            <option value="">Chọn loại hình</option>
-                            <option value="INDIVIDUAL" ${oldInput.businessType == 'INDIVIDUAL' ? 'selected' : ''}>Cá nhân</option>
-                            <option value="HOUSEHOLD" ${oldInput.businessType == 'HOUSEHOLD' ? 'selected' : ''}>Hộ kinh doanh</option>
-                            <option value="COMPANY" ${oldInput.businessType == 'COMPANY' ? 'selected' : ''}>Doanh nghiệp</option>
-                        </select>
-                        <c:if test="${not empty errors.businessType}">
-                            <small class="seller-register-error"><c:out value="${errors.businessType}" /></small>
-                        </c:if>
-                    </div>
                 </div>
 
                 <div class="seller-register-card">
@@ -176,8 +164,6 @@
         </section>
     </main>
 </div>
-
-<jsp:include page="/common/footer.jsp" />
 
 <script>
     document.querySelectorAll('input[type="file"][accept*="image"]').forEach(function (input) {

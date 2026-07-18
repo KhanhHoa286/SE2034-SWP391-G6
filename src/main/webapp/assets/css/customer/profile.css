@@ -177,6 +177,22 @@
     font-size: 18px;
 }
 
+.profile-alert {
+    width: 100%;
+    margin: -24px 0 32px;
+    padding: 14px 16px;
+    border: 1px solid var(--profile-border);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.profile-alert--success {
+    border-color: #8bd7a4;
+    background: #eefaf1;
+    color: #146c2e;
+}
+
 /* ================================
    Header / Title
 ================================ */
