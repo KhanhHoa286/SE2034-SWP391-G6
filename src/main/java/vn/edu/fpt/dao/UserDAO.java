@@ -554,7 +554,6 @@ public class UserDAO extends DBContext {
         user.setPhone(rs.getString("phone"));
         user.setPasswordHash(rs.getString("password_hash"));
         user.setAvatarUrl(rs.getString("avatar_url"));
-        user.setIdCardNumber(rs.getString("id_card_number"));
         user.setLegalFullName(rs.getString("legal_full_name"));
         user.setCitizenId(rs.getString("citizen_id"));
         user.setCitizenIdIssuePlace(rs.getString("citizen_id_issue_place"));

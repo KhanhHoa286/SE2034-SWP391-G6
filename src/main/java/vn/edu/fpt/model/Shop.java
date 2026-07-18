@@ -27,7 +27,6 @@ public class Shop {
     private Integer wardId;
     private Ward ward;
     private String streetAddress;
-    private BigDecimal averageRating;
 
     private ApprovalStatus approvalStatus;
     private ShopStatus status;

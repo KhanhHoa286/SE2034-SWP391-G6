@@ -72,7 +72,7 @@
                 </div>
                 </c:if>
                 <div class="add-address-row">
-                    <a href="${pageContext.request.contextPath}/customer/addresses/add" class="add-address-btn" id="btn-add-address">
+                    <a href="${pageContext.request.contextPath}/customer/addresses?type=checkout" class="add-address-btn" id="btn-add-address">
                         <i class="fa-solid fa-plus"></i>
                         Thêm địa chỉ mới
                     </a>

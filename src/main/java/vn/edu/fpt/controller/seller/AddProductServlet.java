@@ -302,7 +302,6 @@ public class AddProductServlet extends HttpServlet {
                         .colorId(colorId)
                         .sizeId(sizeId)
                         .variantName(productName + " (" + colorName + " / " + sizeName + ")")
-                        .price(basePrice)
                         .stockQuantity(stock)
                         .build();
 
