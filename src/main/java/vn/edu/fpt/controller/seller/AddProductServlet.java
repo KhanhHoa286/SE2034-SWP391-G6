@@ -259,7 +259,7 @@ public class AddProductServlet extends HttpServlet {
                     .thumbnailUrl(imageUrls.get(0)) // Ảnh chính là ảnh đầu tiên
                     .isActive(true)
                     .isDeleted(false)
-                    .status(ProductStatus.PENDING)
+                    .status(ProductStatus.ACTIVE)
                     .createdAt(LocalDateTime.now())
                     .build();
 
@@ -309,7 +309,7 @@ public class AddProductServlet extends HttpServlet {
             }
 
             // Thành công -> chuyển hướng về trang danh sách sản phẩm
-            session.setAttribute("toastMessage", "Thêm sản phẩm thành công! Chờ Admin xét duyệt");
+            session.setAttribute("toastMessage", "Thêm sản phẩm thành công!");
             session.setAttribute("toastType", "success");
             response.sendRedirect(request.getContextPath() + "/list-seller-products");
 
