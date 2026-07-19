@@ -22,16 +22,14 @@ public class MasterOrder {
 
     private BigDecimal totalAmount;
 
+    private String receiverName;
+    private String receiverPhone;
     private String shippingAddress;
 
     private String paymentMethod;
 
-    private String vnpTransactionNo;
-    private String vnpBankCode;
-    private LocalDateTime vnpPayDate;
-
     private PaymentStatus paymentStatus;
-
+    private LocalDateTime paymentDate;
     private LocalDateTime createdAt;
 
 }

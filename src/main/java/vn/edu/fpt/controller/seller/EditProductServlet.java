@@ -344,7 +344,6 @@ public class EditProductServlet extends HttpServlet {
                         .colorId(colorId)
                         .sizeId(sizeId)
                         .variantName(productName + " (" + colorName + " / " + sizeName + ")")
-                        .price(basePrice)
                         .stockQuantity(stock)
                         .build();
 

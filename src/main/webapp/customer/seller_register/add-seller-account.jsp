@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=4">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/add-seller-account.css?v=20260710-id-required">
@@ -163,8 +164,6 @@
         </section>
     </main>
 </div>
-
-<jsp:include page="/common/footer.jsp" />
 
 <script>
     document.querySelectorAll('input[type="file"][accept*="image"]').forEach(function (input) {

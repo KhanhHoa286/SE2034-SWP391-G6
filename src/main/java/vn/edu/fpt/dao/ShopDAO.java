@@ -313,7 +313,6 @@ public class ShopDAO extends DBContext {
                         .wardId(rs.getInt("ward_id"))
                         .ward(ward)
                         .streetAddress(rs.getString("street_address"))
-                        .averageRating(rs.getBigDecimal("average_rating"))
                         .createdAt(createdAt)
                         .build();
             }

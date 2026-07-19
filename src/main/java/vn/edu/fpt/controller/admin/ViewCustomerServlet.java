@@ -65,12 +65,9 @@ public class ViewCustomerServlet extends HttpServlet {
         int totalOrders = customerDAO.countOrders(userId);
         int totalPages  = (int) Math.ceil((double) totalOrders / PAGE_SIZE);
 
-        List<OrderHistoryDTO> orderHistory =
-                customerDAO.getOrderHistory(userId, currentPage, PAGE_SIZE);
 
         // ── 4. Đẩy dữ liệu ra view ──
         req.setAttribute("customer",     customer);
-        req.setAttribute("orderHistory", orderHistory);
         req.setAttribute("currentPage",  currentPage);
         req.setAttribute("totalPages",   totalPages);
         req.setAttribute("totalOrders",  totalOrders);

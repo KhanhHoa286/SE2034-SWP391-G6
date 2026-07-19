@@ -26,6 +26,8 @@
     letter-spacing: 0.5px;
     text-transform: uppercase;
     display: inline-block;
+    min-width: 110px;
+    text-align: center;
 }
 .order-status-group .status-badge.dark {
     background-color: #000;

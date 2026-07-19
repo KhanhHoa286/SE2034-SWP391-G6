@@ -29,8 +29,6 @@ public class ProductReview {
     private String comment;
     private String reviewTitle;
 
-    private String replyComment;
-
     private LocalDateTime createdAt;
 
 }

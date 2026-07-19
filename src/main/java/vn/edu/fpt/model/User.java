@@ -33,7 +33,6 @@ public class User {
     // users.status: PENDING / ACTIVE
     private UserStatus status;
 
-    private String idCardNumber;
     private String legalFullName;
     private String citizenId;
     private LocalDate citizenIdIssueDate;
