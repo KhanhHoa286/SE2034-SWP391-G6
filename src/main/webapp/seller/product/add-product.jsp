@@ -423,7 +423,7 @@
             let raw = parsePriceRaw(this.value);
             if (raw === '') return;
             let num = parseInt(raw);
-            if (num > 0 && num < 1000) {
+            if (num > 0 && num < 10000) {
                 num = num * 1000;
             }
             this.value = formatPriceDisplay(num.toString());
