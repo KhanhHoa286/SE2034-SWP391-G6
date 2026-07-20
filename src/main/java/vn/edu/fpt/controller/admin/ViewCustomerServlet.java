@@ -64,7 +64,15 @@ public class ViewCustomerServlet extends HttpServlet {
 
         int totalOrders = customerDAO.countOrders(userId);
         int totalPages  = (int) Math.ceil((double) totalOrders / PAGE_SIZE);
-
+        java.util.List<vn.edu.fpt.model.Address> addresses = new vn.edu.fpt.dao.AddressDAO().getAddressesByUserId(userId);
+        String addressString = "Chưa cập nhật";
+        if (addresses != null && !addresses.isEmpty()) {
+            vn.edu.fpt.model.Address addr = addresses.get(0);
+            String wardName = addr.getWard() != null ? addr.getWard().getName() : "";
+            String provinceName = (addr.getWard() != null && addr.getWard().getProvince() != null) ? addr.getWard().getProvince().getName() : "";
+            addressString = addr.getStreetAddress() + ", " + wardName + ", " + provinceName;
+        }
+        req.setAttribute("addressString", addressString);
 
         // ── 4. Đẩy dữ liệu ra view ──
         req.setAttribute("customer",     customer);

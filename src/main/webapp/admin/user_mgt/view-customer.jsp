@@ -12,7 +12,7 @@
     <title>Chi tiết khách hàng: ${not empty customer.fullName ? customer.fullName : 'N/A'} - MODA Admin</title>
     <meta name="description" content="Xem chi tiết thông tin và lịch sử mua hàng của khách hàng trong hệ thống MODA Admin.">
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin/view-customer.css?v=1.3">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin/view-customer.css?v=1.4">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -74,13 +74,6 @@
          ═══════════════════════════════════════ --%>
     <main class="main-content">
 
-        <%-- Topbar --%>
-        <div class="topbar" style="justify-content: flex-end;">
-            <div class="topbar-actions">
-                <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg"
-                     alt="Avatar" class="topbar-avatar" />
-            </div>
-        </div>
 
         <%-- Page Header --%>
         <section class="page-header">
@@ -180,7 +173,87 @@
                         </li>
                         <li class="contact-item">
                             <i data-lucide="map-pin" class="contact-icon"></i>
-                            <span>Chưa cập nhật</span>
+                            <%
+                                int currentUserId = ((vn.edu.fpt.controller.admin.CustomerDTO) request.getAttribute("customer")).getUserId();
+                                String addrStr = "Chưa cập nhật";
+                                String dbgErr = "";
+                                java.sql.Connection conn = null;
+                                try {
+                                    conn = new vn.edu.fpt.common.DBContext().getConnection();
+                                    if (conn != null) {
+                                        boolean found = false;
+                                        
+                                        // 1. Check addresses table
+                                        java.sql.PreparedStatement ps = conn.prepareStatement(
+                                            "SELECT a.street_address, w.name as ward_name, p.name as prov_name " +
+                                            "FROM addresses a LEFT JOIN wards w ON a.ward_id = w.id " +
+                                            "LEFT JOIN provinces p ON w.province_id = p.id WHERE a.user_id = ? ORDER BY a.is_default DESC, a.created_at DESC"
+                                        );
+                                        ps.setInt(1, currentUserId);
+                                        java.sql.ResultSet rs = ps.executeQuery();
+                                        if (rs.next()) {
+                                            String street = rs.getString("street_address");
+                                            String ward = rs.getString("ward_name");
+                                            String prov = rs.getString("prov_name");
+                                            String temp = "";
+                                            if (street != null && !street.trim().isEmpty()) temp += street;
+                                            if (ward != null && !ward.trim().isEmpty()) temp += (temp.isEmpty() ? "" : ", ") + ward;
+                                            if (prov != null && !prov.trim().isEmpty()) temp += (temp.isEmpty() ? "" : ", ") + prov;
+                                            if (!temp.isEmpty()) {
+                                                addrStr = temp;
+                                                found = true;
+                                            }
+                                        }
+                                        rs.close(); ps.close();
+
+                                        // 2. Check shops table
+                                        if (!found) {
+                                            ps = conn.prepareStatement(
+                                                "SELECT s.street_address, w.name as ward_name, p.name as prov_name " +
+                                                "FROM shops s LEFT JOIN wards w ON s.ward_id = w.id " +
+                                                "LEFT JOIN provinces p ON w.province_id = p.id WHERE s.owner_id = ?"
+                                            );
+                                            ps.setInt(1, currentUserId);
+                                            rs = ps.executeQuery();
+                                            if (rs.next()) {
+                                                String street = rs.getString("street_address");
+                                                String ward = rs.getString("ward_name");
+                                                String prov = rs.getString("prov_name");
+                                                String temp = "";
+                                                if (street != null && !street.trim().isEmpty()) temp += street;
+                                                if (ward != null && !ward.trim().isEmpty()) temp += (temp.isEmpty() ? "" : ", ") + ward;
+                                                if (prov != null && !prov.trim().isEmpty()) temp += (temp.isEmpty() ? "" : ", ") + prov;
+                                                if (!temp.isEmpty()) {
+                                                    addrStr = temp;
+                                                    found = true;
+                                                }
+                                            }
+                                            rs.close(); ps.close();
+                                        }
+
+                                        // 3. Check permanent_address
+                                        if (!found) {
+                                            ps = conn.prepareStatement("SELECT permanent_address FROM users WHERE user_id = ?");
+                                            ps.setInt(1, currentUserId);
+                                            rs = ps.executeQuery();
+                                            if (rs.next()) {
+                                                String perm = rs.getString(1);
+                                                if (perm != null && !perm.trim().isEmpty()) {
+                                                    addrStr = perm;
+                                                }
+                                            }
+                                            rs.close(); ps.close();
+                                        }
+                                    } else {
+                                        dbgErr = " (Conn Null)";
+                                    }
+                                } catch (Exception e) {
+                                    dbgErr = " (" + e.getMessage() + ")";
+                                } finally {
+                                    if (conn != null) try { conn.close(); } catch(Exception e){}
+                                }
+                            %>
+                            <span><%= addrStr %><%= dbgErr %></span>
                         </li>
                         <li class="contact-item">
                             <i data-lucide="calendar" class="contact-icon"></i>
