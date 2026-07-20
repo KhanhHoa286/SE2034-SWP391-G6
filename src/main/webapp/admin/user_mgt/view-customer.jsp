@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -12,7 +12,7 @@
     <title>Chi tiết khách hàng: ${not empty customer.fullName ? customer.fullName : 'N/A'} - MODA Admin</title>
     <meta name="description" content="Xem chi tiết thông tin và lịch sử mua hàng của khách hàng trong hệ thống MODA Admin.">
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin/view-customer.css?v=1.2">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin/view-customer.css?v=1.3">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -22,50 +22,46 @@
     <%-- ═══════════════════════════════════════
          SIDEBAR
          ═══════════════════════════════════════ --%>
-        <aside class="sidebar-wrapper">
+    <aside class="sidebar-wrapper">
         <div class="sidebar">
-            <div class="sidebar-brand" style="padding-bottom: 24px;">
-                <span class="sidebar-brand-name" style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">MODA Admin</span>
-                <span class="sidebar-subtitle" style="display: block; font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">Bảng điều khiển siêu cấp</span>
+            <div>
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-name">MODA Admin</span>
+                    <span class="sidebar-subtitle">Bảng điều khiển siêu cấp</span>
+                </div>
+                <ul class="sidebar-nav">
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/dashboard/overview">
+                            <span class="menu-text">Tổng quan</span>
+                        </a>
+                    </li>
+                    <li class="menu-item active">
+                        <a href="${pageContext.request.contextPath}/admin/user-management">
+                            <span class="menu-text">Người dùng</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/seller-management">
+                            <span class="menu-text">Người bán</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/seller-applications">
+                            <span class="menu-text">Duyệt đăng ký</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/finance/view-finance.jsp">
+                            <span class="menu-text">Tài chính</span>
+                        </a>
+                    </li>
+                </ul>
             </div>
-            <ul class="sidebar-nav">
-                <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/dashboard/overview">
-                        <i data-lucide="layout-dashboard" class="menu-icon"></i>
-                        <span>Tổng quan</span>
-                    </a>
-                </li>
-                <li class="menu-item active">
-                    <a href="${pageContext.request.contextPath}/admin/user-management">
-                        <i data-lucide="users" class="menu-icon"></i>
-                        <span>Người dùng</span>
-                    </a>
-                </li>
-<li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/seller-management">
-                        <i data-lucide="shopping-bag" class="menu-icon"></i>
-                        <span>Người bán</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/seller-applications">
-                        <i data-lucide="store" class="menu-icon"></i>
-                        <span>Duyệt đăng ký</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/finance/view-finance.jsp">
-                        <i data-lucide="credit-card" class="menu-icon"></i>
-                        <span>Tài chính</span>
-                    </a>
-                </li>
-            </ul>
-            <div style="margin-top: auto;">
+            <div class="sidebar-logout">
                 <ul class="sidebar-nav">
                     <li class="menu-item">
                         <a href="${pageContext.request.contextPath}/logout">
-                            <i data-lucide="log-out" class="menu-icon"></i>
-                            <span>Đăng xuất</span>
+                            <span class="menu-text">Đăng xuất</span>
                         </a>
                     </li>
                 </ul>
