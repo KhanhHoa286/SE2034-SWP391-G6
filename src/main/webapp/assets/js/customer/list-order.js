@@ -3,7 +3,7 @@
  * Date: 26/6/2026
  * Description: Cập nhât trạng thái đơn hàng và thanh toán khi khách hàng nhấn đã nhận được hàng
  */
-function updateStatusOrder(contextPath,subOrderId,paymentMethod,masterOrderId,btn) {
+function updateStatusOrder(contextPath, subOrderId, paymentMethod, masterOrderId, btn) {
     //
     const params = new URLSearchParams();
     params.set('sub_order_id', subOrderId);
@@ -12,7 +12,7 @@ function updateStatusOrder(contextPath,subOrderId,paymentMethod,masterOrderId,bt
     axios.post(contextPath + "/api/customer/update-status-order", params)
         .then(response => {
             const data = response.data;
-            if(data.status === 'SUCCESS'){
+            if (data.status === 'SUCCESS') {
                 btn.disabled = true;
                 btn.innerText = "Đã nhận hàng";
                 btn.classList.add('update-status-order');
@@ -31,14 +31,14 @@ window.addEventListener("pageshow", function (event) {
     }
 });
 
-function cancelOrder(contextPath, subOrderId,btn) {
+function cancelOrder(contextPath, subOrderId, btn) {
     const params = new URLSearchParams();
-    params.set("sub_order_id",subOrderId);
+    params.set("sub_order_id", subOrderId);
 
     axios.post(contextPath + "/api/customer/cancle-order", params)
         .then(response => {
             const data = response.data;
-            if(data.status === 'SUCCESS') {
+            if (data.status === 'SUCCESS') {
                 btn.disabled = true;
                 btn.innerText = "Đã hủy";
                 btn.classList.add('update-status-order');

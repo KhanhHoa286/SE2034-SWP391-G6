@@ -152,12 +152,12 @@
             <!-- Actions -->
             <div class="product-actions">
                 <button class="moda-btn moda-btn-primary" type="button" onclick="cartAndBuyNow('CART')" id="add-to-cart">THÊM VÀO GIỎ HÀNG</button>
-                <a class="moda-btn moda-btn-outline" id="add-order" onclick="cartAndBuyNow('BUY_NOW')" href="javascript:void(0)">MUA NGAY</a>
+                <button class="moda-btn moda-btn-outline" type="button" id="add-order" onclick="cartAndBuyNow('BUY_NOW')">MUA NGAY</button>
             </div>
     </form>
             <span id="product-seller" class="text-danger fw-bold"></span>
-            <span id="cart-over-quantity" class="text-danger fw-bold"></span>
-            <span id="add-to-cart-success" class="text-success fw-bold"></span>
+            <span id="message-error" class="text-danger fw-bold"></span>
+            <span id="message-success" class="text-success fw-bold"></span>
             <!-- Description -->
             <div class="product-desc">
                 <h3 class="product-desc__title">MÔ TẢ SẢN PHẨM</h3>
