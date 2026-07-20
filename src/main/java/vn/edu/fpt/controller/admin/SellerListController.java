@@ -12,8 +12,8 @@ import vn.edu.fpt.dao.UserDAO;
 import vn.edu.fpt.controller.admin.UserAdminDTO;
 
 
-@WebServlet(name = "UserListController", urlPatterns = {"/admin/user-management"})
-public class UserListController extends HttpServlet {
+@WebServlet(name = "SellerListController", urlPatterns = {"/admin/seller-management"})
+public class SellerListController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -25,7 +25,7 @@ public class UserListController extends HttpServlet {
         String txtSearch = request.getParameter("search");
         if (txtSearch == null) txtSearch = "";
 
-        String roleFilter = "CUSTOMER";
+        String roleFilter = "SELLER";
 
         String statusFilter = request.getParameter("status");
         if (statusFilter == null || statusFilter.isEmpty()) statusFilter = "all";
@@ -64,7 +64,7 @@ public class UserListController extends HttpServlet {
         request.setAttribute("userListLoaded", true);
 
         // 4. Chuyển hướng sang file JSP hiển thị
-        request.getRequestDispatcher("/admin/user_mgt/list-users.jsp").forward(request, response);
+        request.getRequestDispatcher("/admin/seller_mgt/list-sellers.jsp").forward(request, response);
     }
 
     @Override
@@ -79,10 +79,10 @@ public class UserListController extends HttpServlet {
             dao.updateStatus(userId, newStatus);
 
             // POST-Redirect-GET Pattern: Tránh lỗi lặp submit form hành động khi F5 trang
-            response.sendRedirect(request.getContextPath() + "/admin/user-management");
+            response.sendRedirect(request.getContextPath() + "/admin/seller-management");
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/admin/user-management?error=1");
+            response.sendRedirect(request.getContextPath() + "/admin/seller-management?error=1");
         }
     }
 }

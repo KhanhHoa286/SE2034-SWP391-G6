@@ -42,22 +42,16 @@
                             <span class="menu-text">Người dùng</span>
                         </a>
                     </li>
-                    <li class="menu-item active">
-                        <a href="${pageContext.request.contextPath}/admin/seller-applications">
-                            <i data-lucide="store" class="menu-icon"></i>
+<li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/seller-management">
+                            <i data-lucide="shopping-bag" class="menu-icon"></i>
                             <span class="menu-text">Người bán</span>
                         </a>
                     </li>
-                    <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/orders">
-                            <i data-lucide="shopping-cart" class="menu-icon"></i>
-                            <span class="menu-text">Đơn hàng hệ thống</span>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/products">
-                            <i data-lucide="package" class="menu-icon"></i>
-                            <span class="menu-text">Danh sách sản phẩm</span>
+                    <li class="menu-item active">
+                        <a href="${pageContext.request.contextPath}/admin/seller-applications">
+                            <i data-lucide="store" class="menu-icon"></i>
+                            <span class="menu-text">Duyệt đăng ký</span>
                         </a>
                     </li>
                     <li class="menu-item">
@@ -83,14 +77,7 @@
 
     <!-- Nội dung chính bên phải -->
     <main class="main-content">
-        <!-- Topbar chứa action box ở góc trên bên phải -->
-        <div class="topbar">
-            <div class="topbar-actions">
-                <button class="action-box-btn" title="Hộp thư/Lưu trữ">
-                    <i data-lucide="archive" class="action-box-icon"></i>
-                </button>
-            </div>
-        </div>
+
 
         <!-- Khối tiêu đề trang -->
         <section class="page-header">
@@ -185,9 +172,6 @@
                                     </td>
                                     <td>
                                         <div class="actions-cell">
-                                            <a href="${pageContext.request.contextPath}/admin/seller-applications/detail?id=${app.id}" class="action-btn-circle view-details" title="Xem chi tiết">
-                                                <i data-lucide="eye" class="action-btn-icon"></i>
-                                            </a>
                                             <form action="${pageContext.request.contextPath}/admin/seller-applications/approve" method="POST" style="display:inline;">
                                                 <input type="hidden" name="id" value="${app.id}">
                                                 <button type="submit" class="action-btn-circle approve-btn" title="Duyệt yêu cầu">

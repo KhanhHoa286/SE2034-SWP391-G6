@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
@@ -157,22 +157,16 @@
                             <span class="menu-text">Người dùng</span>
                         </a>
                     </li>
-                    <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/seller-applications">
-                            <i data-lucide="store" class="menu-icon"></i>
+<li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/seller-management">
+                            <i data-lucide="shopping-bag" class="menu-icon"></i>
                             <span class="menu-text">Người bán</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/orders">
-                            <i data-lucide="shopping-cart" class="menu-icon"></i>
-                            <span class="menu-text">Đơn hàng hệ thống</span>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/products">
-                            <i data-lucide="package" class="menu-icon"></i>
-                            <span class="menu-text">Danh sách sản phẩm</span>
+                        <a href="${pageContext.request.contextPath}/admin/seller-applications">
+                            <i data-lucide="store" class="menu-icon"></i>
+                            <span class="menu-text">Duyệt đăng ký</span>
                         </a>
                     </li>
                     <li class="menu-item">
@@ -197,20 +191,7 @@
     </aside>
 
     <main class="main-content">
-        <div class="topbar">
-            <div class="topbar-actions">
-                <div class="topbar-avatar-wrapper">
-                    <c:choose>
-                        <c:when test="${sessionScope.account != null}">
-                            <img src="${sessionScope.account.avatarUrl}" alt="Avatar" class="topbar-avatar" />
-                        </c:when>
-                        <c:otherwise>
-                            <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg" alt="Avatar" class="topbar-avatar" />
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-            </div>
-        </div>
+
 
         <section class="page-header">
             <div class="header-info">

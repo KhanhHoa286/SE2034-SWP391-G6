@@ -256,6 +256,13 @@ public class ViewSellerDetailServlet extends HttpServlet {
 
         request.setAttribute("seller", sellerData);
         request.setAttribute("products", products);
+        
+        String status = (String) sellerData.get("status");
+        if ("APPROVED".equals(status) || "ACTIVE".equals(status)) {
+            request.setAttribute("activeMenu", "seller-management");
+        } else {
+            request.setAttribute("activeMenu", "seller-applications");
+        }
 
         request.getRequestDispatcher("/admin/seller_mgt/view-seller.jsp").forward(request, response);
     }
