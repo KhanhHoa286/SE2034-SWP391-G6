@@ -83,7 +83,9 @@ public class ListSellerOrdersServlet extends HttpServlet {
 
         try (Connection connection = openConnection()) {
             loadOrderMetrics(connection, request, shop.getShopId());
-            request.setAttribute("sellerOrders", loadSellerOrders(connection, shop.getShopId(), search, status, dateRange, sort));
+            List<SellerOrderRow> sellerOrders = loadSellerOrders(connection, shop.getShopId(), search, status, dateRange, sort);
+            request.setAttribute("sellerOrders", sellerOrders);
+            prepareAssignedDeliveryToast(request, sellerOrders);
         } catch (Exception ex) {
             ex.printStackTrace();
             request.setAttribute("errorMessage", "Không thể tải danh sách đơn hàng. Vui lòng kiểm tra kết nối database.");
@@ -194,10 +196,25 @@ public class ListSellerOrdersServlet extends HttpServlet {
                            SELECT COALESCE(SUM(oi.quantity), 0)
                            FROM order_items oi
                            WHERE oi.sub_order_id = so.sub_order_id
-                       ) AS total_quantity
+                       ) AS total_quantity,
+                       delivery.shipper_id AS assigned_shipper_id,
+                       delivery.shipper_name,
+                       delivery.shipper_phone
                 FROM sub_orders so
                 INNER JOIN master_orders mo ON mo.master_order_id = so.master_order_id
                 INNER JOIN users u ON u.user_id = mo.customer_id
+                OUTER APPLY (
+                    SELECT TOP 1
+                           d.shipper_id,
+                           shipper.first_name + ' ' + shipper.last_name AS shipper_name,
+                           shipper.phone AS shipper_phone
+                    FROM deliveries d
+                    INNER JOIN users shipper ON shipper.user_id = d.shipper_id
+                    WHERE d.sub_order_id = so.sub_order_id
+                      AND d.shipper_id IS NOT NULL
+                      AND d.status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED')
+                    ORDER BY d.delivery_id DESC
+                ) delivery
                 WHERE so.shop_id = ?
                 """);
         List<Object> params = new ArrayList<>();
@@ -282,11 +299,30 @@ public class ListSellerOrdersServlet extends HttpServlet {
                     row.setProductsSummary(rs.getString("products_summary"));
                     row.setItemCount(rs.getInt("item_count"));
                     row.setTotalQuantity(rs.getInt("total_quantity"));
+                    row.setShipperAssigned(rs.getObject("assigned_shipper_id") != null);
+                    row.setShipperName(rs.getString("shipper_name"));
+                    row.setShipperPhone(rs.getString("shipper_phone"));
                     orders.add(row);
                 }
             }
         }
         return orders;
+    }
+
+    private void prepareAssignedDeliveryToast(HttpServletRequest request, List<SellerOrderRow> orders) {
+        HttpSession session = request.getSession(false);
+        if (session == null || Boolean.TRUE.equals(session.getAttribute("sellerAssignedDeliveryToastShown"))) {
+            return;
+        }
+
+        for (SellerOrderRow order : orders) {
+            if (order.isShipperAssigned() && "PREPARING".equalsIgnoreCase(order.getStatus())) {
+                request.setAttribute("assignedDeliveryToastMessage",
+                        "#SUB-" + order.getSubOrderId() + " đã được shipper nhận giao");
+                session.setAttribute("sellerAssignedDeliveryToastShown", true);
+                return;
+            }
+        }
     }
 
     private Connection openConnection() throws Exception {
@@ -339,6 +375,9 @@ public class ListSellerOrdersServlet extends HttpServlet {
         private String productsSummary;
         private int itemCount;
         private int totalQuantity;
+        private boolean shipperAssigned;
+        private String shipperName;
+        private String shipperPhone;
 
         public int getSubOrderId() {
             return subOrderId;
@@ -490,6 +529,30 @@ public class ListSellerOrdersServlet extends HttpServlet {
 
         public void setTotalQuantity(int totalQuantity) {
             this.totalQuantity = totalQuantity;
+        }
+
+        public boolean isShipperAssigned() {
+            return shipperAssigned;
+        }
+
+        public void setShipperAssigned(boolean shipperAssigned) {
+            this.shipperAssigned = shipperAssigned;
+        }
+
+        public String getShipperName() {
+            return shipperName;
+        }
+
+        public void setShipperName(String shipperName) {
+            this.shipperName = shipperName;
+        }
+
+        public String getShipperPhone() {
+            return shipperPhone;
+        }
+
+        public void setShipperPhone(String shipperPhone) {
+            this.shipperPhone = shipperPhone;
         }
     }
 }

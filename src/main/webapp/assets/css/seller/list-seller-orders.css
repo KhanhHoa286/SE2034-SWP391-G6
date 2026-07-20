@@ -16,7 +16,15 @@ body {
     border-bottom: 2px solid #111111;
 }
 
+.seller-orders-shell > .sidebar {
+    grid-column: 1;
+    grid-row: 1;
+}
+
 .seller-orders-main {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
     padding: 48px 42px 70px;
     background: #f7f8fc;
 }
@@ -63,6 +71,44 @@ body {
 .seller-orders-alert svg {
     width: 18px;
     height: 18px;
+}
+
+.seller-orders-toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 1060;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 360px;
+    padding: 14px 16px;
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.35;
+    animation: sellerOrdersToastIn 0.22s ease-out both;
+}
+
+.seller-orders-toast svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+}
+
+@keyframes sellerOrdersToastIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .seller-orders-metric-grid {
@@ -260,6 +306,15 @@ body {
     font-weight: 800;
     text-transform: uppercase;
     white-space: nowrap;
+}
+
+.seller-orders-shipper-note {
+    display: block;
+    margin-top: 7px;
+    color: #166534 !important;
+    font-size: 11.5px;
+    font-weight: 800;
+    line-height: 1.35;
 }
 
 .status-PENDING {

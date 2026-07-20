@@ -15,10 +15,13 @@ import vn.edu.fpt.model.User;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -30,8 +33,8 @@ import java.util.UUID;
 })
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
-        maxFileSize = 5 * 1024 * 1024,
-        maxRequestSize = 12 * 1024 * 1024
+        maxFileSize = 20 * 1024 * 1024,
+        maxRequestSize = 45 * 1024 * 1024
 )
 public class AddSellerAccountServlet extends HttpServlet {
 
@@ -53,17 +56,7 @@ public class AddSellerAccountServlet extends HttpServlet {
             return;
         }
 
-        if (customerDAO.hasSellerAccount(userId)) {
-            session.setAttribute("hasSellerAccount", true);
-            session.setAttribute("hasPendingSellerRegistration", false);
-            response.sendRedirect(request.getContextPath() + "/seller/orders");
-            return;
-        }
-
-        if (customerDAO.hasPendingSellerRegistration(userId)) {
-            session.setAttribute("hasSellerAccount", false);
-            session.setAttribute("hasPendingSellerRegistration", true);
-            response.sendRedirect(request.getContextPath() + "/customer/profile?shopPending=1");
+        if (redirectIfRegistrationAlreadyHandled(session, userId, request, response)) {
             return;
         }
 
@@ -88,28 +81,25 @@ public class AddSellerAccountServlet extends HttpServlet {
             return;
         }
 
-        if (customerDAO.hasSellerAccount(userId)) {
-            session.setAttribute("hasSellerAccount", true);
-            session.setAttribute("hasPendingSellerRegistration", false);
-            response.sendRedirect(request.getContextPath() + "/seller/orders");
+        if (redirectIfRegistrationAlreadyHandled(session, userId, request, response)) {
             return;
         }
-
-        if (customerDAO.hasPendingSellerRegistration(userId)) {
-            session.setAttribute("hasSellerAccount", false);
-            session.setAttribute("hasPendingSellerRegistration", true);
-            response.sendRedirect(request.getContextPath() + "/customer/profile?shopPending=1");
-            return;
-        }
-
-        String legalFullName = clean(request.getParameter("legalFullName"));
-        String citizenId = clean(request.getParameter("citizenId"));
-        String issueDateRaw = clean(request.getParameter("citizenIdIssueDate"));
-        String citizenIdIssuePlace = clean(request.getParameter("citizenIdIssuePlace"));
-        String permanentAddress = clean(request.getParameter("permanentAddress"));
 
         Map<String, String> errors = new HashMap<>();
         Map<String, String> oldInput = new HashMap<>();
+
+        Collection<Part> formParts = getPartsSafely(request, errors);
+        if (!errors.isEmpty()) {
+            forwardForm(request, response, errors, oldInput);
+            return;
+        }
+
+        String legalFullName = readFormValue(formParts, request, "legalFullName");
+        String citizenId = readFormValue(formParts, request, "citizenId");
+        String issueDateRaw = readFormValue(formParts, request, "citizenIdIssueDate");
+        String citizenIdIssuePlace = readFormValue(formParts, request, "citizenIdIssuePlace");
+        String permanentAddress = readFormValue(formParts, request, "permanentAddress");
+
         oldInput.put("legalFullName", legalFullName);
         oldInput.put("citizenId", citizenId);
         oldInput.put("citizenIdIssueDate", issueDateRaw);
@@ -131,8 +121,8 @@ public class AddSellerAccountServlet extends HttpServlet {
         validateText(errors, "citizenIdIssuePlace", citizenIdIssuePlace, "Vui lòng nhập nơi cấp căn cước công dân.", 3, 255);
         validateText(errors, "permanentAddress", permanentAddress, "Vui lòng nhập địa chỉ thường trú.", 5, 500);
 
-        Part frontPart = getPartSafely(request, "frontIdImage");
-        Part backPart = getPartSafely(request, "backIdImage");
+        Part frontPart = getPartSafely(formParts, "frontIdImage");
+        Part backPart = getPartSafely(formParts, "backIdImage");
         if (!hasFile(frontPart)) {
             errors.put("frontIdImage", "Vui lòng tải lên ảnh mặt trước căn cước công dân.");
         } else {
@@ -168,9 +158,7 @@ public class AddSellerAccountServlet extends HttpServlet {
         }
 
         if (!errors.isEmpty()) {
-            request.setAttribute("errors", errors);
-            request.setAttribute("oldInput", oldInput);
-            request.getRequestDispatcher(FORM_PAGE).forward(request, response);
+            forwardForm(request, response, errors, oldInput);
             return;
         }
 
@@ -187,14 +175,42 @@ public class AddSellerAccountServlet extends HttpServlet {
 
         if (!updated) {
             errors.put("general", "Không thể lưu thông tin người bán. Vui lòng thử lại sau.");
-            request.setAttribute("errors", errors);
-            request.setAttribute("oldInput", oldInput);
-            request.getRequestDispatcher(FORM_PAGE).forward(request, response);
+            forwardForm(request, response, errors, oldInput);
             return;
         }
 
         session.setAttribute("sellerIdentityCompleted", true);
         response.sendRedirect(request.getContextPath() + "/add-shop");
+    }
+
+    private boolean redirectIfRegistrationAlreadyHandled(HttpSession session,
+                                                         int userId,
+                                                         HttpServletRequest request,
+                                                         HttpServletResponse response) throws IOException {
+        if (customerDAO.hasSellerAccount(userId)) {
+            session.setAttribute("hasSellerAccount", true);
+            session.setAttribute("hasPendingSellerRegistration", false);
+            response.sendRedirect(request.getContextPath() + "/seller/orders");
+            return true;
+        }
+
+        if (customerDAO.hasPendingSellerRegistration(userId)) {
+            session.setAttribute("hasSellerAccount", false);
+            session.setAttribute("hasPendingSellerRegistration", true);
+            response.sendRedirect(request.getContextPath() + "/customer/profile?shopPending=1");
+            return true;
+        }
+
+        return false;
+    }
+
+    private void forwardForm(HttpServletRequest request,
+                             HttpServletResponse response,
+                             Map<String, String> errors,
+                             Map<String, String> oldInput) throws ServletException, IOException {
+        request.setAttribute("errors", errors);
+        request.setAttribute("oldInput", oldInput);
+        request.getRequestDispatcher(FORM_PAGE).forward(request, response);
     }
 
     private Integer getLoggedInUserId(HttpSession session) {
@@ -258,12 +274,48 @@ public class AddSellerAccountServlet extends HttpServlet {
         }
     }
 
-    private Part getPartSafely(HttpServletRequest request, String name) {
+    private Collection<Part> getPartsSafely(HttpServletRequest request, Map<String, String> errors) {
         try {
-            return request.getPart(name);
-        } catch (Exception ignored) {
+            return request.getParts();
+        } catch (IllegalStateException e) {
+            errors.put("general", "Dung lượng ảnh tải lên quá lớn. Mỗi ảnh căn cước tối đa 5MB, vui lòng chọn ảnh nhỏ hơn.");
+            return Collections.emptyList();
+        } catch (Exception e) {
+            errors.put("general", "Không thể đọc dữ liệu đăng ký. Vui lòng kiểm tra lại thông tin và thử lại.");
+            return Collections.emptyList();
+        }
+    }
+
+    private Part getPartSafely(Collection<Part> parts, String name) {
+        if (parts == null || parts.isEmpty()) {
             return null;
         }
+
+        for (Part part : parts) {
+            if (name.equals(part.getName())) {
+                return part;
+            }
+        }
+
+        return null;
+    }
+
+    private String readFormValue(Collection<Part> parts, HttpServletRequest request, String name) {
+        if (parts != null && !parts.isEmpty()) {
+            for (Part part : parts) {
+                if (!name.equals(part.getName()) || part.getSubmittedFileName() != null) {
+                    continue;
+                }
+
+                try (InputStream inputStream = part.getInputStream()) {
+                    return clean(new String(inputStream.readAllBytes(), StandardCharsets.UTF_8));
+                } catch (IOException ignored) {
+                    break;
+                }
+            }
+        }
+
+        return clean(request.getParameter(name));
     }
 
     private void validateImagePart(Map<String, String> errors,
