@@ -13,7 +13,7 @@
     <title>MODA Admin - Danh sách yêu cầu mở Shop</title>
     
     <!-- Link CSS đã tách riêng biệt (Thêm cache buster để tránh lưu cache trình duyệt) -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin/list-seller-applications.css?v=1.1">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin/list-seller-applications.css?v=1.2">
     
     <!-- Tải bộ icon Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -32,41 +32,35 @@
                 <ul class="sidebar-menu">
                     <li class="menu-item">
                         <a href="${pageContext.request.contextPath}/admin/dashboard/overview">
-                            <i data-lucide="layout-dashboard" class="menu-icon"></i>
                             <span class="menu-text">Tổng quan</span>
                         </a>
                     </li>
                     <li class="menu-item">
                         <a href="${pageContext.request.contextPath}/admin/user-management">
-                            <i data-lucide="users" class="menu-icon"></i>
                             <span class="menu-text">Người dùng</span>
                         </a>
                     </li>
-<li class="menu-item">
+                    <li class="menu-item">
                         <a href="${pageContext.request.contextPath}/admin/seller-management">
-                            <i data-lucide="shopping-bag" class="menu-icon"></i>
                             <span class="menu-text">Người bán</span>
                         </a>
                     </li>
                     <li class="menu-item active">
                         <a href="${pageContext.request.contextPath}/admin/seller-applications">
-                            <i data-lucide="store" class="menu-icon"></i>
                             <span class="menu-text">Duyệt đăng ký</span>
                         </a>
                     </li>
                     <li class="menu-item">
                         <a href="${pageContext.request.contextPath}/admin/finance/view-finance.jsp">
-                            <i data-lucide="credit-card" class="menu-icon"></i>
                             <span class="menu-text">Tài chính</span>
                         </a>
                     </li>
                 </ul>
             </div>
-            <div style="margin-top: auto;">
+            <div class="sidebar-logout">
                 <ul class="sidebar-menu">
                     <li class="menu-item">
                         <a href="${pageContext.request.contextPath}/logout">
-                            <i data-lucide="log-out" class="menu-icon"></i>
                             <span class="menu-text">Đăng xuất</span>
                         </a>
                     </li>

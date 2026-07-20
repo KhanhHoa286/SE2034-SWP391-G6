@@ -16,55 +16,64 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
         :root {
-            --bg-primary: #f8fafc;
+            --bg-primary: #ffffff;
             --bg-secondary: #ffffff;
-            --sidebar-bg: #111827;
-            --sidebar-text: #9ca3af;
-            --sidebar-text-hover: #ffffff;
-            --sidebar-item-active: #5850ec;
-            --sidebar-item-hover: #1f2937;
-            --text-primary: #1f2937;
-            --text-secondary: #4b5563;
-            --text-muted: #9ca3af;
-            --border-color: #e5e7eb;
+            --sidebar-bg: #ffffff;
+            --sidebar-text: #4c4546;
+            --sidebar-text-hover: #121c28;
+            --sidebar-item-active: #000000;
+            --sidebar-item-hover: #f5f5f5;
+            --text-primary: #121c28;
+            --text-secondary: #5c5f60;
+            --text-muted: #4c4546;
+            --border-color: #e0e0e0;
             --success: #10b981;
-            --success-bg: #d1fae5;
-            --success-text: #065f46;
-            --danger: #ef4444;
-            --danger-bg: #fee2e2;
-            --danger-text: #991b1b;
+            --success-bg: #eefaf1;
+            --success-text: #146c2e;
+            --danger: #ba1a1a;
+            --danger-bg: #fef2f2;
+            --danger-text: #b91c1c;
             --warning: #f59e0b;
-            --warning-bg: #fef3c7;
-            --warning-text: #92400e;
+            --warning-bg: #fffbeb;
+            --warning-text: #b45309;
             --info: #3b82f6;
             --info-bg: #dbeafe;
             --info-text: #1e40af;
-            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --sidebar-w: 260px;
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --shadow-sm: none;
+            --sidebar-w: 280px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: var(--font-main); background-color: var(--bg-primary); color: var(--text-primary); line-height: 1.5; -webkit-font-smoothing: antialiased; }
         a { text-decoration: none; color: inherit; }
         ul { list-style: none; }
+        button, input, select { font-family: inherit; outline: none; }
 
         .app-container { display: flex; min-height: 100vh; }
 
-        /* Sidebar */
-        .sidebar-wrapper { width: var(--sidebar-w); background-color: var(--sidebar-bg); flex-shrink: 0; position: sticky; top: 0; height: 100vh; z-index: 100; }
-        .sidebar { display: flex; flex-direction: column; height: 100%; padding: 24px 16px; }
-        .sidebar-brand { padding: 12px 8px 32px 8px; }
-        .sidebar-brand-name { font-size: 17px; font-weight: 700; color: #ffffff; letter-spacing: -0.01em; display: block; }
-        .sidebar-subtitle { font-size: 11px; color: #4b5563; font-weight: 500; margin-top: 2px; display: block; text-transform: uppercase; letter-spacing: 0.05em; }
-        .sidebar-nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
-        .menu-item a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; color: var(--sidebar-text); font-size: 14px; font-weight: 500; transition: all 0.2s; }
-        .menu-item a:hover { color: var(--sidebar-text-hover); background-color: var(--sidebar-item-hover); }
-        .menu-item.active a { color: #ffffff; background-color: var(--sidebar-item-active); box-shadow: 0 4px 12px rgba(88, 80, 236, 0.25); }
-        .menu-icon { width: 20px; height: 20px; stroke-width: 2px; flex-shrink: 0; }
+        /* Sidebar Styles */
+        .sidebar-wrapper { width: var(--sidebar-w); background-color: var(--sidebar-bg); flex-shrink: 0; position: sticky; top: 0; height: 100vh; z-index: 100; border-right: 1px solid var(--border-color); }
+        .sidebar { display: flex; flex-direction: column; height: 100%; padding: 40px 0 24px 0; justify-content: space-between; }
+        .sidebar-brand { padding: 0 32px 24px 32px; }
+        .sidebar-brand-name { font-size: 24px; font-weight: 700; color: #000000; line-height: 1.25; display: block; }
+        .sidebar-subtitle { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-top: 4px; display: block; text-transform: none; letter-spacing: normal; font-weight: 400; }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 0; flex: 1; }
+        .menu-item a { display: flex; align-items: center; gap: 16px; padding: 0 32px; height: 56px; color: var(--sidebar-text); transition: background 0.2s ease, color 0.2s ease; }
+        .menu-item a:hover { background-color: var(--sidebar-item-hover); color: var(--sidebar-text) !important; }
+        .menu-item.active a { color: #ffffff !important; background-color: var(--sidebar-item-active); box-shadow: none; }
+        .menu-icon { width: 20px; height: 20px; stroke-width: 2px; flex-shrink: 0; color: inherit; }
+        .menu-text { white-space: nowrap; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: inherit; }
+        .menu-item.active .menu-icon, .menu-item.active .menu-text { color: #ffffff !important; }
+
+        /* Logout border top */
+        .sidebar-logout { border-top: 1px solid var(--border-color); margin-top: auto; }
+        .sidebar-logout .menu-item a { height: 72px; }
+        .sidebar-logout .menu-item a:hover { color: var(--danger) !important; }
+        .sidebar-logout .menu-item a:hover .menu-icon, .sidebar-logout .menu-item a:hover .menu-text { color: var(--danger) !important; }
 
         /* Main Content */
-        .main-content { flex: 1; padding: 24px 32px; display: flex; flex-direction: column; gap: 20px; overflow-x: hidden; }
+        .main-content { flex: 1; padding: 64px; display: flex; flex-direction: column; gap: 32px; overflow-x: hidden; background: var(--bg-primary); }
 
         .topbar { display: flex; align-items: center; justify-content: flex-end; padding-bottom: 8px; }
         .admin-profile-badge { display: flex; align-items: center; gap: 8px; background: transparent; border: none; cursor: pointer; }
@@ -77,75 +86,79 @@
         .breadcrumbs a:hover { color: var(--text-primary); }
 
         /* Page Header */
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0px; }
         .header-title-container { display: flex; align-items: center; gap: 12px; }
-        .header-title-container h1 { font-size: 24px; font-weight: 700; color: var(--text-primary); }
-        .header-badge { background-color: #d1fae5; color: #065f46; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+        .header-title-container h1 { font-size: 40px; font-weight: 700; color: #000000; letter-spacing: -0.02em; line-height: 1.15; }
+        .header-badge { border: 1px solid #000000; background-color: #ffffff; color: #000000; font-size: 11px; font-weight: 700; padding: 4px 8px; text-transform: uppercase; border-radius: 0;}
 
         /* Split Section Row */
-        .details-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .details-row { display: grid; grid-template-columns: 2fr 1fr; gap: 32px; }
 
         /* Form Card */
-        .form-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 20px; }
+        .form-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); padding: 32px; display: flex; flex-direction: column; gap: 24px; border-radius: 0; box-shadow: none; }
         .form-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
         .form-card-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
         .form-group { display: flex; flex-direction: column; gap: 8px; }
-        .form-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-        .input-with-suffix { display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 6px; background-color: #ffffff; padding-right: 12px; width: 100%; max-width: 320px;}
-        .input-with-suffix input { border: none; outline: none; padding: 10px 14px; font-size: 14px; font-weight: 600; width: 100%; border-radius: 6px 0 0 6px; }
+        .form-label { font-size: 13px; font-weight: 600; color: #000000; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .input-with-suffix { display: flex; align-items: center; border: 1px solid var(--border-color); background-color: #ffffff; padding-right: 12px; width: 100%; max-width: 320px; transition: border-color 0.2s; border-radius: 0;}
+        .input-with-suffix:focus-within { border-color: #000000; }
+        .input-with-suffix input { border: none; outline: none; padding: 14px 14px; font-size: 14px; font-weight: 600; width: 100%; background: transparent; border-radius: 0; }
         .input-suffix { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
         
         .market-rate-hint { font-size: 12px; color: var(--text-secondary); align-self: center; margin-left: 12px; font-style: italic; }
         
-        .date-input-wrapper { display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 6px; background-color: #f9fafb; padding-right: 12px; width: 100%; max-width: 320px; }
-        .date-input-wrapper input { border: none; outline: none; padding: 10px 14px; font-size: 14px; width: 100%; background: transparent; cursor: pointer; color: var(--text-primary); font-weight: 500;}
+        .date-input-wrapper { display: flex; align-items: center; border: 1px solid var(--border-color); background-color: #ffffff; padding-right: 12px; width: 100%; max-width: 320px; transition: border-color 0.2s; border-radius: 0;}
+        .date-input-wrapper:focus-within { border-color: #000000; }
+        .date-input-wrapper input { border: none; outline: none; padding: 14px 14px; font-size: 14px; width: 100%; background: transparent; cursor: pointer; color: var(--text-primary); font-weight: 500; border-radius: 0;}
 
         /* Alert Box */
-        .alert-box { background-color: #f0f4f8; border-left: 4px solid var(--sidebar-item-active); padding: 16px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px; }
-        .alert-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
-        .alert-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+        .alert-box { background-color: #f1f5f9; border-left: 4px solid #000000; padding: 24px; display: flex; flex-direction: column; gap: 8px; border-radius: 0;}
+        .alert-title { font-size: 13px; font-weight: 700; color: #000000; text-transform: uppercase; letter-spacing: 0.05em; }
+        .alert-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
 
         /* Button group */
         .btn-group { display: flex; gap: 12px; margin-top: 10px; }
-        .btn-primary { background-color: #000000; color: #ffffff; padding: 10px 20px; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
-        .btn-primary:hover { opacity: 0.9; }
-        .btn-outline { background-color: #ffffff; color: var(--text-primary); padding: 10px 20px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        .btn-outline:hover { background-color: #f9fafb; }
+        .btn-primary { background-color: #000000; color: #ffffff; padding: 14px 24px; border: 1px solid #000000; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; border-radius: 0;}
+        .btn-primary:hover { background-color: #333333; }
+        .btn-outline { background-color: #ffffff; color: #000000; padding: 14px 24px; border: 1px solid var(--border-color); font-size: 14px; font-weight: 600; cursor: pointer; transition: border-color 0.2s; border-radius: 0;}
+        .btn-outline:hover { border-color: #000000; }
 
         /* Right Panel Cards */
-        .panel-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 20px; }
+        .panel-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); padding: 32px; margin-bottom: 24px; border-radius: 0; box-shadow: none;}
         .panel-card:last-child { margin-bottom: 0; }
-        .panel-card-title { font-size: 12px; font-weight: 700; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .panel-card-title { font-size: 13px; font-weight: 700; color: #000000; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.05em; }
 
-        .sim-item { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 12px; }
-        .sim-item:last-child { margin-bottom: 0; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 4px; }
+        .sim-item { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 16px; }
+        .sim-item:last-child { margin-bottom: 0; border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 4px; }
         .sim-label { color: var(--text-secondary); }
-        .sim-value { font-weight: 600; color: var(--text-primary); }
-        .sim-value.highlight { color: var(--sidebar-item-active); }
+        .sim-value { font-weight: 700; color: var(--text-primary); }
+        .sim-value.highlight { color: #000000; }
 
         /* Graphic Card */
-        .graphic-card { background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&auto=format&fit=crop&q=60') no-repeat center center; background-size: cover; color: #ffffff; display: flex; flex-direction: column; justify-content: flex-end; min-height: 140px; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px; }
-        .graphic-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-        .graphic-desc { font-size: 11px; color: #e5e7eb; line-height: 1.4; }
+        .graphic-card { background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&auto=format&fit=crop&q=60') no-repeat center center; background-size: cover; color: #ffffff; display: flex; flex-direction: column; justify-content: flex-end; min-height: 180px; padding: 24px; border: 1px solid var(--border-color); margin-bottom: 24px; border-radius: 0;}
+        .graphic-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.02em; }
+        .graphic-desc { font-size: 13px; color: #e5e7eb; line-height: 1.5; }
 
         /* Security Card Specifics */
-        .security-list { display: flex; flex-direction: column; gap: 12px; font-size: 12px; }
-        .security-item { display: flex; gap: 10px; align-items: flex-start; line-height: 1.5; color: var(--text-secondary); }
-        .security-icon { color: var(--sidebar-item-active); flex-shrink: 0; margin-top: 2px; }
+        .security-list { display: flex; flex-direction: column; gap: 16px; font-size: 13px; }
+        .security-item { display: flex; gap: 12px; align-items: flex-start; line-height: 1.5; color: var(--text-secondary); }
+        .security-icon { color: #000000; flex-shrink: 0; margin-top: 2px; }
 
         /* Bottom History Table */
-        .history-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: var(--shadow-sm); }
-        .history-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px; }
-        .history-card-title { font-size: 14px; font-weight: 700; color: var(--text-primary); }
-        .history-link { font-size: 12px; font-weight: 600; color: var(--sidebar-item-active); }
-        .history-link:hover { text-decoration: underline; }
+        .history-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); padding: 32px; border-radius: 0; box-shadow: none;}
+        .history-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px; }
+        .history-card-title { font-size: 16px; font-weight: 700; color: #000000; text-transform: uppercase; letter-spacing: 0.05em;}
+        .history-link { font-size: 13px; font-weight: 600; color: #000000; text-decoration: underline;}
+        .history-link:hover { opacity: 0.7; }
 
-        .custom-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
-        .custom-table th { background-color: #f8fafc; color: var(--text-secondary); font-weight: 600; padding: 12px 20px; border-bottom: 1px solid var(--border-color); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
-        .custom-table td { padding: 16px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); vertical-align: middle; }
+        .custom-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        .custom-table th { background-color: #ffffff; color: #000000; font-weight: 700; padding: 20px 24px; border-bottom: 2px solid var(--border-color); text-transform: uppercase; font-size: 12px; letter-spacing: 0.1em; }
+        .custom-table td { padding: 24px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); vertical-align: middle; }
         .custom-table tr:last-child td { border-bottom: none; }
+        .custom-table tr:hover td { background-color: #f9f9f9; }
         
-        .tag-success { background-color: var(--success-bg); color: var(--success-text); font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; display: inline-block;}
+        .tag-success { background-color: var(--success-bg); color: var(--success-text); font-size: 11px; font-weight: 700; padding: 4px 8px; text-transform: uppercase; display: inline-block; border-radius: 0;}
     </style>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -154,48 +167,44 @@
 <div class="app-container">
     <aside class="sidebar-wrapper">
         <div class="sidebar">
-            <div class="sidebar-brand" style="padding-bottom: 24px;">
-                <span class="sidebar-brand-name" style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">MODA Admin</span>
-                <span class="sidebar-subtitle" style="display: block; font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">Bảng điều khiển siêu cấp</span>
+            <div>
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-name">MODA Admin</span>
+                    <span class="sidebar-subtitle">Bảng điều khiển siêu cấp</span>
+                </div>
+                <ul class="sidebar-nav">
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/dashboard/overview">
+                            <span class="menu-text">Tổng quan</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/user-management">
+                            <span class="menu-text">Người dùng</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/seller-management">
+                            <span class="menu-text">Người bán</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/seller-applications">
+                            <span class="menu-text">Duyệt đăng ký</span>
+                        </a>
+                    </li>
+                    <li class="menu-item active">
+                        <a href="${pageContext.request.contextPath}/admin/finance/view-finance.jsp">
+                            <span class="menu-text">Tài chính</span>
+                        </a>
+                    </li>
+                </ul>
             </div>
-            <ul class="sidebar-nav">
-                <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/dashboard/overview">
-                        <i data-lucide="layout-dashboard" class="menu-icon"></i>
-                        <span>Tổng quan</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/user-management">
-                        <i data-lucide="users" class="menu-icon"></i>
-                        <span>Người dùng</span>
-                    </a>
-                </li>
-<li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/seller-management">
-                        <i data-lucide="shopping-bag" class="menu-icon"></i>
-                        <span>Người bán</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/seller-applications">
-                        <i data-lucide="store" class="menu-icon"></i>
-                        <span>Duyệt đăng ký</span>
-                    </a>
-                </li>
-                <li class="menu-item active">
-                    <a href="${pageContext.request.contextPath}/admin/finance/view-finance.jsp">
-                        <i data-lucide="credit-card" class="menu-icon"></i>
-                        <span>Tài chính</span>
-                    </a>
-                </li>
-            </ul>
-            <div style="margin-top: auto;">
+            <div class="sidebar-logout">
                 <ul class="sidebar-nav">
                     <li class="menu-item">
                         <a href="${pageContext.request.contextPath}/logout">
-                            <i data-lucide="log-out" class="menu-icon"></i>
-                            <span>Đăng xuất</span>
+                            <span class="menu-text">Đăng xuất</span>
                         </a>
                     </li>
                 </ul>

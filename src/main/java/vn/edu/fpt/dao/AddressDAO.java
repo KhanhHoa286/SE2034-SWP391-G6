@@ -249,13 +249,14 @@ public class AddressDAO extends DBContext {
                        addressResponse.setProvinceName(rs.getString("province_name"));
                        addressResponse.setLocalDetail(rs.getString("street_address"));
                        addressResponse.setDefault(isDefault);
+                       return addressResponse;
                    }
                }
            }
        }catch (Exception e) {
            e.printStackTrace();
        }
-       return addressResponse;
+       return null;
    }
 
 

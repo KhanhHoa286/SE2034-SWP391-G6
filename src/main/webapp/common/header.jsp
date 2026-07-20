@@ -38,7 +38,7 @@
             </a>
             <c:if test="${sessionScope.user != null}">
                 <a href="${pageContext.request.contextPath}/customer/profile" class="avatar-link">
-                <img src="${sessionScope.user.avatarUrl}" alt="User Avatar" class="header__avatar">
+                <img src="${empty sessionScope.user.avatarUrl ? 'https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg' : sessionScope.user.avatarUrl}" alt="User Avatar" class="header__avatar">
                 </a>
             </c:if>
             <c:if test="${sessionScope.user == null}">
