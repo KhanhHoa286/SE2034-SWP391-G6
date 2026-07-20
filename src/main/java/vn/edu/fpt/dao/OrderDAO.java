@@ -19,6 +19,24 @@ import java.util.*;
 public class OrderDAO extends DBContext {
     private final CartDAO cartDAO = new CartDAO();
 
+    public OrderDAO() {
+        ensureDeliveredAtColumn();
+    }
+
+    private void ensureDeliveredAtColumn() {
+        String sql = """
+            IF COL_LENGTH('sub_orders', 'delivered_at') IS NULL
+            BEGIN
+                ALTER TABLE sub_orders ADD delivered_at DATETIME NULL
+            END
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * HoaNK - Lấy ra commission rate mới nhất từ bảng
      */
@@ -45,11 +63,11 @@ public class OrderDAO extends DBContext {
 
     public BigDecimal getTodayRevenue(int shopId) {
         String sql = """
-            SELECT SUM(total_amount) AS today_revenue
+            SELECT SUM(total_amount - commission_fee) AS today_revenue
             FROM sub_orders
             WHERE shop_id = ? 
-              AND CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)
-              AND status != 'CANCELLED'
+              AND status = 'DELIVERED'
+              AND CAST(COALESCE(delivered_at, created_at) AS DATE) = CAST(GETDATE() AS DATE)
             """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -68,10 +86,12 @@ public class OrderDAO extends DBContext {
     public double getRevenueTrend(int shopId) {
         String sql = """
             SELECT 
-                SUM(CASE WHEN CAST(created_at AS DATE) = CAST(GETDATE() AS DATE) THEN total_amount ELSE 0 END) AS today_rev,
-                SUM(CASE WHEN CAST(created_at AS DATE) = CAST(DATEADD(day, -1, GETDATE()) AS DATE) THEN total_amount ELSE 0 END) AS yesterday_rev
+                SUM(CASE WHEN CAST(COALESCE(delivered_at, created_at) AS DATE) = CAST(GETDATE() AS DATE)
+                    THEN total_amount - commission_fee ELSE 0 END) AS today_rev,
+                SUM(CASE WHEN CAST(COALESCE(delivered_at, created_at) AS DATE) = CAST(DATEADD(day, -1, GETDATE()) AS DATE)
+                    THEN total_amount - commission_fee ELSE 0 END) AS yesterday_rev
             FROM sub_orders
-            WHERE shop_id = ? AND status != 'CANCELLED'
+            WHERE shop_id = ? AND status = 'DELIVERED'
             """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -98,7 +118,8 @@ public class OrderDAO extends DBContext {
             SELECT COUNT(*) AS today_orders
             FROM sub_orders
             WHERE shop_id = ? 
-              AND CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)
+              AND status = 'DELIVERED'
+              AND CAST(COALESCE(delivered_at, created_at) AS DATE) = CAST(GETDATE() AS DATE)
             """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -139,7 +160,7 @@ public class OrderDAO extends DBContext {
         String sql = """
             SELECT 
                 FORMAT(date_range.d, 'dd/MM') AS date_label,
-                ISNULL(SUM(so.total_amount), 0) AS daily_revenue
+                ISNULL(SUM(so.total_amount - so.commission_fee), 0) AS daily_revenue
             FROM (
                 SELECT CAST(GETDATE() AS DATE) AS d
                 UNION ALL SELECT DATEADD(day, -1, CAST(GETDATE() AS DATE))
@@ -150,9 +171,9 @@ public class OrderDAO extends DBContext {
                 UNION ALL SELECT DATEADD(day, -6, CAST(GETDATE() AS DATE))
             ) date_range
             LEFT JOIN sub_orders so 
-              ON CAST(so.created_at AS DATE) = date_range.d 
+              ON CAST(COALESCE(so.delivered_at, so.created_at) AS DATE) = date_range.d 
              AND so.shop_id = ? 
-             AND so.status != 'CANCELLED'
+             AND so.status = 'DELIVERED'
             GROUP BY date_range.d
             ORDER BY date_range.d ASC
             """;
@@ -317,7 +338,10 @@ public class OrderDAO extends DBContext {
      * HoaNK - Update status của suborder khi khách nhận được hàng chuyển sang delivered
      */
     private final String UPDATE_STATUS_ORDER = """
-            UPDATE sub_orders SET status = 'DELIVERED' WHERE sub_order_id = ?;
+            UPDATE sub_orders
+            SET status = 'DELIVERED',
+                delivered_at = COALESCE(delivered_at, GETDATE())
+            WHERE sub_order_id = ?;
             """;
     public boolean updateStatusOrder(int subOrderId) {
         String sql = UPDATE_STATUS_ORDER;
@@ -350,7 +374,7 @@ public class OrderDAO extends DBContext {
     }
 
     /**
-     * HoaNK - Trả về 1 đối tượng orderItemResponse chứa bên trong 1 list shopOrderResponse (chứa bên trong 1 list orderItemDetailResponse)
+     * HoaNK - Trả về 1 đối tượng orderItemResponse chứa bên trong 1 list shopOrderResponse (chứa bên trong 1 list orderItemDetailResponse nữa)
      */
     private final String GET_ORDER_ITEMS = """
             SELECT so.sub_order_id,p.product_id,p.product_name,p.thumbnail_url,s.shop_id,s.shop_name,c.color_name, si.size_name,
@@ -823,7 +847,7 @@ public class OrderDAO extends DBContext {
      */
     public boolean cancelSubOrderTransaction(int subOrderId) {
         try{
-            connection.setAutoCommit(false); // BẮT ĐẦU TRANSACTION
+            connection.setAutoCommit(false);
 
             //Cập nhật trạng thái sub_order thành CANCELLED
             updateSubOrderStatusToCancelled(subOrderId);

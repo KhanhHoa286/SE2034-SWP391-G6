@@ -12,11 +12,9 @@
     <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=4">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/add-seller-account.css?v=20260708">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/add-seller-account.css?v=20260710-id-required">
 </head>
 
 <body class="profile-body seller-register-body">
@@ -34,8 +32,7 @@
                 <p>MODA Seller Center</p>
                 <h1>Đăng ký người bán</h1>
                 <span>
-                    Tạo hồ sơ cửa hàng để bắt đầu bán sản phẩm trên MODA.
-                    Sau khi đăng ký thành công, mục này sẽ chuyển thành Trang người bán.
+                    Cung cấp thông tin định danh của chủ tài khoản. Sau bước này bạn sẽ tiếp tục tạo hồ sơ cửa hàng.
                 </span>
             </header>
 
@@ -48,94 +45,109 @@
             <form class="seller-register-form"
                   action="${pageContext.request.contextPath}/seller-register"
                   method="post"
+                  enctype="multipart/form-data"
                   novalidate>
 
                 <div class="seller-register-card">
                     <div class="seller-register-card__head">
-                        <h2>Thông tin cửa hàng</h2>
-                        <p>Tên cửa hàng và mô tả sẽ được dùng trong khu vực người bán.</p>
+                        <h2>Thông tin định danh</h2>
+                        <p>Các thông tin này dùng để xác nhận chủ tài khoản người bán, không trùng với hồ sơ cửa hàng.</p>
                     </div>
 
                     <div class="seller-register-field">
-                        <label for="shopName">Tên cửa hàng</label>
-                        <input id="shopName"
-                               name="shopName"
+                        <label for="legalFullName">Họ tên theo căn cước công dân</label>
+                        <input id="legalFullName"
+                               name="legalFullName"
                                type="text"
-                               maxlength="100"
-                               value="<c:out value='${oldInput.shopName}' />"
-                               placeholder="Ví dụ: Minh Fashion">
-                        <c:if test="${not empty errors.shopName}">
-                            <small class="seller-register-error">
-                                <c:out value="${errors.shopName}" />
-                            </small>
+                               maxlength="120"
+                               value="<c:out value='${oldInput.legalFullName}' />"
+                               placeholder="Ví dụ: Nguyễn Văn A">
+                        <c:if test="${not empty errors.legalFullName}">
+                            <small class="seller-register-error"><c:out value="${errors.legalFullName}" /></small>
+                        </c:if>
+                    </div>
+
+                    <div class="seller-register-grid">
+                        <div class="seller-register-field">
+                            <label for="citizenId">Số căn cước công dân</label>
+                            <input id="citizenId"
+                                   name="citizenId"
+                                   type="text"
+                                   maxlength="12"
+                                   inputmode="numeric"
+                                   value="<c:out value='${oldInput.citizenId}' />"
+                                   placeholder="12 chữ số">
+                            <c:if test="${not empty errors.citizenId}">
+                                <small class="seller-register-error"><c:out value="${errors.citizenId}" /></small>
+                            </c:if>
+                        </div>
+
+                        <div class="seller-register-field">
+                            <label for="citizenIdIssueDate">Ngày cấp <span>không bắt buộc</span></label>
+                            <input id="citizenIdIssueDate"
+                                   name="citizenIdIssueDate"
+                                   type="date"
+                                   value="<c:out value='${oldInput.citizenIdIssueDate}' />">
+                            <c:if test="${not empty errors.citizenIdIssueDate}">
+                                <small class="seller-register-error"><c:out value="${errors.citizenIdIssueDate}" /></small>
+                            </c:if>
+                        </div>
+                    </div>
+
+                    <div class="seller-register-field">
+                        <label for="citizenIdIssuePlace">Nơi cấp</label>
+                        <input id="citizenIdIssuePlace"
+                               name="citizenIdIssuePlace"
+                               type="text"
+                               maxlength="255"
+                               value="<c:out value='${oldInput.citizenIdIssuePlace}' />"
+                               placeholder="Ví dụ: Cục Cảnh sát quản lý hành chính về trật tự xã hội">
+                        <c:if test="${not empty errors.citizenIdIssuePlace}">
+                            <small class="seller-register-error"><c:out value="${errors.citizenIdIssuePlace}" /></small>
                         </c:if>
                     </div>
 
                     <div class="seller-register-field">
-                        <label for="description">Mô tả cửa hàng <span>không bắt buộc</span></label>
-                        <textarea id="description"
-                                  name="description"
-                                  rows="4"
+                        <label for="permanentAddress">Địa chỉ thường trú</label>
+                        <textarea id="permanentAddress"
+                                  name="permanentAddress"
+                                  rows="3"
                                   maxlength="500"
-                                  placeholder="Giới thiệu ngắn về cửa hàng của bạn"><c:out value="${oldInput.description}" /></textarea>
-                        <c:if test="${not empty errors.description}">
-                            <small class="seller-register-error">
-                                <c:out value="${errors.description}" />
-                            </small>
+                                  placeholder="Nhập địa chỉ thường trú theo giấy tờ định danh"><c:out value="${oldInput.permanentAddress}" /></textarea>
+                        <c:if test="${not empty errors.permanentAddress}">
+                            <small class="seller-register-error"><c:out value="${errors.permanentAddress}" /></small>
                         </c:if>
                     </div>
                 </div>
 
                 <div class="seller-register-card">
                     <div class="seller-register-card__head">
-                        <h2>Địa chỉ lấy hàng</h2>
-                        <p>Địa chỉ này sẽ được dùng để tạo phiếu vận đơn cho bên giao hàng.</p>
+                        <h2>Ảnh căn cước công dân</h2>
+                        <p>Ảnh JPG hoặc PNG, tối đa 5MB mỗi ảnh. Cần tải đủ ảnh mặt trước và mặt sau căn cước công dân.</p>
                     </div>
 
-                    <div class="seller-register-grid">
+                    <div class="seller-register-grid seller-register-image-grid">
                         <div class="seller-register-field">
-                            <label for="provinceSelect">Tỉnh/Thành phố</label>
-                            <select id="provinceSelect" name="provinceId">
-                                <option value="">Chọn Tỉnh/Thành phố</option>
-                                <c:forEach items="${provinces}" var="province">
-                                    <option value="${province.id}"
-                                            ${oldInput.provinceId == province.id ? 'selected' : ''}>
-                                        <c:out value="${province.fullName}" />
-                                    </option>
-                                </c:forEach>
-                            </select>
-                            <c:if test="${not empty errors.provinceId}">
-                                <small class="seller-register-error">
-                                    <c:out value="${errors.provinceId}" />
-                                </small>
+                            <label for="frontIdImage">Ảnh mặt trước <span>bắt buộc</span></label>
+                            <input id="frontIdImage" name="frontIdImage" type="file" accept="image/png,image/jpeg" required>
+                            <div class="seller-register-preview" data-preview-for="frontIdImage" hidden>
+                                <img src="" alt="Ảnh mặt trước căn cước công dân">
+                            </div>
+                            <c:if test="${not empty errors.frontIdImage}">
+                                <small class="seller-register-error"><c:out value="${errors.frontIdImage}" /></small>
                             </c:if>
                         </div>
 
                         <div class="seller-register-field">
-                            <label for="wardSelect">Phường/Xã</label>
-                            <select id="wardSelect" name="wardId" disabled>
-                                <option value="">Chọn Phường/Xã</option>
-                            </select>
-                            <c:if test="${not empty errors.wardId}">
-                                <small class="seller-register-error">
-                                    <c:out value="${errors.wardId}" />
-                                </small>
+                            <label for="backIdImage">Ảnh mặt sau <span>bắt buộc</span></label>
+                            <input id="backIdImage" name="backIdImage" type="file" accept="image/png,image/jpeg" required>
+                            <div class="seller-register-preview" data-preview-for="backIdImage" hidden>
+                                <img src="" alt="Ảnh mặt sau căn cước công dân">
+                            </div>
+                            <c:if test="${not empty errors.backIdImage}">
+                                <small class="seller-register-error"><c:out value="${errors.backIdImage}" /></small>
                             </c:if>
                         </div>
-                    </div>
-
-                    <div class="seller-register-field">
-                        <label for="streetAddress">Địa chỉ chi tiết</label>
-                        <textarea id="streetAddress"
-                                  name="streetAddress"
-                                  rows="3"
-                                  maxlength="255"
-                                  placeholder="Số nhà, tên đường, tòa nhà..."><c:out value="${oldInput.streetAddress}" /></textarea>
-                        <c:if test="${not empty errors.streetAddress}">
-                            <small class="seller-register-error">
-                                <c:out value="${errors.streetAddress}" />
-                            </small>
-                        </c:if>
                     </div>
                 </div>
 
@@ -145,7 +157,7 @@
                         Hủy
                     </a>
                     <button class="seller-register-btn seller-register-btn--primary" type="submit">
-                        Đăng ký người bán
+                        Tiếp tục tạo cửa hàng
                     </button>
                 </div>
             </form>
@@ -153,68 +165,34 @@
     </main>
 </div>
 
-<jsp:include page="/common/footer.jsp" />
-
 <script>
-    const provinceSelect = document.getElementById("provinceSelect");
-    const wardSelect = document.getElementById("wardSelect");
-    const contextPath = "${pageContext.request.contextPath}";
-    const selectedProvinceId = "<c:out value='${oldInput.provinceId}' />";
-    const selectedWardId = "<c:out value='${oldInput.wardId}' />";
+    document.querySelectorAll('input[type="file"][accept*="image"]').forEach(function (input) {
+        const preview = document.querySelector('[data-preview-for="' + input.id + '"]');
+        const previewImage = preview ? preview.querySelector('img') : null;
+        let objectUrl = null;
 
-    function resetWardSelect(text, disabled) {
-        wardSelect.innerHTML = "";
-        const option = document.createElement("option");
-        option.value = "";
-        option.textContent = text;
-        wardSelect.appendChild(option);
-        wardSelect.disabled = disabled;
-    }
+        input.addEventListener('change', function () {
+            if (!preview || !previewImage) {
+                return;
+            }
 
-    function loadWardsByProvince(provinceId, wardId) {
-        if (!provinceId) {
-            resetWardSelect("Chọn Phường/Xã", true);
-            return;
-        }
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+                objectUrl = null;
+            }
 
-        resetWardSelect("Đang tải...", true);
+            const file = input.files && input.files[0];
+            if (!file || !file.type || !file.type.startsWith('image/')) {
+                preview.hidden = true;
+                previewImage.removeAttribute('src');
+                return;
+            }
 
-        fetch(contextPath + "/load-wards?provinceId=" + encodeURIComponent(provinceId))
-            .then(function (response) {
-                if (!response.ok) {
-                    throw new Error("Không tải được danh sách phường/xã");
-                }
-                return response.json();
-            })
-            .then(function (wards) {
-                resetWardSelect("Chọn Phường/Xã", false);
-                if (!wards || wards.length === 0) {
-                    resetWardSelect("Không có phường/xã", true);
-                    return;
-                }
-
-                wards.forEach(function (ward) {
-                    const option = document.createElement("option");
-                    option.value = ward.id;
-                    option.textContent = ward.name;
-                    if (wardId && String(ward.id) === String(wardId)) {
-                        option.selected = true;
-                    }
-                    wardSelect.appendChild(option);
-                });
-            })
-            .catch(function () {
-                resetWardSelect("Không tải được phường/xã", true);
-            });
-    }
-
-    provinceSelect.addEventListener("change", function () {
-        loadWardsByProvince(this.value, "");
+            objectUrl = URL.createObjectURL(file);
+            previewImage.src = objectUrl;
+            preview.hidden = false;
+        });
     });
-
-    if (selectedProvinceId) {
-        loadWardsByProvince(selectedProvinceId, selectedWardId);
-    }
 </script>
 
 </body>

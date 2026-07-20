@@ -51,46 +51,89 @@ input {
 }
 
 .otp-card {
+    position: relative;
     width: 100%;
     max-width: 448px;
     background: var(--surface-card);
     border: 1px solid rgba(207, 196, 197, 0.3);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    padding: 64px;
+
+    /*
+     * Tăng riêng khoảng cách phía trên để chừa chỗ
+     * cho nút QUAY LẠI đặt ở góc khung.
+     */
+    padding: 88px 64px 64px;
+}
+
+/* ==================== NÚT QUAY LẠI ==================== */
+
+.otp-back {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    z-index: 1;
 }
 
 .back-form {
-    margin: 0 0 32px 0;
     display: inline-block;
+    margin: 0;
+    padding: 0;
 }
 
 .back-button {
     border: none;
+    outline: none;
     background: transparent;
     padding: 0;
+    margin: 0;
+
     display: inline-flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 8px;
+
     color: var(--secondary);
     cursor: pointer;
+
     font-size: 12px;
     line-height: 1;
     letter-spacing: 0.05em;
     font-weight: 600;
     text-transform: uppercase;
+
+    /*
+     * Bỏ hoàn toàn gạch chân đối với thẻ a.
+     */
+    text-decoration: none;
+
     transition: color 0.2s ease;
 }
 
-.back-button:hover {
+.back-button:link,
+.back-button:visited,
+.back-button:hover,
+.back-button:focus,
+.back-button:active {
+    text-decoration: none;
+}
+
+.back-button:hover,
+.back-button:focus {
     color: var(--primary);
 }
 
 .back-icon {
+    flex-shrink: 0;
     font-size: 18px;
 }
 
 .material-symbols-outlined {
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24;
+
     display: inline-block;
     line-height: 1;
     text-transform: none;
@@ -98,6 +141,8 @@ input {
     white-space: nowrap;
     direction: ltr;
 }
+
+/* ==================== NỘI DUNG OTP ==================== */
 
 .otp-title {
     margin: 0 0 16px 0;
@@ -122,6 +167,8 @@ input {
     font-weight: 600;
 }
 
+/* ==================== THÔNG BÁO ==================== */
+
 .alert {
     margin-bottom: 16px;
     padding: 12px 16px;
@@ -144,6 +191,8 @@ input {
     color: var(--primary);
 }
 
+/* ==================== FORM OTP ==================== */
+
 .otp-form {
     display: flex;
     flex-direction: column;
@@ -159,16 +208,23 @@ input {
 .otp-input {
     width: 100%;
     aspect-ratio: 1 / 1;
+
     border: none;
     border-bottom: 1px solid var(--secondary-fixed);
+
     background: transparent;
     text-align: center;
     color: var(--primary);
+
     font-size: 24px;
     line-height: 1.3;
     font-weight: 600;
+
     outline: none;
-    transition: border-color 0.2s ease, opacity 0.2s ease;
+
+    transition:
+            border-color 0.2s ease,
+            opacity 0.2s ease;
 }
 
 .otp-input:focus {
@@ -179,6 +235,8 @@ input {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* ==================== THỜI GIAN VÀ GỬI LẠI ==================== */
 
 .otp-action-row {
     margin-top: -16px;
@@ -203,8 +261,10 @@ input {
     border: none;
     background: transparent;
     padding: 0;
+
     color: var(--primary);
     cursor: pointer;
+
     font-size: 12px;
     line-height: 1;
     letter-spacing: 0.05em;
@@ -222,19 +282,27 @@ input {
     text-decoration: none;
 }
 
+/* ==================== NÚT XÁC NHẬN ==================== */
+
 .confirm-button {
     width: 100%;
     border: none;
+
     background: var(--primary);
     color: #ffffff;
+
     padding: 16px;
     cursor: pointer;
+
     font-size: 12px;
     line-height: 1;
     letter-spacing: 0.2em;
     font-weight: 600;
     text-transform: uppercase;
-    transition: background 0.2s ease, opacity 0.2s ease;
+
+    transition:
+            background 0.2s ease,
+            opacity 0.2s ease;
 }
 
 .confirm-button:hover {
@@ -250,6 +318,8 @@ input {
     display: none;
 }
 
+/* ==================== RESPONSIVE ==================== */
+
 @media (max-width: 640px) {
     .otp-header,
     .otp-footer {
@@ -257,7 +327,12 @@ input {
     }
 
     .otp-card {
-        padding: 32px;
+        padding: 76px 32px 32px;
+    }
+
+    .otp-back {
+        top: 20px;
+        left: 20px;
     }
 
     .otp-title {
@@ -266,5 +341,80 @@ input {
 
     .otp-input {
         font-size: 22px;
+    }
+}
+/* ==================================================
+   FIX VỊ TRÍ VÀ GẠCH CHÂN NÚT QUAY LẠI
+   Chỉ tác động trong màn OTP
+   ================================================== */
+
+.otp-card {
+    position: relative;
+    padding-top: 88px;
+}
+
+.otp-card .otp-back {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    z-index: 2;
+}
+
+.otp-card .back-form {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+.otp-card .back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+
+    color: var(--secondary);
+    cursor: pointer;
+
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+
+    text-decoration: none !important;
+}
+
+.otp-card a.back-button,
+.otp-card a.back-button:link,
+.otp-card a.back-button:visited,
+.otp-card a.back-button:hover,
+.otp-card a.back-button:focus,
+.otp-card a.back-button:active {
+    text-decoration: none !important;
+}
+
+.otp-card .back-button:hover {
+    color: var(--primary);
+}
+
+.otp-card .back-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+}
+
+@media (max-width: 640px) {
+    .otp-card {
+        padding-top: 76px;
+    }
+
+    .otp-card .otp-back {
+        top: 20px;
+        left: 20px;
     }
 }

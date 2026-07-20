@@ -39,11 +39,11 @@ public class AddProductReviewServlet extends HttpServlet {
              return;
          }
 
-         boolean checkReview = reviewDAO.checkReviewProduct(productId,orderItemId);
-         if(checkReview) {
-             response.sendRedirect(request.getContextPath() + "/" + "customer/order-list");
-             return;
-         }
+//         boolean checkReview = reviewDAO.checkReviewProduct(productId,orderItemId);
+//         if(checkReview) {
+//             response.sendRedirect(request.getContextPath() + "/" + "customer/order-list");
+//             return;
+//         }
 
          //
          AddReviewResponse addReviewResponse = productDAO.getFieldsResponseAddReview(productId,orderItemId);

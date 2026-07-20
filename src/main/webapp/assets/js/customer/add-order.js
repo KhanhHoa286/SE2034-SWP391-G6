@@ -1,17 +1,16 @@
 function selectPayment(method) {
     document.getElementById('pm-cod').classList.toggle('selected', method === 'cod');
     document.getElementById('pm-bank').classList.toggle('selected', method === 'bank_transfer');
-    if(method === 'bank_transfer') {
-     const pmBank = document.getElementById('pm-bank');
-     const userId = pmBank.dataset.userId;
-     addPaymentContent(userId);
+    if (method === 'bank_transfer') {
+        const pmBank = document.getElementById('pm-bank');
+        const userId = pmBank.dataset.userId;
+        addPaymentContent(userId);
     }
     document.getElementById('bankInfoBox').classList.toggle('active', method === 'bank_transfer');
 }
 
-function addPaymentContent(userId){
-    const  payMentContent = document.getElementById("paymentContent");
-    const hiddenTransferCode = document.getElementById("hidden-transaction-code");
+function addPaymentContent(userId) {
+    const payMentContent = document.getElementById("paymentContent");
     //
     const now = new Date();
 
@@ -21,8 +20,7 @@ function addPaymentContent(userId){
     const seconds = String(now.getSeconds()).padStart(2, '0');
 
     stringContent = `MODA_${userId}_${hours}${minutes}${seconds}`;
-        payMentContent.innerText = stringContent;
-      hiddenTransferCode.value = stringContent;
+    payMentContent.innerText = stringContent;
 }
 
 window.addEventListener("pageshow", function (event) {

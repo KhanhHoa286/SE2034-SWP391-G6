@@ -17,10 +17,15 @@ import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
 import vn.edu.fpt.model.Ward;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @WebServlet("/edit-shop")
 @MultipartConfig(
@@ -66,7 +71,7 @@ public class EditShopServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession();
@@ -141,9 +146,9 @@ public class EditShopServlet extends HttpServlet {
                 errors.put("logo", "Dung lượng ảnh quá lớn (tối đa 2MB).");
             } else {
                 try {
-                    logoUrl = vn.edu.fpt.common.UploadImage.uploadImage(logoPart, "shops");
+                    logoUrl = saveShopLogo(logoPart);
                 } catch (Exception e) {
-                    errors.put("logo", "Tải ảnh lên Cloudinary thất bại: " + e.getMessage());
+                    errors.put("logo", "Không thể tải ảnh lên hệ thống. Vui lòng thử lại.");
                 }
             }
         }
@@ -165,7 +170,7 @@ public class EditShopServlet extends HttpServlet {
             currentShop.setStreetAddress(streetAddress.trim());
 
             boolean isShopUpdated = shopDAO.updateShop(currentShop);
-            
+
             // Update user contact info
             boolean isUserUpdated = userDAO.updateUserContact(currentShop.getOwnerId(), email.trim(), phone.trim());
 
@@ -183,6 +188,73 @@ public class EditShopServlet extends HttpServlet {
         }
 
         doGet(request, response);
+    }
+
+    private String saveShopLogo(Part logoPart) throws Exception {
+        if (logoPart == null || logoPart.getSize() == 0) {
+            return null;
+        }
+
+        try {
+            String url = vn.edu.fpt.common.UploadImage.uploadImage(logoPart, "shops");
+            if (url != null && !url.trim().isEmpty()) {
+                return url;
+            }
+        } catch (Exception cloudinaryEx) {
+            System.err.println("[EditShopServlet] Cloudinary upload failed, using local fallback: " + cloudinaryEx.getMessage());
+        }
+
+        String uploadRoot = null;
+        try {
+            uploadRoot = getServletContext().getRealPath("/");
+            if (uploadRoot != null) {
+                uploadRoot = uploadRoot + File.separator + "uploads" + File.separator + "shops";
+            }
+        } catch (Exception ignored) {
+        }
+
+        if (uploadRoot == null || uploadRoot.trim().isEmpty()) {
+            String userHome = System.getProperty("user.home");
+            uploadRoot = userHome + File.separator + "moda_uploads" + File.separator + "shops";
+        }
+
+        File dir = new File(uploadRoot);
+        if (!dir.exists()) {
+            boolean created = dir.mkdirs();
+            if (!created && !dir.exists()) {
+                throw new IOException("Cannot create upload directory: " + uploadRoot);
+            }
+        }
+
+        String extension = resolveImageExtension(logoPart);
+        String fileName = "shop-logo-" + UUID.randomUUID() + extension;
+        File targetFile = new File(dir, fileName);
+
+        try (InputStream inputStream = logoPart.getInputStream()) {
+            Files.copy(inputStream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        return getServletContext().getContextPath() + "/uploads/shops/" + fileName;
+    }
+
+    private String resolveImageExtension(Part part) {
+        String submittedFileName = part.getSubmittedFileName();
+        if (submittedFileName != null) {
+            int dotIndex = submittedFileName.lastIndexOf('.');
+            if (dotIndex >= 0 && dotIndex < submittedFileName.length() - 1) {
+                String extension = submittedFileName.substring(dotIndex).toLowerCase();
+                if (".jpg".equals(extension) || ".jpeg".equals(extension) || ".png".equals(extension)) {
+                    return extension;
+                }
+            }
+        }
+
+        String contentType = part.getContentType();
+        if ("image/png".equals(contentType)) {
+            return ".png";
+        }
+
+        return ".jpg";
     }
 
     private Shop resolveCurrentShop(HttpSession session) {

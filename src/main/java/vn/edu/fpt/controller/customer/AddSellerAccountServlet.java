@@ -1,30 +1,44 @@
 package vn.edu.fpt.controller.customer;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
+import vn.edu.fpt.common.UploadImage;
 import vn.edu.fpt.dao.CustomerDAO;
-import vn.edu.fpt.dao.ProvinceDAO;
 import vn.edu.fpt.model.User;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @WebServlet(name = "AddSellerAccountServlet", urlPatterns = {
         "/seller-register",
         "/customer/seller-register",
         "/customer/add-seller-account"
 })
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024,
+        maxFileSize = 5 * 1024 * 1024,
+        maxRequestSize = 12 * 1024 * 1024
+)
 public class AddSellerAccountServlet extends HttpServlet {
 
     private static final String FORM_PAGE = "/customer/seller_register/add-seller-account.jsp";
+    private static final long MAX_ID_IMAGE_SIZE = 5L * 1024L * 1024L;
 
     private final CustomerDAO customerDAO = new CustomerDAO();
-    private final ProvinceDAO provinceDAO = new ProvinceDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -41,11 +55,24 @@ public class AddSellerAccountServlet extends HttpServlet {
 
         if (customerDAO.hasSellerAccount(userId)) {
             session.setAttribute("hasSellerAccount", true);
+            session.setAttribute("hasPendingSellerRegistration", false);
             response.sendRedirect(request.getContextPath() + "/seller/orders");
             return;
         }
 
-        forwardForm(request, response);
+        if (customerDAO.hasPendingSellerRegistration(userId)) {
+            session.setAttribute("hasSellerAccount", false);
+            session.setAttribute("hasPendingSellerRegistration", true);
+            response.sendRedirect(request.getContextPath() + "/customer/profile?shopPending=1");
+            return;
+        }
+
+        if (customerDAO.hasCompletedSellerIdentity(userId)) {
+            response.sendRedirect(request.getContextPath() + "/add-shop");
+            return;
+        }
+
+        request.getRequestDispatcher(FORM_PAGE).forward(request, response);
     }
 
     @Override
@@ -63,85 +90,111 @@ public class AddSellerAccountServlet extends HttpServlet {
 
         if (customerDAO.hasSellerAccount(userId)) {
             session.setAttribute("hasSellerAccount", true);
+            session.setAttribute("hasPendingSellerRegistration", false);
             response.sendRedirect(request.getContextPath() + "/seller/orders");
             return;
         }
 
-        String shopName = clean(request.getParameter("shopName"));
-        String streetAddress = clean(request.getParameter("streetAddress"));
-        String description = clean(request.getParameter("description"));
-        Integer provinceId = parsePositiveInt(request.getParameter("provinceId"));
-        Integer wardId = parsePositiveInt(request.getParameter("wardId"));
+        if (customerDAO.hasPendingSellerRegistration(userId)) {
+            session.setAttribute("hasSellerAccount", false);
+            session.setAttribute("hasPendingSellerRegistration", true);
+            response.sendRedirect(request.getContextPath() + "/customer/profile?shopPending=1");
+            return;
+        }
+
+        String legalFullName = clean(request.getParameter("legalFullName"));
+        String citizenId = clean(request.getParameter("citizenId"));
+        String issueDateRaw = clean(request.getParameter("citizenIdIssueDate"));
+        String citizenIdIssuePlace = clean(request.getParameter("citizenIdIssuePlace"));
+        String permanentAddress = clean(request.getParameter("permanentAddress"));
 
         Map<String, String> errors = new HashMap<>();
         Map<String, String> oldInput = new HashMap<>();
-        oldInput.put("shopName", shopName);
-        oldInput.put("streetAddress", streetAddress);
-        oldInput.put("description", description);
-        oldInput.put("provinceId", provinceId == null ? "" : provinceId.toString());
-        oldInput.put("wardId", wardId == null ? "" : wardId.toString());
+        oldInput.put("legalFullName", legalFullName);
+        oldInput.put("citizenId", citizenId);
+        oldInput.put("citizenIdIssueDate", issueDateRaw);
+        oldInput.put("citizenIdIssuePlace", citizenIdIssuePlace);
+        oldInput.put("permanentAddress", permanentAddress);
 
-        if (shopName.isEmpty()) {
-            errors.put("shopName", "Vui lòng nhập tên cửa hàng.");
-        } else if (shopName.length() < 3 || shopName.length() > 100) {
-            errors.put("shopName", "Tên cửa hàng phải từ 3 đến 100 ký tự.");
-        } else if (customerDAO.shopNameExists(shopName)) {
-            errors.put("shopName", "Tên cửa hàng này đã được sử dụng.");
+        LocalDate citizenIdIssueDate = parseIssueDate(issueDateRaw, errors);
+
+        validateText(errors, "legalFullName", legalFullName, "Vui lòng nhập họ tên theo căn cước công dân.", 3, 120);
+
+        if (citizenId.isEmpty()) {
+            errors.put("citizenId", "Vui lòng nhập số căn cước công dân.");
+        } else if (!citizenId.matches("\\d{12}")) {
+            errors.put("citizenId", "Căn cước công dân phải gồm đúng 12 chữ số.");
+        } else if (customerDAO.citizenIdExistsForOtherUser(citizenId, userId)) {
+            errors.put("citizenId", "Số căn cước công dân này đã được sử dụng.");
         }
 
-        if (provinceId == null) {
-            errors.put("provinceId", "Vui lòng chọn tỉnh hoặc thành phố.");
+        validateText(errors, "citizenIdIssuePlace", citizenIdIssuePlace, "Vui lòng nhập nơi cấp căn cước công dân.", 3, 255);
+        validateText(errors, "permanentAddress", permanentAddress, "Vui lòng nhập địa chỉ thường trú.", 5, 500);
+
+        Part frontPart = getPartSafely(request, "frontIdImage");
+        Part backPart = getPartSafely(request, "backIdImage");
+        if (!hasFile(frontPart)) {
+            errors.put("frontIdImage", "Vui lòng tải lên ảnh mặt trước căn cước công dân.");
+        } else {
+            validateImagePart(errors, frontPart, "frontIdImage", "Ảnh mặt trước căn cước công dân");
         }
 
-        if (wardId == null) {
-            errors.put("wardId", "Vui lòng chọn phường hoặc xã.");
+        if (!hasFile(backPart)) {
+            errors.put("backIdImage", "Vui lòng tải lên ảnh mặt sau căn cước công dân.");
+        } else {
+            validateImagePart(errors, backPart, "backIdImage", "Ảnh mặt sau căn cước công dân");
         }
 
-        if (provinceId != null && wardId != null && !customerDAO.isWardInProvince(wardId, provinceId)) {
-            errors.put("wardId", "Phường hoặc xã không thuộc tỉnh/thành đã chọn.");
-        }
-
-        if (streetAddress.isEmpty()) {
-            errors.put("streetAddress", "Vui lòng nhập địa chỉ lấy hàng.");
-        } else if (streetAddress.length() < 5 || streetAddress.length() > 255) {
-            errors.put("streetAddress", "Địa chỉ lấy hàng phải từ 5 đến 255 ký tự.");
-        }
-
-        if (description.length() > 500) {
-            errors.put("description", "Mô tả cửa hàng không được vượt quá 500 ký tự.");
+        String frontImageUrl = null;
+        String backImageUrl = null;
+        if (errors.isEmpty()) {
+            try {
+                if (hasFile(frontPart)) {
+                    frontImageUrl = saveIdImage(frontPart, "front");
+                    if (frontImageUrl == null || frontImageUrl.trim().isEmpty()) {
+                        errors.put("frontIdImage", "Không thể tải ảnh mặt trước lên hệ thống.");
+                    }
+                }
+                if (hasFile(backPart)) {
+                    backImageUrl = saveIdImage(backPart, "back");
+                    if (backImageUrl == null || backImageUrl.trim().isEmpty()) {
+                        errors.put("backIdImage", "Không thể tải ảnh mặt sau lên hệ thống.");
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                errors.put("general", "Không thể tải ảnh căn cước lên hệ thống. Vui lòng thử lại sau.");
+            }
         }
 
         if (!errors.isEmpty()) {
             request.setAttribute("errors", errors);
             request.setAttribute("oldInput", oldInput);
-            forwardForm(request, response);
+            request.getRequestDispatcher(FORM_PAGE).forward(request, response);
             return;
         }
 
-        CustomerDAO.SellerRegistrationResult result = customerDAO.registerCustomerAsSeller(
+        boolean updated = customerDAO.updateSellerIdentity(
                 userId,
-                shopName,
-                streetAddress,
-                wardId,
-                description
+                legalFullName,
+                citizenId,
+                citizenIdIssueDate,
+                citizenIdIssuePlace,
+                permanentAddress,
+                frontImageUrl,
+                backImageUrl
         );
 
-        if (!result.isSuccess()) {
-            errors.put("general", result.getMessage());
+        if (!updated) {
+            errors.put("general", "Không thể lưu thông tin người bán. Vui lòng thử lại sau.");
             request.setAttribute("errors", errors);
             request.setAttribute("oldInput", oldInput);
-            forwardForm(request, response);
+            request.getRequestDispatcher(FORM_PAGE).forward(request, response);
             return;
         }
 
-        session.setAttribute("hasSellerAccount", true);
-        response.sendRedirect(request.getContextPath() + "/customer/dashboard?sellerRegistered=1");
-    }
-
-    private void forwardForm(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        request.setAttribute("provinces", provinceDAO.getAllProvinces());
-        request.getRequestDispatcher(FORM_PAGE).forward(request, response);
+        session.setAttribute("sellerIdentityCompleted", true);
+        response.sendRedirect(request.getContextPath() + "/add-shop");
     }
 
     private Integer getLoggedInUserId(HttpSession session) {
@@ -167,19 +220,147 @@ public class AddSellerAccountServlet extends HttpServlet {
             return ((User) rawUser).getUserId();
         }
 
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
         return null;
+    }
+
+    private LocalDate parseIssueDate(String rawValue, Map<String, String> errors) {
+        if (rawValue == null || rawValue.isEmpty()) {
+            return null;
+        }
+
+        try {
+            LocalDate parsed = LocalDate.parse(rawValue);
+            if (parsed.isAfter(LocalDate.now())) {
+                errors.put("citizenIdIssueDate", "Ngày cấp không được lớn hơn ngày hiện tại.");
+            }
+            return parsed;
+        } catch (DateTimeParseException e) {
+            errors.put("citizenIdIssueDate", "Ngày cấp căn cước không hợp lệ.");
+            return null;
+        }
+    }
+
+    private void validateText(Map<String, String> errors,
+                              String field,
+                              String value,
+                              String requiredMessage,
+                              int minLength,
+                              int maxLength) {
+        if (value == null || value.isEmpty()) {
+            errors.put(field, requiredMessage);
+        } else if (value.length() < minLength || value.length() > maxLength) {
+            errors.put(field, "Độ dài phải từ " + minLength + " đến " + maxLength + " ký tự.");
+        }
+    }
+
+    private Part getPartSafely(HttpServletRequest request, String name) {
+        try {
+            return request.getPart(name);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private void validateImagePart(Map<String, String> errors,
+                                   Part part,
+                                   String field,
+                                   String label) {
+        if (!hasFile(part)) {
+            return;
+        }
+
+        String contentType = part.getContentType();
+        boolean supported = contentType != null
+                && (contentType.equals("image/jpeg")
+                || contentType.equals("image/png")
+                || contentType.equals("image/jpg"));
+
+        if (!supported) {
+            errors.put(field, label + " chỉ hỗ trợ định dạng JPG hoặc PNG.");
+        } else if (part.getSize() > MAX_ID_IMAGE_SIZE) {
+            errors.put(field, label + " không được vượt quá 5MB.");
+        }
+    }
+
+    private boolean hasFile(Part part) {
+        return part != null && part.getSize() > 0;
+    }
+
+    private String saveIdImage(Part part, String prefix) throws Exception {
+        if (!hasFile(part)) {
+            return null;
+        }
+
+        // 1. Cố gắng upload lên Cloudinary trước
+        try {
+            String url = UploadImage.uploadImage(part, "moda/seller/id-cards");
+            if (url != null && !url.trim().isEmpty()) {
+                return url;
+            }
+        } catch (Exception cloudinaryEx) {
+            System.err.println("[AddSellerAccountServlet] Cloudinary upload failed, using local fallback: " + cloudinaryEx.getMessage());
+        }
+
+        // 2. Lưu cục bộ (Local Fallback) nếu Cloudinary thất bại
+        String uploadRoot = null;
+        try {
+            uploadRoot = getServletContext().getRealPath("/");
+            if (uploadRoot != null) {
+                uploadRoot = uploadRoot + File.separator + "uploads" + File.separator + "seller-id-card";
+            }
+        } catch (Exception ignored) {
+        }
+
+        if (uploadRoot == null || uploadRoot.trim().isEmpty()) {
+            String userHome = System.getProperty("user.home");
+            uploadRoot = userHome + File.separator + "moda_uploads" + File.separator + "seller-id-card";
+        }
+
+        File dir = new File(uploadRoot);
+        if (!dir.exists()) {
+            boolean created = dir.mkdirs();
+            if (!created && !dir.exists()) {
+                throw new IOException("Không thể tạo thư mục lưu ảnh: " + uploadRoot);
+            }
+        }
+
+        String extension = resolveImageExtension(part);
+        String fileName = prefix + "-" + UUID.randomUUID() + extension;
+        File targetFile = new File(dir, fileName);
+
+        try (InputStream inputStream = part.getInputStream()) {
+            Files.copy(inputStream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        return getServletContext().getContextPath() + "/uploads/seller-id-card/" + fileName;
+    }
+
+    private String resolveImageExtension(Part part) {
+        String submittedFileName = part.getSubmittedFileName();
+        if (submittedFileName != null) {
+            int dotIndex = submittedFileName.lastIndexOf('.');
+            if (dotIndex >= 0 && dotIndex < submittedFileName.length() - 1) {
+                String extension = submittedFileName.substring(dotIndex).toLowerCase();
+                if (".jpg".equals(extension) || ".jpeg".equals(extension) || ".png".equals(extension)) {
+                    return extension;
+                }
+            }
+        }
+
+        String contentType = part.getContentType();
+        if ("image/png".equals(contentType)) {
+            return ".png";
+        }
+
+        return ".jpg";
     }
 
     private String clean(String value) {
         return value == null ? "" : value.trim();
-    }
-
-    private Integer parsePositiveInt(String value) {
-        try {
-            int parsed = Integer.parseInt(clean(value));
-            return parsed > 0 ? parsed : null;
-        } catch (NumberFormatException e) {
-            return null;
-        }
     }
 }

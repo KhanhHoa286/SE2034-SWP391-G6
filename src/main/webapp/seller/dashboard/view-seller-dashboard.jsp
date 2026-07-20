@@ -48,10 +48,6 @@
                         <h1 class="page-title">Bảng điều khiển người bán</h1>
                         <p class="page-subtitle"><span id="currentDate">Hôm nay</span></p>
                     </div>
-                    <button class="btn-header-action" onclick="location.href='${pageContext.request.contextPath}/seller/product/add'">
-                        <i data-lucide="plus"></i>
-                        Thêm sản phẩm
-                    </button>
                 </div>
 
                 <!-- THẺ THỐNG KÊ CHỈ SỐ CHÍNH (Metric Cards Row) -->
@@ -60,29 +56,15 @@
                     <div class="metric-card">
                         <div class="metric-header">
                             <span class="metric-title">Doanh thu hôm nay</span>
-                            <span class="metric-trend ${revenueTrend >= 0 ? 'trend-up' : 'trend-down'}">
-                                <c:choose>
-                                    <c:when test="${revenueTrend >= 0}">+</c:when>
-                                </c:choose>
-                                <fmt:formatNumber value="${revenueTrend}" maxFractionDigits="1"/>%
-                                <i data-lucide="${revenueTrend >= 0 ? 'trending-up' : 'trending-down'}" style="width: 14px; height: 14px;"></i>
-                            </span>
                         </div>
                         <span class="metric-value"><fmt:formatNumber value="${todayRevenue}" type="number" maxFractionDigits="0"/>đ</span>
                         <div class="metric-accent-line"></div>
                     </div>
 
-                    <!-- Thống kê đơn hàng mới -->
+                    <!-- Thống kê đơn hàng giao thành công -->
                     <div class="metric-card">
                         <div class="metric-header">
-                            <span class="metric-title">Đơn hàng mới hôm nay</span>
-                            <span class="metric-trend ${ordersTrendCount >= 0 ? 'trend-up' : 'trend-down'}">
-                                <c:choose>
-                                    <c:when test="${ordersTrendCount >= 0}">+</c:when>
-                                </c:choose>
-                                ${ordersTrendCount}
-                                <i data-lucide="${ordersTrendCount >= 0 ? 'trending-up' : 'trending-down'}" style="width: 14px; height: 14px;"></i>
-                            </span>
+                            <span class="metric-title">Đơn giao thành công hôm nay</span>
                         </div>
                         <span class="metric-value">${todayNewOrders}</span>
                         <div class="metric-accent-line"></div>
@@ -125,9 +107,6 @@
                                                 <span class="bestseller-meta">Đã bán: ${not empty prod.totalSold ? prod.totalSold : 0} &bull; Kho: ${prod.totalStock}</span>
                                                 <span class="bestseller-price"><fmt:formatNumber value="${prod.finalPrice}" type="number" maxFractionDigits="0"/>đ</span>
                                             </div>
-                                            <div class="bestseller-trend" style="color: #10b981;">
-                                                <i data-lucide="trending-up"></i>
-                                            </div>
                                         </div>
                                     </c:forEach>
                                 </c:otherwise>
@@ -135,7 +114,7 @@
                         </div>
 
                         <button class="btn-bestsellers-all"
-                                onclick="location.href='${pageContext.request.contextPath}/seller/products'">
+                                onclick="location.href='${pageContext.request.contextPath}/list-seller-products'">
                             Tất cả sản phẩm
                         </button>
                     </aside>

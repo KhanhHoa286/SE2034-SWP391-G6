@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import vn.edu.fpt.dao.CustomerDAO;
+import vn.edu.fpt.dao.ProductDAO;
 import vn.edu.fpt.dao.ShopDAO;
 import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
@@ -35,11 +37,36 @@ public class ListSellerOrdersServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         request.setAttribute("activePage", "orders");
 
-        Shop shop = resolveSellerShop(request);
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        Integer userId = getLoggedInUserId(session);
+        if (userId == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        CustomerDAO customerDAO = new CustomerDAO();
+        if (!customerDAO.hasCompletedSellerIdentity(userId)) {
+            response.sendRedirect(request.getContextPath() + "/seller-register");
+            return;
+        }
+
+        Shop shop = shopDAO.getShopByOwnerId(userId);
         if (shop == null) {
-            request.setAttribute("errorMessage", "Vui long dang nhap bang tai khoan seller da co shop.");
-            setEmptyData(request);
-            request.getRequestDispatcher(ORDERS_PAGE).forward(request, response);
+            response.sendRedirect(request.getContextPath() + "/add-shop");
+            return;
+        }
+
+        ProductDAO productDAO = new ProductDAO();
+        int totalProducts = productDAO.countSellerProducts(shop.getShopId(), "", null, null);
+        if (totalProducts == 0) {
+            session.setAttribute("toastMessage", "Bạn cần tạo ít nhất một sản phẩm để quản lý đơn hàng.");
+            session.setAttribute("toastType", "error");
+            response.sendRedirect(request.getContextPath() + "/list-seller-products");
             return;
         }
 
@@ -59,29 +86,40 @@ public class ListSellerOrdersServlet extends HttpServlet {
             request.setAttribute("sellerOrders", loadSellerOrders(connection, shop.getShopId(), search, status, dateRange, sort));
         } catch (Exception ex) {
             ex.printStackTrace();
-            request.setAttribute("errorMessage", "Khong the tai danh sach don hang. Vui long kiem tra ket noi database.");
+            request.setAttribute("errorMessage", "Không thể tải danh sách đơn hàng. Vui lòng kiểm tra kết nối database.");
             setEmptyData(request);
         }
 
         request.getRequestDispatcher(ORDERS_PAGE).forward(request, response);
     }
 
-    private Shop resolveSellerShop(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
+    private Integer getLoggedInUserId(HttpSession session) {
         if (session == null) {
             return null;
         }
 
-        Object accountObject = session.getAttribute("account");
-        if (!(accountObject instanceof User)) {
-            accountObject = session.getAttribute("user");
+        Object rawUserId = session.getAttribute("userId");
+        if (rawUserId instanceof Integer) {
+            return (Integer) rawUserId;
+        }
+        if (rawUserId != null) {
+            try {
+                return Integer.parseInt(rawUserId.toString());
+            } catch (NumberFormatException ignored) {
+            }
         }
 
-        if (!(accountObject instanceof User account) || account.getUserId() == null) {
-            return null;
+        Object rawUser = session.getAttribute("user");
+        if (rawUser instanceof User) {
+            return ((User) rawUser).getUserId();
         }
 
-        return shopDAO.getShopByOwnerId(account.getUserId());
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
+        return null;
     }
 
     private void loadOrderMetrics(Connection connection, HttpServletRequest request, int shopId) throws Exception {

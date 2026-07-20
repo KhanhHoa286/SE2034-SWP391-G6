@@ -52,13 +52,19 @@
 <main class="profile-main">
     <div class="profile-container">
 
-        <!-- Back Button -->
-        <div class="profile-back">
-            <a href="${pageContext.request.contextPath}/home">
-                <span class="material-symbols-outlined">arrow_back</span>
-                <span>Quay lại</span>
-            </a>
-        </div>
+<%--        <!-- Back Button -->--%>
+<%--        <div class="profile-back">--%>
+<%--            <a href="${pageContext.request.contextPath}/home">--%>
+<%--                <span class="material-symbols-outlined">arrow_back</span>--%>
+<%--                <span>Quay lại</span>--%>
+<%--            </a>--%>
+<%--        </div>--%>
+
+        <c:if test="${not empty successMessage}">
+            <div class="profile-alert profile-alert--success">
+                <c:out value="${successMessage}" />
+            </div>
+        </c:if>
 
         <!-- Header & Action -->
         <div class="profile-title-row">
@@ -153,8 +159,6 @@
 </main>
 
 </div>
-
-<jsp:include page="/common/footer.jsp" />
 
 </body>
 </html>

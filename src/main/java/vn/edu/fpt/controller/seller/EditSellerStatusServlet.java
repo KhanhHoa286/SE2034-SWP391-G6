@@ -77,6 +77,13 @@ public class EditSellerStatusServlet extends HttpServlet {
                 return;
             }
 
+            if ("PREPARING".equals(order.getStatus()) && "SHIPPING".equals(newStatus)
+                    && !hasAssignedDelivery(connection, order.getSubOrderId())) {
+                renderLoadedPage(request, response, shop, order,
+                        "Chưa thể chuyển sang đã giao vận chuyển vì chưa có nhân viên giao hàng nhận đơn. Vui lòng chờ shipper nhận đơn trong danh sách đơn giao.");
+                return;
+            }
+
             boolean updated = updateOrderStatus(connection, order, newStatus);
             if (!updated) {
                 renderStatusPage(request, response, "Trạng thái đơn hàng đã thay đổi. Vui lòng tải lại và thử lại.", null);
@@ -293,6 +300,23 @@ public class EditSellerStatusServlet extends HttpServlet {
             ps.setInt(3, order.getShopId());
             ps.setString(4, order.getStatus());
             return ps.executeUpdate() == 1;
+        }
+    }
+
+    private boolean hasAssignedDelivery(Connection connection, int subOrderId) throws Exception {
+        String sql = """
+                SELECT TOP 1 1
+                FROM deliveries
+                WHERE sub_order_id = ?
+                  AND shipper_id IS NOT NULL
+                  AND status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED')
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, subOrderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
         }
     }
 

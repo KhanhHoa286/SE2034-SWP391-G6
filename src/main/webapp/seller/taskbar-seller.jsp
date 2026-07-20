@@ -15,8 +15,6 @@
       activeAttr = "orders";
     } else if (requestUri.contains("/seller/customers") || requestUri.contains("list-customers")) {
       activeAttr = "customers";
-    } else if (requestUri.contains("edit-shipping-settings")) {
-      activeAttr = "shipping-settings";
     }
   }
 
@@ -25,8 +23,6 @@
   boolean isProductsActive = activeAttr.equals("products");
   boolean isOrdersActive = activeAttr.equals("orders");
   boolean isCustomersActive = activeAttr.equals("customers");
-  boolean isVouchersActive = activeAttr.equals("vouchers");
-  boolean isShippingSettingsActive = activeAttr.equals("shipping-settings");
 %>
 <aside class="sidebar">
   <div class="sidebar-top">
@@ -73,20 +69,6 @@
         <a href="${pageContext.request.contextPath}/seller/customers" class="sidebar-link">
           <i data-lucide="users"></i>
           <span>Khách hàng</span>
-        </a>
-      </li>
-
-      <li class="sidebar-item <%= isVouchersActive ? "active" : "" %>">
-        <a href="#" class="sidebar-link">
-          <i data-lucide="ticket"></i>
-          <span>Khuyến mãi</span>
-        </a>
-      </li>
-
-      <li class="sidebar-item <%= isShippingSettingsActive ? "active" : "" %>">
-        <a href="${pageContext.request.contextPath}/edit-shipping-settings" class="sidebar-link">
-          <i data-lucide="settings"></i>
-          <span>Cài đặt giao hàng</span>
         </a>
       </li>
     </ul>

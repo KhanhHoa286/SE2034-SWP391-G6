@@ -71,12 +71,15 @@
 
         /* Main Content & Topbar */
         .main-content { flex: 1; padding: 24px 32px; display: flex; flex-direction: column; gap: 24px; overflow-x: hidden; }
-        .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 8px; }
-        .topbar-search { flex: 1; max-width: 560px; position: relative; }
-        .topbar-search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); pointer-events: none; }
-        .topbar-search-input { width: 100%; padding: 12px 16px 12px 48px; border: 1px solid var(--border-color); border-radius: 10px; font-family: inherit; font-size: 14px; color: var(--text-primary); background-color: var(--bg-secondary); box-shadow: var(--shadow-sm); transition: all 0.2s ease; outline: none; }
-        .topbar-search-input::placeholder { color: var(--text-muted); }
-        .topbar-search-input:focus { border-color: var(--sidebar-item-active); box-shadow: 0 0 0 3px rgba(88, 80, 236, 0.1); }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* Căn tất cả thành phần bên trong về rìa bên phải */
+            gap: 16px;
+            padding-bottom: 8px;
+        }
+
         .topbar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
         .topbar-avatar-wrapper { flex-shrink: 0; }
         .topbar-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.2s ease; }
@@ -88,6 +91,7 @@
         .header-info p { font-size: 14px; color: var(--text-muted); }
         .date-picker-btn { display: flex; align-items: center; gap: 8px; background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 500; color: var(--text-primary); cursor: pointer; transition: all 0.2s ease; box-shadow: var(--shadow-sm); }
         .date-picker-btn:hover { background-color: #f8fafc; border-color: #cbd5e1; }
+        .date-picker-container:hover .date-picker-btn { background-color: #f8fafc; border-color: #cbd5e1; }
         .date-icon { width: 16px; height: 16px; color: var(--text-muted); }
         .chevron-icon { width: 16px; height: 16px; color: var(--text-muted); margin-left: 4px; }
 
@@ -113,7 +117,17 @@
         .chart-container { position: relative; width: 100%; height: 380px; }
 
         @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) { .app-container { flex-direction: column; } .sidebar-wrapper { width: 100%; height: auto; } .sidebar { padding: 16px; } .sidebar-header { padding-bottom: 16px; } .main-content { padding: 16px; } .topbar { flex-direction: column; align-items: stretch; } .topbar-search { max-width: 100%; } .topbar-avatar-wrapper { display: flex; justify-content: flex-end; } .page-header { flex-direction: column; gap: 16px; } .date-picker-btn { width: 100%; justify-content: center; } }
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .sidebar-wrapper { width: 100%; height: auto; }
+            .sidebar { padding: 16px; }
+            .sidebar-header { padding-bottom: 16px; }
+            .main-content { padding: 16px; }
+            .topbar { justify-content: flex-end; }
+            .topbar-avatar-wrapper { display: flex; justify-content: flex-end; }
+            .page-header { flex-direction: column; gap: 16px; }
+            .date-picker-btn { width: 100%; justify-content: center; }
+        }
         @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } .stat-card { padding: 16px; } }
     </style>
 
@@ -123,7 +137,6 @@
 <body>
 
 <div class="app-container">
-    <!-- SIDEBAR CHUẨN ĐỒNG BỘ -->
     <aside class="sidebar-wrapper">
         <div class="sidebar">
             <div class="sidebar-nav-group">
@@ -145,15 +158,21 @@
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/seller_mgt/view-seller-list.jsp">
-                            <i data-lucide="home" class="menu-icon"></i>
+                        <a href="${pageContext.request.contextPath}/admin/seller-applications">
+                            <i data-lucide="store" class="menu-icon"></i>
                             <span class="menu-text">Người bán</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/order_mgt/view-global-orders.jsp">
-                            <i data-lucide="globe" class="menu-icon"></i>
-                            <span class="menu-text">Đơn hàng quốc tế</span>
+                        <a href="${pageContext.request.contextPath}/admin/orders">
+                            <i data-lucide="shopping-cart" class="menu-icon"></i>
+                            <span class="menu-text">Đơn hàng hệ thống</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/admin/products">
+                            <i data-lucide="package" class="menu-icon"></i>
+                            <span class="menu-text">Danh sách sản phẩm</span>
                         </a>
                     </li>
                     <li class="menu-item">
@@ -164,17 +183,21 @@
                     </li>
                 </ul>
             </div>
+            <div style="margin-top: auto;">
+                <ul class="sidebar-menu">
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/logout">
+                            <i data-lucide="log-out" class="menu-icon"></i>
+                            <span class="menu-text">Đăng xuất</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </aside>
 
-    <!-- PHẦN NỘI DUNG CHÍNH -->
     <main class="main-content">
-        <!-- TOPBAR -->
         <div class="topbar">
-            <div class="topbar-search">
-                <i data-lucide="search" class="topbar-search-icon"></i>
-                <input type="text" class="topbar-search-input" placeholder="Tìm kiếm nhanh hệ thống...">
-            </div>
             <div class="topbar-actions">
                 <div class="topbar-avatar-wrapper">
                     <c:choose>
@@ -189,20 +212,23 @@
             </div>
         </div>
 
-        <!-- HEADER TIÊU ĐỀ -->
         <section class="page-header">
             <div class="header-info">
                 <h1>Tổng quan hệ thống</h1>
-                <p>Dữ liệu thời gian thực cho ngày hôm nay</p>
+                <p>Dữ liệu thời gian thực cho <c:choose><c:when test="${dateLabel == 'Hôm nay'}">ngày hôm nay</c:when><c:otherwise>ngày ${dateLabel}</c:otherwise></c:choose></p>
             </div>
-            <button class="date-picker-btn">
-                <i data-lucide="calendar" class="date-icon"></i>
-                <span>Hôm nay</span>
-                <i data-lucide="chevron-down" class="chevron-icon"></i>
-            </button>
+            <div class="date-picker-container" style="position: relative; display: inline-block;">
+                <input type="date" id="dashboard-date-input" value="${selectedDate}" 
+                       style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; z-index: -1;" 
+                       onchange="updateDashboardDate(this.value)" />
+                <button class="date-picker-btn" onclick="triggerDatePicker()" style="position: relative;">
+                    <i data-lucide="calendar" class="date-icon"></i>
+                    <span>${dateLabel}</span>
+                    <i data-lucide="chevron-down" class="chevron-icon"></i>
+                </button>
+            </div>
         </section>
 
-        <!-- THẺ THỐNG KÊ (4 Ô SẾP HÀNG NGANG) -->
         <section class="stats-grid">
             <article class="stat-card">
                 <div class="stat-header">
@@ -213,9 +239,9 @@
                     <span class="stat-value">
                         <c:choose>
                             <c:when test="${not empty totalRevenue}">
-                                <fmt:formatNumber value="${totalRevenue}" type="currency" currencySymbol="$" maxFractionDigits="0"/>
+                                <fmt:formatNumber value="${totalRevenue}" type="number" groupingUsed="true"/> VND
                             </c:when>
-                            <c:otherwise>$3.170.000</c:otherwise>
+                            <c:otherwise>3.170.000 VND</c:otherwise>
                         </c:choose>
                     </span>
                 </div>
@@ -277,7 +303,6 @@
             </article>
         </section>
 
-        <!-- BIỂU ĐỒ -->
         <section class="dashboard-body-row">
             <article class="content-card">
                 <div class="card-header-row">
@@ -297,6 +322,23 @@
         initShopRevenueChart();
     });
 
+    function updateDashboardDate(val) {
+        if (val) {
+            window.location.href = "${pageContext.request.contextPath}/admin/dashboard/overview?date=" + val;
+        }
+    }
+
+    function triggerDatePicker() {
+        const dateInput = document.getElementById('dashboard-date-input');
+        if (dateInput) {
+            if (typeof dateInput.showPicker === 'function') {
+                dateInput.showPicker();
+            } else {
+                dateInput.click();
+            }
+        }
+    }
+
     let shopChart = null;
     const dbLabels = [];
     const dbShopData = [];
@@ -310,15 +352,17 @@
         const ctx = document.getElementById('revenueChartCanvas');
         if (!ctx) return;
 
-        const finalLabels = dbLabels.length > 0 ? dbLabels : ['Shop GuThờiTrang', 'Moda Boutique', 'Gentleman Store', 'GenZ Closet'];
-        const finalData = dbShopData.length > 0 ? dbShopData : [430000, 280000, 120000, 50000];
+        // Nếu tất cả các giá trị doanh thu bằng 0 hoặc rỗng, hiển thị biểu đồ trống
+        const hasData = dbShopData.length > 0 && dbShopData.some(val => val > 0);
+        const finalLabels = hasData ? dbLabels : [];
+        const finalData = hasData ? dbShopData : [];
 
         const config = {
             type: 'bar',
             data: {
                 labels: finalLabels,
                 datasets: [{
-                    label: 'Số tiền nhận được ($)',
+                    label: 'Số tiền nhận được (VND)',
                     data: finalData,
                     backgroundColor: [
                         '#5850ec', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'
@@ -336,7 +380,7 @@
                         backgroundColor: '#0f172a',
                         callbacks: {
                             label: function(context) {
-                                return ' Đã nhận: $' + context.parsed.y.toLocaleString('en-US');
+                                return ' Đã nhận: ' + context.parsed.y.toLocaleString('vi-VN') + ' VND';
                             }
                         }
                     }
@@ -351,7 +395,7 @@
                         grid: { color: 'rgba(226, 232, 240, 0.6)' },
                         ticks: {
                             color: '#64748b',
-                            callback: function(value) { return '$' + value.toLocaleString('en-US'); }
+                            callback: function(value) { return value.toLocaleString('vi-VN') + ' VND'; }
                         }
                     }
                 }

@@ -62,7 +62,6 @@
                     <article class="delivery-detail-metric card shadow-sm">
                         <span>Mã vận đơn</span>
                         <strong>${deliveryDetail.trackingNumber}</strong>
-                        <small>${deliveryDetail.deliveryId == 0 ? 'Mã tạm trước khi shipper nhận đơn' : 'Mã vận đơn đã được tạo'}</small>
                     </article>
 
                     <article class="delivery-detail-metric card shadow-sm">
@@ -79,13 +78,11 @@
                     <article class="delivery-detail-metric card shadow-sm">
                         <span>Tiền cần thu</span>
                         <strong><fmt:formatNumber value="${deliveryDetail.collectAmount}" type="number" maxFractionDigits="0"/>đ</strong>
-                        <small>Đơn đã thanh toán thì tiền thu là 0đ</small>
                     </article>
 
                     <article class="delivery-detail-metric card shadow-sm">
                         <span>Tổng tiền đơn</span>
                         <strong><fmt:formatNumber value="${deliveryDetail.totalAmount}" type="number" maxFractionDigits="0"/>đ</strong>
-                        <small>Giá trị đơn cần giao</small>
                     </article>
                 </section>
 
@@ -168,10 +165,6 @@
                             <div class="delivery-detail-summary-row">
                                 <span>Tạm tính</span>
                                 <strong><fmt:formatNumber value="${deliveryDetail.subTotal}" type="number" maxFractionDigits="0"/>đ</strong>
-                            </div>
-                            <div class="delivery-detail-summary-row">
-                                <span>Giảm giá</span>
-                                <strong>-<fmt:formatNumber value="${deliveryDetail.discountAmount}" type="number" maxFractionDigits="0"/>đ</strong>
                             </div>
                             <div class="delivery-detail-summary-row">
                                 <span>Tổng đơn</span>
