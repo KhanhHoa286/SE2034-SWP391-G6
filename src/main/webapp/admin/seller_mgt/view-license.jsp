@@ -131,22 +131,16 @@
                         <span>Người dùng</span>
                     </a>
                 </li>
-                <li class="menu-item active">
-                    <a href="${pageContext.request.contextPath}/admin/seller-applications">
-                        <i data-lucide="store" class="menu-icon"></i>
+<li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/seller-management">
+                        <i data-lucide="shopping-bag" class="menu-icon"></i>
                         <span>Người bán</span>
                     </a>
                 </li>
-                <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/orders">
-                        <i data-lucide="shopping-cart" class="menu-icon"></i>
-                        <span>Đơn hàng hệ thống</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/products">
-                        <i data-lucide="package" class="menu-icon"></i>
-                        <span>Danh sách sản phẩm</span>
+                <li class="menu-item active">
+                    <a href="${pageContext.request.contextPath}/admin/seller-applications">
+                        <i data-lucide="store" class="menu-icon"></i>
+                        <span>Duyệt đăng ký</span>
                     </a>
                 </li>
                 <li class="menu-item">

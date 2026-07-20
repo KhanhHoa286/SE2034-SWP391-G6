@@ -171,22 +171,16 @@
                         <span>Người dùng</span>
                     </a>
                 </li>
-                <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/seller-applications">
-                        <i data-lucide="store" class="menu-icon"></i>
+<li class="menu-item">
+                    <a href="${pageContext.request.contextPath}/admin/seller-management">
+                        <i data-lucide="shopping-bag" class="menu-icon"></i>
                         <span>Người bán</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/orders">
-                        <i data-lucide="shopping-cart" class="menu-icon"></i>
-                        <span>Đơn hàng hệ thống</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/products">
-                        <i data-lucide="package" class="menu-icon"></i>
-                        <span>Danh sách sản phẩm</span>
+                    <a href="${pageContext.request.contextPath}/admin/seller-applications">
+                        <i data-lucide="store" class="menu-icon"></i>
+                        <span>Duyệt đăng ký</span>
                     </a>
                 </li>
                 <li class="menu-item active">
@@ -210,20 +204,9 @@
     </aside>
 
     <main class="main-content">
-        <div class="topbar">
-            <button class="admin-profile-badge">
-                <i data-lucide="user-circle" style="width:24px; height:24px; color: var(--text-secondary); margin-right:6px;"></i>
-                <div class="admin-role-text">
-                    <span class="role">Hồ sơ Admin</span>
-                </div>
-            </button>
-        </div>
 
-        <nav class="breadcrumbs">
-            <a href="#">Tài chính</a>
-            <i data-lucide="chevron-right" style="width: 12px; height: 12px; color: var(--text-muted);"></i>
-            <span>Cấu hình tỷ lệ chiết khấu</span>
-        </nav>
+
+
 
         <section class="page-header">
             <div class="header-title-container">
@@ -235,17 +218,14 @@
 
         <section class="details-row">
             <!-- Left panel: Form configuration -->
-            <div class="form-card">
-                <div class="form-card-header">
-                    <span class="form-card-title">Biểu mẫu cập nhật</span>
-                    <i data-lucide="info" style="width:18px; height:18px; color: var(--text-muted); cursor:pointer;"></i>
-                </div>
+            <form action="${pageContext.request.contextPath}/admin/finance/view-finance" method="post" class="form-card">
+
 
                 <div class="form-group">
-                    <label class="form-label">Tỷ lệ hoa hồng hiện tại</label>
+                    <label class="form-label">Tỷ lệ hoa hồng mới</label>
                     <div style="display: flex; align-items: center;">
                         <div class="input-with-suffix">
-                            <input type="text" value="10">
+                            <input type="number" step="0.1" name="commissionRate" value="${currentRatePct}" required>
                             <span class="input-suffix">%</span>
                         </div>
                         <span class="market-rate-hint">* Mức trung bình thị trường: 8% - 12%</span>
@@ -255,8 +235,7 @@
                 <div class="form-group">
                     <label class="form-label">Áp dụng từ ngày</label>
                     <div class="date-input-wrapper">
-                        <input type="text" value="05/20/2024">
-                        <i data-lucide="calendar" style="width:16px; height:16px; color: var(--text-secondary); cursor:pointer;"></i>
+                        <input type="date" name="effectiveDate" value="${currentDate}" required>
                     </div>
                 </div>
 
@@ -266,10 +245,10 @@
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn-primary">Cập nhật cấu hình</button>
-                    <button class="btn-outline">Hủy bỏ</button>
+                    <button type="submit" class="btn-primary">Cập nhật cấu hình</button>
+                    <button type="button" class="btn-outline">Hủy bỏ</button>
                 </div>
-            </div>
+            </form>
 
             <!-- Right panel: Simulation & Info -->
             <div>
@@ -281,12 +260,12 @@
                         <span class="sim-value">1.000.000 đ</span>
                     </div>
                     <div class="sim-item">
-                        <span class="sim-label">Hoa hồng sàn (10%):</span>
-                        <span class="sim-value highlight">+ 100.000 đ</span>
+                        <span class="sim-label">Hoa hồng sàn (${currentRatePct}%):</span>
+                        <span class="sim-value highlight">+ <fmt:formatNumber value="${1000000 * currentRatePct / 100}" pattern="#,###"/> đ</span>
                     </div>
                     <div class="sim-item">
                         <span class="sim-label">Người bán thực nhận:</span>
-                        <span class="sim-value">900.000 đ</span>
+                        <span class="sim-value"><fmt:formatNumber value="${1000000 * (100 - currentRatePct) / 100}" pattern="#,###"/> đ</span>
                     </div>
                 </div>
 
@@ -323,24 +302,16 @@
                 <thead>
                 <tr>
                     <th>Thời gian</th>
-                    <th>Người thực hiện</th>
                     <th>Thay đổi</th>
-                    <th>Trạng thái</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
-                    <td>20/04/2024 14:30</td>
-                    <td style="font-weight: 500;">Admin_DungNT</td>
-                    <td style="font-weight: 600;">8% → 10%</td>
-                    <td><span class="tag-success">Hoàn tất</span></td>
-                </tr>
-                <tr>
-                    <td>01/01/2024 09:00</td>
-                    <td style="font-weight: 500;">System_Auto</td>
-                    <td style="font-weight: 600;">10% → 8% (Khuyến mãi Tết)</td>
-                    <td><span class="tag-success">Hoàn tất</span></td>
-                </tr>
+                <c:forEach var="history" items="${historyList}">
+                    <tr>
+                        <td>${history.time}</td>
+                        <td style="font-weight: 600;">${history.change}</td>
+                    </tr>
+                </c:forEach>
                 </tbody>
             </table>
         </section>

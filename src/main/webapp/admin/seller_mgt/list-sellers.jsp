@@ -6,7 +6,7 @@
 
 <%-- BẪY TỰ ĐỘNG CHẠY SAI: Nếu mở trực tiếp file JSP này, hệ thống tự đẩy về Servlet --%>
 <c:if test="${userListLoaded == null}">
-    <c:redirect url="/admin/user-management"/>
+    <c:redirect url="/admin/seller-management"/>
 </c:if>
 
 <!DOCTYPE html>
@@ -15,7 +15,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Danh Sách Người Dùng - MODA Super Admin</title>
+    <title>Danh Sách Người Bán - MODA Super Admin</title>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -165,13 +165,13 @@
                             <span class="menu-text">Tổng quan</span>
                         </a>
                     </li>
-                    <li class="menu-item active">
+                    <li class="menu-item">
                         <a href="${pageContext.request.contextPath}/admin/user-management">
                             <i data-lucide="users" class="menu-icon"></i>
                             <span class="menu-text">Người dùng</span>
                         </a>
                     </li>
-<li class="menu-item">
+<li class="menu-item active">
                         <a href="${pageContext.request.contextPath}/admin/seller-management">
                             <i data-lucide="shopping-bag" class="menu-icon"></i>
                             <span class="menu-text">Người bán</span>
@@ -210,13 +210,13 @@
         <!-- Khối tiêu đề trang (Đã xóa button Thêm người dùng mới) -->
         <section class="page-header">
             <div class="header-info">
-                <h1>Danh sách người dùng</h1>
-                <p>Quản lý và giám sát toàn bộ người dùng trong hệ thống.</p>
+                <h1>Danh sách người bán</h1>
+                <p>Quản lý và giám sát danh sách người bán trong hệ thống.</p>
             </div>
         </section>
 
         <section class="filter-card">
-            <form action="${pageContext.request.contextPath}/admin/user-management" method="GET" class="filter-form">
+            <form action="${pageContext.request.contextPath}/admin/seller-management" method="GET" class="filter-form">
                 <div class="form-group">
                     <label for="searchTxt">Tìm kiếm</label>
                     <input type="text" id="searchTxt" name="search" class="form-input" placeholder="Tên hoặc email..." value="${saveSearch}">
@@ -299,7 +299,7 @@
                                                     </a>
                                                 </c:otherwise>
                                             </c:choose>
-                                            <form action="${pageContext.request.contextPath}/admin/user-management" method="POST" style="display:inline;">
+                                            <form action="${pageContext.request.contextPath}/admin/seller-management" method="POST" style="display:inline;">
                                                 <input type="hidden" name="id" value="${u.userId}">
                                                 <input type="hidden" name="action" value="${u.status == 'BANNED' ? 'unban' : 'ban'}">
                                                 <button type="submit" class="btn-icon delete" title="${u.status == 'BANNED' ? 'Mở khóa' : 'Khóa'}">
@@ -336,7 +336,7 @@
                 <span class="footer-text">Hiển thị dữ liệu hệ thống (Tổng số bản ghi: <b>${totalUsers != null ? totalUsers : 2}</b>)</span>
                 <div class="pagination-list">
                     <c:forEach begin="1" end="${endP != null ? endP : 1}" var="i">
-                        <a href="${pageContext.request.contextPath}/admin/user-management?page=${i}&search=${saveSearch}&status=${saveStatus}"
+                        <a href="${pageContext.request.contextPath}/admin/seller-management?page=${i}&search=${saveSearch}&status=${saveStatus}"
                            class="page-link ${tag == i ? 'active' : ''}">${i}</a>
                     </c:forEach>
                 </div>

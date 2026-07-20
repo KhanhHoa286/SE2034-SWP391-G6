@@ -113,7 +113,7 @@
         .detail-value { color: var(--text-primary); font-weight: 600; text-align: right; word-break: break-word; }
 
         /* Stats Dashboard Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
         .stat-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: flex-start; }
         .stat-info { display: flex; flex-direction: column; gap: 8px; }
         .stat-label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -177,22 +177,16 @@
                         <span>Người dùng</span>
                     </a>
                 </li>
-                <li class="menu-item active">
-                    <a href="${pageContext.request.contextPath}/admin/seller-applications">
-                        <i data-lucide="store" class="menu-icon"></i>
+<li class="menu-item ${activeMenu == 'seller-management' ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/seller-management">
+                        <i data-lucide="shopping-bag" class="menu-icon"></i>
                         <span>Người bán</span>
                     </a>
                 </li>
-                <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/orders">
-                        <i data-lucide="shopping-cart" class="menu-icon"></i>
-                        <span>Đơn hàng hệ thống</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/products">
-                        <i data-lucide="package" class="menu-icon"></i>
-                        <span>Danh sách sản phẩm</span>
+                <li class="menu-item ${activeMenu == 'seller-applications' || activeMenu == null ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/seller-applications">
+                        <i data-lucide="store" class="menu-icon"></i>
+                        <span>Duyệt đăng ký</span>
                     </a>
                 </li>
                 <li class="menu-item">
@@ -216,11 +210,6 @@
     </aside>
 
     <main class="main-content">
-        <div class="topbar">
-            <div class="topbar-actions">
-                <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg" alt="Avatar" class="topbar-avatar" />
-            </div>
-        </div>
 
         <nav class="breadcrumbs">
             <a href="${pageContext.request.contextPath}/admin/seller-applications">Người bán</a>
@@ -326,18 +315,6 @@
                         </div>
                         <div class="stat-icon-wrapper">
                             <i data-lucide="package" style="width:20px;height:20px;"></i>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-info">
-                            <span class="stat-label">Đánh giá Shop</span>
-                            <span class="stat-value">
-                                <c:out value="${seller.rating != null ? seller.rating : '4.8'}"/> / 5.0
-                            </span>
-                        </div>
-                        <div class="stat-icon-wrapper">
-                            <i data-lucide="star" style="width:20px;height:20px;"></i>
                         </div>
                     </div>
                 </section>
