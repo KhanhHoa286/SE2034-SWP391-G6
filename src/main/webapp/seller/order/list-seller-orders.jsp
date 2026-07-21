@@ -169,7 +169,7 @@
                                         </c:choose>
                                     </span>
                                     <c:if test="${order.status == 'PREPARING' && order.shipperAssigned}">
-                                        <small class="seller-orders-shipper-note">Đã được shipper nhận hàng</small>
+                                        <small class="seller-orders-shipper-note">đã được shipper nhận giao</small>
                                     </c:if>
                                 </td>
                                 <td class="seller-orders-address">
@@ -203,6 +203,16 @@
 <script>
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
+    }
+
+    const assignedDeliveryToast = document.querySelector('.seller-orders-toast');
+    if (assignedDeliveryToast) {
+        window.setTimeout(function () {
+            assignedDeliveryToast.classList.add('is-hiding');
+            window.setTimeout(function () {
+                assignedDeliveryToast.remove();
+            }, 220);
+        }, 10000);
     }
 
     document.querySelectorAll('.seller-orders-clickable-row').forEach(function (row) {
