@@ -285,6 +285,18 @@
                                 <dd>${orderStatus.shippingAddress}</dd>
                             </dl>
                         </section>
+
+                        <c:if test="${orderStatus.shipperAssigned}">
+                            <section class="seller-status-info-card seller-status-shipper-card card shadow-sm">
+                                <h2>Người giao hàng</h2>
+                                <dl>
+                                    <dt>Họ tên</dt>
+                                    <dd>${orderStatus.shipperName}</dd>
+                                    <dt>Số điện thoại</dt>
+                                    <dd>${orderStatus.shipperPhone}</dd>
+                                </dl>
+                            </section>
+                        </c:if>
                     </aside>
                 </section>
             </c:when>
