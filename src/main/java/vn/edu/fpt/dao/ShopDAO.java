@@ -414,4 +414,215 @@ public class ShopDAO extends DBContext {
         }
         return null;
     }
+
+    public List<Shop> getFilteredShops(String search, String status, int pageIndex, int pageSize) {
+        List<Shop> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+            "SELECT s.*, u.first_name, u.last_name, u.email FROM shops s " +
+            "INNER JOIN users u ON s.owner_id = u.user_id " +
+            "WHERE 1=1 ");
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (s.shop_name LIKE ? OR u.email LIKE ?) ");
+        }
+
+        if (status != null && !status.equals("all")) {
+            sql.append(" AND s.status = ? ");
+        }
+
+        sql.append(" ORDER BY s.shop_id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.trim() + "%";
+                ps.setString(paramIndex++, searchPattern);
+                ps.setString(paramIndex++, searchPattern);
+            }
+            
+            if (status != null && !status.equals("all")) {
+                ps.setString(paramIndex++, status);
+            }
+            
+            ps.setInt(paramIndex++, (pageIndex - 1) * pageSize);
+            ps.setInt(paramIndex++, pageSize);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Shop shop = new Shop();
+                    shop.setShopId(rs.getInt("shop_id"));
+                    shop.setOwnerId(rs.getInt("owner_id"));
+                    shop.setShopName(rs.getString("shop_name"));
+                    shop.setLogoUrl(rs.getString("logo_url"));
+                    shop.setDescription(rs.getString("description"));
+                    shop.setWardId(rs.getInt("ward_id"));
+                    shop.setStreetAddress(rs.getString("street_address"));
+                    shop.setStatus(ShopStatus.valueOf(rs.getString("status")));
+                    shop.setApprovalStatus(ApprovalStatus.valueOf(rs.getString("approval_status")));
+                    
+                    User owner = new User();
+                    owner.setUserId(rs.getInt("owner_id"));
+                    owner.setFirstName(rs.getString("first_name"));
+                    owner.setLastName(rs.getString("last_name"));
+                    owner.setEmail(rs.getString("email"));
+                    shop.setOwner(owner);
+                    
+                    list.add(shop);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int getTotalFilteredShops(String search, String status) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) FROM shops s " +
+            "INNER JOIN users u ON s.owner_id = u.user_id " +
+            "WHERE 1=1 ");
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (s.shop_name LIKE ? OR u.email LIKE ?) ");
+        }
+
+        if (status != null && !status.equals("all")) {
+            sql.append(" AND s.status = ? ");
+        }
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.trim() + "%";
+                ps.setString(paramIndex++, searchPattern);
+                ps.setString(paramIndex++, searchPattern);
+            }
+            
+            if (status != null && !status.equals("all")) {
+                ps.setString(paramIndex++, status);
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public boolean updateShopStatus(int shopId, String status) {
+        String updateShopSql = "UPDATE shops SET status = ? WHERE shop_id = ?";
+        String getOrdersSql = "SELECT sub_order_id FROM sub_orders WHERE shop_id = ? AND status IN ('PENDING', 'CONFIRMED', 'PREPARING')";
+        String getItemsSql = "SELECT variant_id, quantity FROM order_items WHERE sub_order_id = ?";
+        String refundStockSql = "UPDATE product_variants SET stock_quantity = stock_quantity + ? WHERE variant_id = ?";
+        String cancelOrderSql = "UPDATE sub_orders SET status = 'CANCELLED' WHERE sub_order_id = ?";
+
+        boolean isBanning = "SUSPENDED".equalsIgnoreCase(status) || "INACTIVE".equalsIgnoreCase(status) || "BANNED".equalsIgnoreCase(status);
+        boolean success = false;
+
+        try {
+            connection.setAutoCommit(false); 
+
+            try (PreparedStatement ps = connection.prepareStatement(updateShopSql)) {
+                ps.setString(1, status);
+                ps.setInt(2, shopId);
+                int rows = ps.executeUpdate();
+                if (rows == 0) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            if (isBanning) {
+                java.util.List<Integer> subOrderIds = new java.util.ArrayList<>();
+                try (PreparedStatement psOrders = connection.prepareStatement(getOrdersSql)) {
+                    psOrders.setInt(1, shopId);
+                    try (ResultSet rs = psOrders.executeQuery()) {
+                        while (rs.next()) {
+                            subOrderIds.add(rs.getInt("sub_order_id"));
+                        }
+                    }
+                }
+
+                for (Integer subOrderId : subOrderIds) {
+                    try (PreparedStatement psItems = connection.prepareStatement(getItemsSql)) {
+                        psItems.setInt(1, subOrderId);
+                        try (ResultSet rsItems = psItems.executeQuery()) {
+                            while (rsItems.next()) {
+                                int variantId = rsItems.getInt("variant_id");
+                                if (!rsItems.wasNull() && variantId > 0) {
+                                    int quantity = rsItems.getInt("quantity");
+                                    try (PreparedStatement psRefund = connection.prepareStatement(refundStockSql)) {
+                                        psRefund.setInt(1, quantity);
+                                        psRefund.setInt(2, variantId);
+                                        psRefund.executeUpdate();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    try (PreparedStatement psCancel = connection.prepareStatement(cancelOrderSql)) {
+                        psCancel.setInt(1, subOrderId);
+                        psCancel.executeUpdate();
+                    }
+                }
+            }
+            
+            connection.commit();
+            success = true;
+        } catch (Exception e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return success;
+    }
+
+    public Shop getShopDetailById(int shopId) {
+        String sql = "SELECT s.*, u.first_name, u.last_name, u.email FROM shops s " +
+                     "INNER JOIN users u ON s.owner_id = u.user_id WHERE s.shop_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, shopId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Shop shop = new Shop();
+                    shop.setShopId(rs.getInt("shop_id"));
+                    shop.setOwnerId(rs.getInt("owner_id"));
+                    shop.setShopName(rs.getString("shop_name"));
+                    shop.setLogoUrl(rs.getString("logo_url"));
+                    shop.setDescription(rs.getString("description"));
+                    shop.setWardId(rs.getInt("ward_id"));
+                    shop.setStreetAddress(rs.getString("street_address"));
+                    shop.setStatus(ShopStatus.valueOf(rs.getString("status")));
+                    shop.setApprovalStatus(ApprovalStatus.valueOf(rs.getString("approval_status")));
+                    
+                    User owner = new User();
+                    owner.setUserId(rs.getInt("owner_id"));
+                    owner.setFirstName(rs.getString("first_name"));
+                    owner.setLastName(rs.getString("last_name"));
+                    owner.setEmail(rs.getString("email"));
+                    shop.setOwner(owner);
+                    
+                    return shop;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

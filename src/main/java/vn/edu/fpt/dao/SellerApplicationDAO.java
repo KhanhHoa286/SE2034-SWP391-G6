@@ -27,7 +27,7 @@ public class SellerApplicationDAO extends DBContext {
         List<SellerApplication> list = new ArrayList<>();
 
         String sql = "SELECT s.shop_id AS application_id, s.owner_id AS user_id, (u.first_name + ' ' + u.last_name) AS owner_name, " +
-                "s.shop_name, u.email AS business_email, u.id_card_number AS tax_code, NULL AS front_id_image, NULL AS back_id_image, s.approval_status AS status, " +
+                "s.shop_name, u.email AS business_email, '' AS tax_code, NULL AS front_id_image, NULL AS back_id_image, s.approval_status AS status, " +
                 "0 AS resolved_by, s.created_at " +
                 "FROM shops s " +
                 "JOIN users u ON s.owner_id = u.user_id ";
@@ -46,7 +46,7 @@ public class SellerApplicationDAO extends DBContext {
         }
 
         if (searchQuery != null && !searchQuery.trim().isEmpty()) {
-            sql += "AND (s.shop_name LIKE ? OR u.id_card_number LIKE ? OR CAST(s.shop_id AS VARCHAR) LIKE ?) ";
+            sql += "AND (s.shop_name LIKE ? OR CAST(s.shop_id AS VARCHAR) LIKE ?) ";
         }
         sql += " ORDER BY s.created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
@@ -61,7 +61,6 @@ public class SellerApplicationDAO extends DBContext {
 
             if (searchQuery != null && !searchQuery.trim().isEmpty()) {
                 String p = "%" + searchQuery.trim() + "%";
-                ps.setString(index++, p);
                 ps.setString(index++, p);
                 ps.setString(index++, p);
             }
@@ -94,7 +93,7 @@ public class SellerApplicationDAO extends DBContext {
 
     public SellerApplication getApplicationById(int appId) {
         String sql = "SELECT s.shop_id AS application_id, s.owner_id AS user_id, (u.first_name + ' ' + u.last_name) AS owner_name, " +
-                "s.shop_name, u.email AS business_email, u.id_card_number AS tax_code, NULL AS front_id_image, NULL AS back_id_image, s.approval_status AS status, " +
+                "s.shop_name, u.email AS business_email, '' AS tax_code, NULL AS front_id_image, NULL AS back_id_image, s.approval_status AS status, " +
                 "0 AS resolved_by, s.created_at " +
                 "FROM shops s " +
                 "JOIN users u ON s.owner_id = u.user_id " +
@@ -205,7 +204,7 @@ public class SellerApplicationDAO extends DBContext {
         }
 
         if (searchQuery != null && !searchQuery.trim().isEmpty()) {
-            sql += "AND (s.shop_name LIKE ? OR u.id_card_number LIKE ? OR CAST(s.shop_id AS VARCHAR) LIKE ?) ";
+            sql += "AND (s.shop_name LIKE ? OR CAST(s.shop_id AS VARCHAR) LIKE ?) ";
         }
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -219,7 +218,6 @@ public class SellerApplicationDAO extends DBContext {
 
             if (searchQuery != null && !searchQuery.trim().isEmpty()) {
                 String p = "%" + searchQuery.trim() + "%";
-                ps.setString(index++, p);
                 ps.setString(index++, p);
                 ps.setString(index++, p);
             }

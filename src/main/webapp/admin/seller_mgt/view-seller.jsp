@@ -184,8 +184,8 @@
                         </a>
                     </li>
                     <li class="menu-item ${activeMenu == 'seller-management' ? 'active' : ''}">
-                        <a href="${pageContext.request.contextPath}/admin/seller-management">
-                            <span class="menu-text">Người bán</span>
+                        <a href="${pageContext.request.contextPath}/admin/shop-management">
+                            <span class="menu-text">Danh sách Shop</span>
                         </a>
                     </li>
                     <li class="menu-item ${activeMenu == 'seller-applications' || activeMenu == null ? 'active' : ''}">
