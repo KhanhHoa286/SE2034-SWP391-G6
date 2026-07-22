@@ -182,9 +182,9 @@
                     </a>
                 </li>
 <li class="menu-item">
-                    <a href="${pageContext.request.contextPath}/admin/seller-management">
+                    <a href="${pageContext.request.contextPath}/admin/shop-management">
                         <i data-lucide="shopping-bag" class="menu-icon"></i>
-                        <span>Người bán</span>
+                        <span>Danh sách Shop</span>
                     </a>
                 </li>
                 <li class="menu-item active">

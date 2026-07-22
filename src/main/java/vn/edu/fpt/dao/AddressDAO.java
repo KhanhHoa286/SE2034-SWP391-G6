@@ -458,4 +458,42 @@ public class AddressDAO extends DBContext {
 
         return false;
     }
+    /*
+     * Cập nhật 1 địa chỉ thành mặc định thông qua API (AJAX).
+     * Hàm này sẽ bỏ mặc định của tất cả địa chỉ cũ, sau đó set địa chỉ mới thành mặc định.
+     */
+    public boolean setDefaultAddress(int addressId, int userId) {
+        String updateAllSql = "UPDATE addresses SET is_default = 0 WHERE user_id = ?";
+        String updateOneSql = "UPDATE addresses SET is_default = 1 WHERE address_id = ? AND user_id = ?";
+        boolean oldAutoCommit = true;
+        try {
+            oldAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            try (PreparedStatement psAll = connection.prepareStatement(updateAllSql)) {
+                psAll.setInt(1, userId);
+                psAll.executeUpdate();
+            }
+            try (PreparedStatement psOne = connection.prepareStatement(updateOneSql)) {
+                psOne.setInt(1, addressId);
+                psOne.setInt(2, userId);
+                psOne.executeUpdate();
+            }
+            connection.commit();
+            return true;
+        } catch (Exception e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(oldAutoCommit);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
 }

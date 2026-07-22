@@ -21,13 +21,6 @@
     <%@ include file="/seller/taskbar-seller.jsp" %>
 
     <main class="seller-orders-main container-fluid">
-        <c:if test="${not empty assignedDeliveryToastMessage}">
-            <div class="seller-orders-toast" role="status" aria-live="polite">
-                <i data-lucide="truck"></i>
-                <span>${assignedDeliveryToastMessage}</span>
-            </div>
-        </c:if>
-
         <nav class="seller-orders-breadcrumb d-flex align-items-center">
             <span>Seller Center</span>
             <span>/</span>
@@ -203,16 +196,6 @@
 <script>
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
-    }
-
-    const assignedDeliveryToast = document.querySelector('.seller-orders-toast');
-    if (assignedDeliveryToast) {
-        window.setTimeout(function () {
-            assignedDeliveryToast.classList.add('is-hiding');
-            window.setTimeout(function () {
-                assignedDeliveryToast.remove();
-            }, 220);
-        }, 10000);
     }
 
     document.querySelectorAll('.seller-orders-clickable-row').forEach(function (row) {
