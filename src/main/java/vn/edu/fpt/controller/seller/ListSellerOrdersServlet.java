@@ -318,7 +318,7 @@ public class ListSellerOrdersServlet extends HttpServlet {
         for (SellerOrderRow order : orders) {
             if (order.isShipperAssigned() && "PREPARING".equalsIgnoreCase(order.getStatus())) {
                 request.setAttribute("assignedDeliveryToastMessage",
-                        "#SUB-" + order.getSubOrderId() + " đã được shipper nhận giao");
+                        "#SUB-" + order.getSubOrderId() + " đã được nhận giao");
                 session.setAttribute("sellerAssignedDeliveryToastShown", true);
                 return;
             }

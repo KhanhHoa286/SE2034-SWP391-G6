@@ -83,9 +83,9 @@ body {
     gap: 10px;
     max-width: 360px;
     padding: 14px 16px;
-    border: 1px solid #bbf7d0;
-    background: #f0fdf4;
-    color: #166534;
+    border: 1px solid #000000;
+    background: #000000;
+    color: #ffffff;
     box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16);
     font-size: 13px;
     font-weight: 800;
@@ -93,10 +93,17 @@ body {
     animation: sellerOrdersToastIn 0.22s ease-out both;
 }
 
+.seller-orders-toast.is-hiding {
+    pointer-events: none;
+    animation: sellerOrdersToastOut 0.2s ease-in both;
+}
+
 .seller-orders-toast svg {
     width: 18px;
     height: 18px;
     flex: 0 0 auto;
+    color: #ffffff;
+    stroke: #ffffff;
 }
 
 @keyframes sellerOrdersToastIn {
@@ -108,6 +115,18 @@ body {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes sellerOrdersToastOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-8px);
     }
 }
 
