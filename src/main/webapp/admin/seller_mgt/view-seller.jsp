@@ -277,10 +277,7 @@
                 </div>
 
                 <div class="profile-details-list">
-                    <div class="detail-item">
-                        <span class="detail-label">Chủ cửa hàng:</span>
-                        <span class="detail-value"><c:out value="${seller.fullName}"/></span>
-                    </div>
+
                     <div class="detail-item">
                         <span class="detail-label">Email liên hệ:</span>
                         <span class="detail-value"><c:out value="${seller.email}"/></span>
@@ -327,56 +324,65 @@
                         </a>
                     </div>
                     <div class="table-responsive">
-                        <table class="custom-table">
-                            <thead>
-                            <tr>
-                                <th>Sản phẩm</th>
-                                <th>Mã SP</th>
-                                <th>Giá bán</th>
-                                <th>Đã bán</th>
-                                <th>Trạng thái</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <c:forEach var="p" items="${products}">
-                                <tr>
-                                    <td>
-                                        <div class="product-cell">
-                                            <div class="product-img" style="overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f1f5f9;">
+                        <c:choose>
+                            <c:when test="${not empty products}">
+                                <table class="custom-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>Mã SP</th>
+                                        <th>Giá bán</th>
+                                        <th>Đã bán</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <c:forEach var="p" items="${products}">
+                                        <tr>
+                                            <td>
+                                                <div class="product-cell">
+                                                    <div class="product-img" style="overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f1f5f9;">
+                                                        <c:choose>
+                                                            <c:when test="${not empty p.thumbnailUrl}">
+                                                                <img src="${p.thumbnailUrl}" alt="${p.productName}" style="width: 100%; height: 100%; object-fit: cover;" />
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <i data-lucide="image" style="width:16px;height:16px; color: #94a3b8;"></i>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </div>
+                                                    <span class="product-name"><c:out value="${p.productName}"/></span>
+                                                </div>
+                                            </td>
+                                            <td><span class="product-code"><c:out value="${p.productCode}"/></span></td>
+                                            <td>
+                                                <fmt:formatNumber value="${p.basePrice}" type="number" /> đ
+                                            </td>
+                                            <td><c:out value="${p.soldCount}"/></td>
+                                            <td>
                                                 <c:choose>
-                                                    <c:when test="${not empty p.thumbnailUrl}">
-                                                        <img src="${p.thumbnailUrl}" alt="${p.productName}" style="width: 100%; height: 100%; object-fit: cover;" />
+                                                    <c:when test="${p.status == 'ACTIVE' || p.status == 'APPROVED'}">
+                                                        <span class="badge-status active">Đang bán</span>
+                                                    </c:when>
+                                                    <c:when test="${p.status == 'OUT_OF_STOCK'}">
+                                                        <span class="badge-status out-of-stock">Hết hàng</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <i data-lucide="image" style="width:16px;height:16px; color: #94a3b8;"></i>
+                                                        <span class="badge-status inactive">Không bán</span>
                                                     </c:otherwise>
                                                 </c:choose>
-                                            </div>
-                                            <span class="product-name"><c:out value="${p.productName}"/></span>
-                                        </div>
-                                    </td>
-                                    <td><span class="product-code"><c:out value="${p.productCode}"/></span></td>
-                                    <td>
-                                        <fmt:formatNumber value="${p.basePrice}" type="number" /> đ
-                                    </td>
-                                    <td><c:out value="${p.soldCount}"/></td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${p.status == 'ACTIVE' || p.status == 'APPROVED'}">
-                                                <span class="badge-status active">Đang bán</span>
-                                            </c:when>
-                                            <c:when test="${p.status == 'OUT_OF_STOCK'}">
-                                                <span class="badge-status out-of-stock">Hết hàng</span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="badge-status inactive">Không bán</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                            </tbody>
-                        </table>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                    </tbody>
+                                </table>
+                            </c:when>
+                            <c:otherwise>
+                                <div style="padding: 24px; text-align: center; color: #6b7280; font-size: 14px;">
+                                    Cửa hàng này chưa có sản phẩm nào.
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </section>
             </div>

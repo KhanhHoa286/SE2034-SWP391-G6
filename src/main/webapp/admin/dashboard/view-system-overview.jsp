@@ -104,7 +104,7 @@
         .chevron-icon { width: 18px; height: 18px; color: #ffffff; margin-left: 4px; }
 
         /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--border-color); background: var(--bg-secondary); }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--border-color); background: var(--bg-secondary); }
         .stat-card { border-right: 1px solid var(--border-color); padding: 32px; display: flex; flex-direction: column; justify-content: space-between; gap: 16px; position: relative; overflow: hidden; }
         .stat-card:last-child { border-right: none; }
         .stat-header { display: flex; justify-content: space-between; align-items: center; }
@@ -124,7 +124,7 @@
         .card-title { font-size: 18px; font-weight: 700; color: #000000; letter-spacing: -0.01em; text-transform: uppercase; }
         .chart-container { position: relative; width: 100%; height: 400px; padding-top: 20px; }
 
-        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .stat-card { border-bottom: 1px solid var(--border-color); } .stat-card:nth-child(2), .stat-card:nth-child(4) { border-right: none; } }
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .stat-card { border-bottom: 1px solid var(--border-color); } .stat-card:nth-child(2) { border-right: none; } }
         @media (max-width: 768px) {
             .app-container { flex-direction: column; }
             .sidebar-wrapper { width: 100%; height: auto; position: relative; }
@@ -263,26 +263,7 @@
                 </div>
             </article>
 
-            <article class="stat-card">
-                <div class="stat-header">
-                    <span class="stat-title">Sản phẩm chờ</span>
-                    <div class="stat-icon-wrapper"><i data-lucide="package" class="stat-icon"></i></div>
-                </div>
-                <div class="stat-body">
-                    <span class="stat-value">
-                        <c:choose>
-                            <c:when test="${not empty pendingProducts}">
-                                <c:out value="${pendingProducts}"/>
-                            </c:when>
-                            <c:otherwise>0</c:otherwise>
-                        </c:choose>
-                    </span>
-                    <span class="trend-badge positive">
-                        <i data-lucide="refresh-cw" class="trend-icon"></i>
-                        <span>Realtime</span>
-                    </span>
-                </div>
-            </article>
+
         </section>
 
         <section class="dashboard-body-row">

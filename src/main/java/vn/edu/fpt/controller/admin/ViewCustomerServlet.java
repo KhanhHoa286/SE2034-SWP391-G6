@@ -4,6 +4,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import vn.edu.fpt.dao.CustomerDAO;
+import vn.edu.fpt.dao.OrderDAO;
+import vn.edu.fpt.dto.response.OrderHistoryResponse;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,6 +25,7 @@ public class ViewCustomerServlet extends HttpServlet {
     private static final int PAGE_SIZE = 6; // số đơn hàng hiển thị mỗi trang
 
     private final CustomerDAO customerDAO = new CustomerDAO();
+    private final OrderDAO orderDAO = new OrderDAO();
 
     // ─────────────────────────────────────────────────────────────
     //  GET: Hiển thị chi tiết khách hàng
@@ -79,6 +82,9 @@ public class ViewCustomerServlet extends HttpServlet {
         req.setAttribute("currentPage",  currentPage);
         req.setAttribute("totalPages",   totalPages);
         req.setAttribute("totalOrders",  totalOrders);
+
+        List<OrderHistoryResponse> orderHistory = orderDAO.getRecentSubOrdersByCustomerId(userId, 5);
+        req.setAttribute("orderHistory", orderHistory);
 
         req.getRequestDispatcher("/admin/user_mgt/view-customer.jsp")
                 .forward(req, resp);

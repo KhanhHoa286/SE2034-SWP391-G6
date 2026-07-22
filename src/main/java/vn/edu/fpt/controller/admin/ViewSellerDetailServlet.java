@@ -39,7 +39,7 @@ public class ViewSellerDetailServlet extends HttpServlet {
 
                 if (idStr != null && !idStr.trim().isEmpty()) {
                     int appId = Integer.parseInt(idStr);
-                    String sql = "SELECT s.shop_id AS application_id, s.*, u.user_id AS u_user_id, u.first_name, u.last_name, u.phone, u.email, u.citizen_id AS tax_code " +
+                    String sql = "SELECT s.shop_id AS application_id, s.*, u.user_id AS u_user_id, u.first_name, u.last_name, u.phone, u.email, u.id_card_number AS tax_code " +
                                  "FROM shops s " +
                                  "JOIN users u ON s.owner_id = u.user_id " +
                                  "WHERE s.shop_id = ?";
@@ -48,7 +48,7 @@ public class ViewSellerDetailServlet extends HttpServlet {
                     rs = ps.executeQuery();
                 } else if (userIdStr != null && !userIdStr.trim().isEmpty()) {
                     int userId = Integer.parseInt(userIdStr);
-                    String sql = "SELECT s.shop_id AS application_id, s.*, u.user_id AS u_user_id, u.first_name, u.last_name, u.phone, u.email, u.citizen_id AS tax_code " +
+                    String sql = "SELECT s.shop_id AS application_id, s.*, u.user_id AS u_user_id, u.first_name, u.last_name, u.phone, u.email, u.id_card_number AS tax_code " +
                                  "FROM users u " +
                                  "LEFT JOIN shops s ON u.user_id = s.owner_id " +
                                  "WHERE u.user_id = ?";
@@ -177,82 +177,6 @@ public class ViewSellerDetailServlet extends HttpServlet {
             e.printStackTrace();
         }
 
-        // FALLBACK: Nếu không tải được từ DB, hiển thị Mock Data giống hệt ảnh mẫu
-        if (!loadedFromDb) {
-            sellerData.put("shopName", "TechZone Vietnam");
-            sellerData.put("ownerName", "Nguyễn Văn A");
-            sellerData.put("phone", "090 123 4567");
-            sellerData.put("email", "techzone@moda.com");
-            sellerData.put("taxCode", "0109923844");
-            sellerData.put("status", "APPROVED"); // Đang hoạt động
-            sellerData.put("createdAt", "12/05/2023");
-            sellerData.put("sellerCode", "SLR-9942");
-            sellerData.put("applicationId", 8421);
-            sellerData.put("streetAddress", "Tầng 4, Tòa nhà Bitexco, Q1, TP.HCM");
-            sellerData.put("totalRevenue", "1,245.50M");
-            sellerData.put("totalProducts", 428);
-            sellerData.put("completedOrders", 3892);
-            sellerData.put("averageRating", "4.8");
-
-            // Mock products
-            Map<String, Object> p1 = new HashMap<>();
-            p1.put("productName", "Tai nghe Bluetooth Sony WH-1000XM4");
-            p1.put("productCode", "PRD-001");
-            p1.put("basePrice", 6490000);
-            p1.put("soldCount", 420);
-            p1.put("status", "ACTIVE");
-            products.add(p1);
-
-            Map<String, Object> p2 = new HashMap<>();
-            p2.put("productName", "Bàn phím cơ Keychron K8 Pro");
-            p2.put("productCode", "PRD-045");
-            p2.put("basePrice", 2350000);
-            p2.put("soldCount", 185);
-            p2.put("status", "ACTIVE");
-            products.add(p2);
-
-            Map<String, Object> p3 = new HashMap<>();
-            p3.put("productName", "Chuột không dây Logitech MX Master 3S");
-            p3.put("productCode", "PRD-112");
-            p3.put("basePrice", 2190000);
-            p3.put("soldCount", 302);
-            p3.put("status", "OUT_OF_STOCK");
-            products.add(p3);
-        }
-
-        // Nếu danh sách sản phẩm trống (ví dụ: các shop mới như NamTech Electronics chưa đăng bán sản phẩm nào)
-        // tự động tải sản phẩm mẫu để hiển thị giao diện mẫu đầy đủ đẹp mắt
-        if (products.isEmpty()) {
-            Map<String, Object> p1 = new HashMap<>();
-            p1.put("productName", "Tai nghe Bluetooth Sony WH-1000XM4");
-            p1.put("productCode", "PRD-001");
-            p1.put("basePrice", 6490000);
-            p1.put("soldCount", 420);
-            p1.put("status", "ACTIVE");
-            products.add(p1);
-
-            Map<String, Object> p2 = new HashMap<>();
-            p2.put("productName", "Bàn phím cơ Keychron K8 Pro");
-            p2.put("productCode", "PRD-045");
-            p2.put("basePrice", 2350000);
-            p2.put("soldCount", 185);
-            p2.put("status", "ACTIVE");
-            products.add(p2);
-
-            Map<String, Object> p3 = new HashMap<>();
-            p3.put("productName", "Chuột không dây Logitech MX Master 3S");
-            p3.put("productCode", "PRD-112");
-            p3.put("basePrice", 2190000);
-            p3.put("soldCount", 302);
-            p3.put("status", "OUT_OF_STOCK");
-            products.add(p3);
-        }
-
-        // Đảm bảo các giá trị thống kê mặc định nếu trống
-        if (sellerData.get("totalRevenue") == null || "0.00M".equals(sellerData.get("totalRevenue"))) sellerData.put("totalRevenue", "1,245.50M");
-        if (sellerData.get("totalProducts") == null || (Integer) sellerData.get("totalProducts") == 0) sellerData.put("totalProducts", 428);
-        if (sellerData.get("completedOrders") == null || (Integer) sellerData.get("completedOrders") == 0) sellerData.put("completedOrders", 3892);
-        if (sellerData.get("averageRating") == null) sellerData.put("averageRating", "4.8");
 
         request.setAttribute("seller", sellerData);
         request.setAttribute("products", products);
