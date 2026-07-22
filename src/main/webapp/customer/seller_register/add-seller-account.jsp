@@ -45,8 +45,8 @@
             <form class="seller-register-form"
                   action="${pageContext.request.contextPath}/seller-register"
                   method="post"
-                  enctype="multipart/form-data"
-                  novalidate>
+                  accept-charset="UTF-8"
+                  enctype="multipart/form-data">
 
                 <div class="seller-register-card">
                     <div class="seller-register-card__head">
@@ -60,7 +60,8 @@
                                name="legalFullName"
                                type="text"
                                maxlength="120"
-                               value="<c:out value='${oldInput.legalFullName}' />"
+                               required
+                               value="${oldInput.legalFullName}"
                                placeholder="Ví dụ: Nguyễn Văn A">
                         <c:if test="${not empty errors.legalFullName}">
                             <small class="seller-register-error"><c:out value="${errors.legalFullName}" /></small>
@@ -75,7 +76,9 @@
                                    type="text"
                                    maxlength="12"
                                    inputmode="numeric"
-                                   value="<c:out value='${oldInput.citizenId}' />"
+                                   pattern="[0-9]{12}"
+                                   required
+                                   value="${oldInput.citizenId}"
                                    placeholder="12 chữ số">
                             <c:if test="${not empty errors.citizenId}">
                                 <small class="seller-register-error"><c:out value="${errors.citizenId}" /></small>
@@ -87,7 +90,7 @@
                             <input id="citizenIdIssueDate"
                                    name="citizenIdIssueDate"
                                    type="date"
-                                   value="<c:out value='${oldInput.citizenIdIssueDate}' />">
+                                   value="${oldInput.citizenIdIssueDate}">
                             <c:if test="${not empty errors.citizenIdIssueDate}">
                                 <small class="seller-register-error"><c:out value="${errors.citizenIdIssueDate}" /></small>
                             </c:if>
@@ -100,7 +103,8 @@
                                name="citizenIdIssuePlace"
                                type="text"
                                maxlength="255"
-                               value="<c:out value='${oldInput.citizenIdIssuePlace}' />"
+                               required
+                               value="${oldInput.citizenIdIssuePlace}"
                                placeholder="Ví dụ: Cục Cảnh sát quản lý hành chính về trật tự xã hội">
                         <c:if test="${not empty errors.citizenIdIssuePlace}">
                             <small class="seller-register-error"><c:out value="${errors.citizenIdIssuePlace}" /></small>
@@ -113,6 +117,7 @@
                                   name="permanentAddress"
                                   rows="3"
                                   maxlength="500"
+                                  required
                                   placeholder="Nhập địa chỉ thường trú theo giấy tờ định danh"><c:out value="${oldInput.permanentAddress}" /></textarea>
                         <c:if test="${not empty errors.permanentAddress}">
                             <small class="seller-register-error"><c:out value="${errors.permanentAddress}" /></small>

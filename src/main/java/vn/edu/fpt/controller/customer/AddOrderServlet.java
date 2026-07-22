@@ -10,6 +10,7 @@ import vn.edu.fpt.dao.AddressDAO;
 import vn.edu.fpt.dao.CartDAO;
 import vn.edu.fpt.dao.OrderDAO;
 import vn.edu.fpt.dao.ProductDAO;
+import vn.edu.fpt.dao.ShopDAO;
 import vn.edu.fpt.dto.request.CheckoutRequest;
 import vn.edu.fpt.dto.response.*;
 import vn.edu.fpt.model.User;
@@ -33,6 +34,7 @@ public class AddOrderServlet extends HttpServlet {
     private final CartDAO cartDAO = new CartDAO();
     private final ProductDAO productDAO = new ProductDAO();
     private final OrderDAO orderDAO = new OrderDAO();
+    private final ShopDAO shopDAO = new ShopDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -60,9 +62,9 @@ public class AddOrderServlet extends HttpServlet {
     // Load địa chỉ mặc định của user cho trang checkout
     private void loadAddress(int userId, CheckoutResponse checkoutResponse) {
         AddressResponse addressResponse = addressDAO.getAddressCheckout(userId);
-        if (addressResponse == null) {
-            addressResponse = new AddressResponse();
-        }
+//        if (addressResponse == null) {
+//            addressResponse = new AddressResponse();
+//        }
         checkoutResponse.setAddressResponse(addressResponse);
     }
 
@@ -140,11 +142,45 @@ public class AddOrderServlet extends HttpServlet {
         checkoutRequest.setShippingAddress(request.getParameter("shipping_address"));
         checkoutRequest.setTotalAmount(ParamUtil.getBigDecimal(request, "total_amount"));
 
+        //kiểm tra rỗng địa chỉ
+        if (checkoutRequest.getReceiverName() == null || checkoutRequest.getReceiverName().trim().isEmpty() ||
+            checkoutRequest.getReceiverPhone() == null || checkoutRequest.getReceiverPhone().trim().isEmpty() ||
+            checkoutRequest.getShippingAddress() == null || checkoutRequest.getShippingAddress().trim().isEmpty()) {
+            
+            redirectBack(request, response);
+            return;
+        }
+
         if ("CART".equalsIgnoreCase(checkoutRequest.getType())) {
             checkoutRequest.setCartItemIds(request.getParameter("cartItemIds"));
         } else if ("DETAILS_PRODUCT".equalsIgnoreCase(checkoutRequest.getType())) {
             checkoutRequest.setVariantId(ParamUtil.getInteger(request, "variant_id"));
             checkoutRequest.setQuantity(ParamUtil.getInteger(request, "quantity_details_product"));
+
+            if (checkoutRequest.getVariantId() == null || checkoutRequest.getQuantity() == null) {
+                redirectBack(request, response);
+                return;
+            }
+
+            //lấy thông tin biến thể để lấy productId
+            SummaryOrderCheckoutResponse summary = productDAO.getVariantInfoForCheckout(checkoutRequest.getVariantId());
+            if (summary == null) {
+                redirectBack(request, response);
+                return;
+            }
+
+            //kiểm tra chủ shop
+            if (shopDAO.checkProductSeller(summary.getProductId(), user.getUserId())) {
+                redirectBack(request, response);
+                return;
+            }
+
+            //kiểm tra số lượng tồn kho
+            int currentStock = productDAO.getVariantStock(checkoutRequest.getVariantId());
+            if (currentStock == 0 || checkoutRequest.getQuantity() > currentStock) {
+                redirectBack(request, response);
+                return;
+            }
         }
 
         // Thực hiện tạo đơn hàng trong 1 transaction
@@ -157,5 +193,14 @@ public class AddOrderServlet extends HttpServlet {
             // Thất bại — quay lại trang checkout kèm thông báo lỗi
             response.sendRedirect(request.getContextPath() + "/customer/add-order?error=order_failed");
         }
+    }
+
+    //quay về trang trước nếu địa chỉ rỗng, mua là chủ shop variant sai
+    private void redirectBack(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String referer = request.getHeader("referer");
+        if (referer == null || referer.isEmpty()) {
+            referer = request.getContextPath() + "/home";
+        }
+        response.sendRedirect(referer);
     }
 }

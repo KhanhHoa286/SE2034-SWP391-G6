@@ -555,7 +555,7 @@ public class UserDAO extends DBContext {
         user.setPasswordHash(rs.getString("password_hash"));
         user.setAvatarUrl(rs.getString("avatar_url"));
         user.setLegalFullName(rs.getString("legal_full_name"));
-               user.setPermanentAddress(rs.getString("permanent_address"));
+        user.setPermanentAddress(rs.getString("permanent_address"));
         user.setFrontIdImage(rs.getString("front_id_image"));
         user.setBackIdImage(rs.getString("back_id_image"));
 

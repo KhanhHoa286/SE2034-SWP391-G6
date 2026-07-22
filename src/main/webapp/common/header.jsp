@@ -5,7 +5,7 @@
 <!-- Header -->
 <header class="header">
     <div class="container header__inner">
-        <a href="view-home-page.jsp" class="header__logo">MODA</a>
+        <a href="${pageContext.request.contextPath}/home" class="header__logo">MODA</a>
 
         <nav class="header__nav d-none d-md-block">
             <ul>
@@ -38,7 +38,7 @@
             </a>
             <c:if test="${sessionScope.user != null}">
                 <a href="${pageContext.request.contextPath}/customer/profile" class="avatar-link">
-                <img src="${sessionScope.user.avatarUrl}" alt="User Avatar" class="header__avatar">
+                <img src="${empty sessionScope.user.avatarUrl ? 'https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg' : sessionScope.user.avatarUrl}" alt="User Avatar" class="header__avatar">
                 </a>
             </c:if>
             <c:if test="${sessionScope.user == null}">

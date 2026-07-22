@@ -51,16 +51,18 @@
     const productId = document.getElementById("hidden-product-id").value;
     const sizeId = document.getElementById("hidden-size-id").value;
     const colorId = document.getElementById("hidden-color-id").value;
-    const productSeller = document.getElementById("product-seller");
+    const messageError = document.getElementById("message-error");
+    const messageSuccess = document.getElementById("message-success");
     // lấy 2 nút ấn và thẻ thẻ hiện thị số lượng
     const stockDisplay = document.getElementById("stock-display");
     const addToCart = document.getElementById("add-to-cart");
     const addOrder = document.getElementById("add-order");
     //
     if (checkSeller) {
-    productSeller.innerHTML = "* Sản phẩm thuộc shop! Không thể mua!"
+    messageError.innerHTML = "* Sản phẩm thuộc shop! Không thể mua!";
+    if (messageSuccess) messageSuccess.innerText = "";
     addToCart.disabled = true;
-    addOrder.classList.add('disabled');
+    addOrder.disabled = true;
     return;
 }
     // bắn dữ liệu đi
@@ -71,17 +73,24 @@
     color_id: colorId
 }
 }).then(response => {
-    if(parseInt(response.data) > 0) {
-    stockDisplay.innerHTML = 'Còn lại: <strong class="text-success">' + response.data + '</strong> sản phẩm có sẵn';
+    // ko tồn tại variant
+        if (response.data.status === "INVALID_VARIANT") {
+            window.location.href = contextPath + "/product-detail?pid=" + productId;
+            return;
+        }
+
+    if(response.data.status === "SUCCESS") {
+    stockDisplay.innerHTML = 'Còn lại: <strong class="text-success">' + response.data.stock + '</strong> sản phẩm có sẵn';
     if(!checkSeller) {
     addToCart.disabled = false;
     addOrder.classList.remove('disabled'); // nếu còn thif cho thao tác
 }
-}else{
+}else if(response.data.status === "OUT_OF_STOCK") {
     stockDisplay.innerHTML = `<strong class="text-danger">Tạm hết hàng</strong> cho phân loại này`;
     addToCart.disabled = true;
     addOrder.classList.add('disabled'); // nếu hết hàng thì khóa 2 nút
 }
+
 })
     .catch(error=> {
     console.error("Lỗi lấy kho:", error);
@@ -101,8 +110,8 @@
       const dataConfig = document.getElementById("data-helper");
       const contextPath = dataConfig.getAttribute("data-context-path");
 
-      const cartOvorQuantity = document.getElementById("cart-over-quantity");
-      const addToCartSuccess = document.getElementById("add-to-cart-success");
+      const messageError = document.getElementById("message-error");
+      const messageSuccess = document.getElementById("message-success");
 
       // khi khahcs hàng chọn nút mua ngay
       if ('BUY_NOW' === type) {
@@ -115,21 +124,31 @@
           })
               .then(response => {
                   // số lượng trong kho
-              const stockAvailable = parseInt(response.data);
-
-              if (quantity > stockAvailable) {
-                  //nếu số lượng gõ mua > kho =>báo lỗi
-                  cartOvorQuantity.innerText = "* Số lượng sản phẩm này trong giỏ đã vượt quá giới hạn tồn kho!!";
-                  if (addToCartSuccess)
-                      addToCartSuccess.innerText = "";
-              } else {
-                  //nếu kho vật lý đủ hàng -> Cho bay thẳng sang trang thanh toán luôn!
-                  cartOvorQuantity.innerText = "";
-                  window.location.href = `${contextPath}/customer/add-order?type=DETAILS_PRODUCT`
-                      + `&product_id=${productId}`
-                      + `&size_id=${sizeId}`
-                      + `&color_id=${colorId}`
-                      + `&quantity=${quantity}`;
+              if (response.data.status === "INVALID_VARIANT") {
+                  messageError.innerText = "* Lỗi lấy biến thể!";
+                  if (messageSuccess) messageSuccess.innerText = "";
+              } else if (response.data.status === "OWN_PRODUCT") {
+                  messageError.innerText = "* Sản phẩm thuộc shop! Không thể mua!";
+                  if (messageSuccess) messageSuccess.innerText = "";
+              } else if (response.data.status === "OUT_OF_STOCK") {
+                  messageError.innerText = "* Số lượng sản phẩm này trong kho đã hết!";
+                  if (messageSuccess) messageSuccess.innerText = "";
+              } else if (response.data.status === "SUCCESS") {
+                  const stockAvailable = parseInt(response.data.stock);
+                  
+                  if (quantity > stockAvailable) {
+                      //nếu số lượng gõ mua > kho =>báo lỗi
+                      messageError.innerText = "* Số lượng sản phẩm mua vượt quá giới hạn tồn kho!!";
+                      if (messageSuccess) messageSuccess.innerText = "";
+                  } else {
+                      //nếu kho vật lý đủ hàng -> Cho bay thẳng sang trang thanh toán luôn!
+                      messageError.innerText = "";
+                      window.location.href = `${contextPath}/customer/add-order?type=DETAILS_PRODUCT`
+                          + `&product_id=${productId}`
+                          + `&size_id=${sizeId}`
+                          + `&color_id=${colorId}`
+                          + `&quantity=${quantity}`;
+                  }
               }
           }).catch(error => {
               console.error("Lỗi kiểm tra kho khi mua ngay:", error);
@@ -148,18 +167,24 @@
 
           axios.post(contextPath + "/api/customer/add-to-cart", params)
               .then(response => {
-                  if (response.data === "INVALID_VARIANT") {
-                      window.location.href = contextPath + "/product-detail?pid=" + productId;
-                      return;
+                  if (response.data.status === "INVALID_VARIANT") {
+                      messageError.innerText = "* Lỗi lấy biến thể!";
+                      if (messageSuccess) messageSuccess.innerText = "";
                   }
-                  if (response.data === "OVER_STOCK") {
-                      cartOvorQuantity.innerText = "* Số lượng sản phẩm này trong giỏ đã vượt quá giới hạn tồn kho!";
-                      if (addToCartSuccess) addToCartSuccess.innerText = "";
-                  } else {
-                      cartOvorQuantity.innerText = "";
-                      addToCartSuccess.innerText = "Thêm sản phẩm thành công vào giỏ hàng!";
+                  if (response.data.status === "OVER_STOCK") {
+                      messageError.innerText = "* Số lượng sản phẩm này trong giỏ đã vượt quá giới hạn tồn kho!";
+                      if (messageSuccess) messageSuccess.innerText = "";
+                  } else if(response.data.status === "OUT_OF_STOCK") {
+                      messageError.innerText = "* Số lượng sản phẩm này trong kho đã hết!";
+                      if (messageSuccess) messageSuccess.innerText = "";
+                  } else if(response.data.status === "OWN_PRODUCT") {
+                      messageError.innerText = "* Sản phẩm thuộc shop! Không thể mua!";
+                      if (messageSuccess) messageSuccess.innerText = "";
+                  } else if(response.data.status === "SUCCESS"){
+                      messageError.innerText = "";
+                      messageSuccess.innerText = "Thêm sản phẩm thành công vào giỏ hàng!";
                       if (cartCount)
-                          cartCount.innerText = response.data;
+                          cartCount.innerText = response.data.numberProductCart;
                   }
               }).catch(error => {
               if (error.response && error.response.status === 401) {

@@ -36,16 +36,15 @@
     <div class="main-layout">
 
         <%-- NHÚNG SIDEBAR --%>
-        <%@ include file="/seller/taskbar-seller.jsp" %>
 
         <div class="content-container">
-
 
             <main class="content-wrapper">
 
                 <!-- BREADCRUMBS -->
                 <nav class="breadcrumbs">
-                    <a href="#">Đăng ký người bán</a>
+                    <a href="${pageContext.request.contextPath}/home">Trang Chủ>></a>
+                    <a>Đăng ký người bán</a>
                 </nav>
 
                 <h1 class="page-title">Hồ Sơ Cửa Hàng</h1>
