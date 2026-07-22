@@ -64,6 +64,18 @@ public class CustomerAddressServlet extends HttpServlet {
         }
 
         /*
+         * Nhận diện luồng từ trang Checkout.
+         * Lưu lại URL để sau khi set default / thêm / sửa có thể redirect về.
+         */
+        String type = request.getParameter("type");
+        if ("checkout".equals(type)) {
+            String referer = request.getHeader("referer");
+            if (referer != null && !referer.isEmpty()) {
+                session.setAttribute("CHECKOUT_REFERER", referer);
+            }
+        }
+
+        /*
          * Gọi DAO để lấy danh sách địa chỉ của customer.
          */
         List<Address> addresses = addressDAO.getAddressesByUserId(userId);
