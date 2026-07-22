@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
 
     <!-- CSS layout sidebar/profile dùng chung -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=4">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=20260722-shop-toast">
 
     <!-- CSS riêng màn sổ địa chỉ -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/list-addresses.css?v=1">

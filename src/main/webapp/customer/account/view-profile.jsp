@@ -31,7 +31,7 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
 
 <!-- CSS riêng profile, đặt cuối để không bị đè -->
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=4">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=20260722-shop-toast">
 
 
 </head>
