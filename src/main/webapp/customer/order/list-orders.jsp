@@ -117,7 +117,7 @@
                             </td>
                             <td>
                                 <div class="action-links">
-                                    <c:if test="${order.status == 'SHIPPING'}">
+                                    <c:if test="${order.status == 'DELIVERED'}">
                                         <button class="btn-received" onclick="confirmReceiveOrder('${pageContext.request.contextPath}', ${order.subOrderId}, '${order.paymentMethod}', ${order.masterOrderId}, this)">
                                             Đã nhận được hàng
                                         </button>
@@ -127,7 +127,7 @@
                                             Hủy đơn hàng
                                         </button>
                                     </c:if>
-                                    <c:if test="${order.status == 'DELIVERED'}">
+                                    <c:if test="${order.status == 'COMPLETED'}">
                                         <button class="btn-received update-status-order">
                                             Đã nhận hàng
                                         </button>

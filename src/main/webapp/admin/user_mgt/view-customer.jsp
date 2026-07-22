@@ -326,6 +326,9 @@
                                             <td>
                                                 <c:choose>
                                                     <c:when test="${order.status.name() == 'DELIVERED'}">
+                                                        <span class="order-badge badge-pending">Đã giao hàng</span>
+                                                    </c:when>
+                                                    <c:when test="${order.status.name() == 'COMPLETED'}">
                                                         <span class="order-badge badge-success">Thành công</span>
                                                     </c:when>
                                                     <c:when test="${order.status.name() == 'SHIPPING' or order.status.name() == 'PREPARING' or order.status.name() == 'CONFIRMED'}">

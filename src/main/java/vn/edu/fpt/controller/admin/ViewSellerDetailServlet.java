@@ -153,7 +153,7 @@ public class ViewSellerDetailServlet extends HttpServlet {
                         }
 
                         // Số lượng đơn hàng và doanh thu
-                        String orderSql = "SELECT COUNT(*), SUM(total_amount) FROM sub_orders WHERE shop_id = ? AND status = 'DELIVERED'";
+                        String orderSql = "SELECT COUNT(*), SUM(total_amount) FROM sub_orders WHERE shop_id = ? AND status = 'COMPLETED'";
                         try (PreparedStatement psOrder = conn.prepareStatement(orderSql)) {
                             psOrder.setInt(1, shopId);
                             try (ResultSet rsOrder = psOrder.executeQuery()) {

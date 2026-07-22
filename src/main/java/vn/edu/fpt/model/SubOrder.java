@@ -33,6 +33,8 @@ public class SubOrder {
 
     private SubOrderStatus status;
 
+    private LocalDateTime deliveredAt;
+
     private LocalDateTime createdAt;
 
 }

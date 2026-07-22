@@ -56,7 +56,8 @@
                             <c:when test="${orderDetail.status == 'CONFIRMED'}">Đã xác nhận</c:when>
                             <c:when test="${orderDetail.status == 'PREPARING'}">Đang chuẩn bị</c:when>
                             <c:when test="${orderDetail.status == 'SHIPPING'}">Đang giao</c:when>
-                            <c:when test="${orderDetail.status == 'DELIVERED'}">Hoàn thành</c:when>
+                            <c:when test="${orderDetail.status == 'DELIVERED'}">Đã giao hàng</c:when>
+                            <c:when test="${orderDetail.status == 'COMPLETED'}">Hoàn tất</c:when>
                             <c:when test="${orderDetail.status == 'CANCELLED'}">Đã hủy</c:when>
                             <c:otherwise>${orderDetail.status}</c:otherwise>
                         </c:choose>

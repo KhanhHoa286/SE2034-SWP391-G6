@@ -75,7 +75,8 @@
                 <option value="CONFIRMED" ${status == 'CONFIRMED' ? 'selected' : ''}>Đã xác nhận</option>
                 <option value="PREPARING" ${status == 'PREPARING' ? 'selected' : ''}>Đang chuẩn bị</option>
                 <option value="SHIPPING" ${status == 'SHIPPING' ? 'selected' : ''}>Đang giao hàng</option>
-                <option value="DELIVERED" ${status == 'DELIVERED' ? 'selected' : ''}>Đã hoàn thành</option>
+                <option value="DELIVERED" ${status == 'DELIVERED' ? 'selected' : ''}>Đã giao hàng</option>
+                <option value="COMPLETED" ${status == 'COMPLETED' ? 'selected' : ''}>Đã hoàn thành</option>
                 <option value="CANCELLED" ${status == 'CANCELLED' ? 'selected' : ''}>Đã hủy</option>
             </select>
 
@@ -156,7 +157,8 @@
                                             <c:when test="${order.status == 'CONFIRMED'}">Đã xác nhận</c:when>
                                             <c:when test="${order.status == 'PREPARING'}">Đang chuẩn bị</c:when>
                                             <c:when test="${order.status == 'SHIPPING'}">Đang giao</c:when>
-                                            <c:when test="${order.status == 'DELIVERED'}">Hoàn thành</c:when>
+                                            <c:when test="${order.status == 'DELIVERED'}">Đã giao hàng</c:when>
+                                            <c:when test="${order.status == 'COMPLETED'}">Hoàn tất</c:when>
                                             <c:when test="${order.status == 'CANCELLED'}">Đã hủy</c:when>
                                             <c:otherwise>${order.status}</c:otherwise>
                                         </c:choose>

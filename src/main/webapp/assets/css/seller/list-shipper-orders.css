@@ -277,6 +277,12 @@ body {
 }
 
 .shipper-order-status-badge.status-DELIVERED {
+    border-color: #f59e0b;
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.shipper-order-status-badge.status-COMPLETED {
     border-color: #16a34a;
     background: #f0fdf4;
     color: #166534;

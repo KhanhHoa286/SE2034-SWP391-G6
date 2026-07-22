@@ -35,7 +35,7 @@ public class ProductDAO extends DBContext {
                   SELECT od.product_id, SUM(od.quantity) AS total_sold
                   FROM order_items od
                   JOIN sub_orders so ON od.sub_order_id = so.sub_order_id
-                  WHERE so.status = 'DELIVERED'
+                  WHERE so.status = 'COMPLETED'
                   GROUP BY od.product_id
              ) sold_data ON p.product_id = sold_data.product_id
     WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED' AND p.status = 'ACTIVE'
@@ -198,7 +198,7 @@ public class ProductDAO extends DBContext {
                   SELECT od.product_id, SUM(od.quantity) AS total_sold
                   FROM order_items od
                   JOIN sub_orders so ON od.sub_order_id = so.sub_order_id
-                  WHERE so.status = 'DELIVERED'
+                  WHERE so.status = 'COMPLETED'
                   GROUP BY od.product_id
              ) sold_data ON p.product_id = sold_data.product_id
     WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED' AND p.status = 'ACTIVE'
@@ -329,7 +329,7 @@ public class ProductDAO extends DBContext {
         String sql = GET_PRODUCT_DETAIL_BY_PRODUCTID;
         ProductDetailResponse response = null;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, SubOrderStatus.DELIVERED.name());
+            stmt.setString(1, SubOrderStatus.COMPLETED.name());
             stmt.setInt(2, productId);
             stmt.setString(3, ShopStatus.ACTIVE.name());
             stmt.setString(4, ShopApplicationStatus.APPROVED.name());
@@ -487,7 +487,7 @@ public class ProductDAO extends DBContext {
                 SELECT od.product_id, SUM(od.quantity) AS total_sold
                 FROM order_items od
                 JOIN sub_orders so ON od.sub_order_id = so.sub_order_id
-                WHERE so.status = 'DELIVERED'
+                WHERE so.status = 'COMPLETED'
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
             WHERE p.shop_id = ? AND p.is_deleted = 0 AND p.status = 'ACTIVE'
@@ -630,7 +630,7 @@ public class ProductDAO extends DBContext {
                 SELECT od.product_id, SUM(od.quantity) AS total_sold
                 FROM order_items od
                 JOIN sub_orders so ON od.sub_order_id = so.sub_order_id
-                WHERE so.status = 'DELIVERED'
+                WHERE so.status = 'COMPLETED'
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
             WHERE p.shop_id = ? AND p.is_deleted = 0 AND p.status = 'ACTIVE'

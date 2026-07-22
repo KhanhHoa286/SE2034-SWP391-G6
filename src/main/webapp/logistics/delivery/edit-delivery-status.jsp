@@ -219,7 +219,8 @@
                                     <c:choose>
                                         <c:when test="${deliveryStatus.orderStatus == 'PREPARING'}">Đang chuẩn bị</c:when>
                                         <c:when test="${deliveryStatus.orderStatus == 'SHIPPING'}">Đang giao</c:when>
-                                        <c:when test="${deliveryStatus.orderStatus == 'DELIVERED'}">Hoàn thành</c:when>
+                                        <c:when test="${deliveryStatus.orderStatus == 'DELIVERED'}">Đã giao hàng</c:when>
+                                        <c:when test="${deliveryStatus.orderStatus == 'COMPLETED'}">Hoàn tất</c:when>
                                         <c:otherwise>${deliveryStatus.orderStatus}</c:otherwise>
                                     </c:choose>
                                 </dd>
