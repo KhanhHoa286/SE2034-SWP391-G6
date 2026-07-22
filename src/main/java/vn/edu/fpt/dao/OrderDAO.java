@@ -63,11 +63,11 @@ public class OrderDAO extends DBContext {
 
     public BigDecimal getTodayRevenue(int shopId) {
         String sql = """
-            SELECT SUM(total_amount - commission_fee) AS today_revenue
-            FROM sub_orders
-            WHERE shop_id = ? 
-              AND status = 'COMPLETED'
-              AND CAST(COALESCE(delivered_at, created_at) AS DATE) = CAST(GETDATE() AS DATE)
+                SELECT SUM(total_amount - commission_fee) AS today_revenue
+                    FROM sub_orders
+                    WHERE shop_id = ?
+                      AND status = 'COMPLETED'
+                      AND CAST(completed_at AS DATE) = CAST(GETDATE() AS DATE)
             """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -115,11 +115,11 @@ public class OrderDAO extends DBContext {
 
     public int getTodayNewOrders(int shopId) {
         String sql = """
-            SELECT COUNT(*) AS today_orders
-            FROM sub_orders
-            WHERE shop_id = ? 
-              AND status = 'COMPLETED'
-              AND CAST(COALESCE(delivered_at, created_at) AS DATE) = CAST(GETDATE() AS DATE)
+                SELECT COUNT(*) AS today_orders
+                FROM sub_orders
+                WHERE shop_id = ?
+                  AND status IN ('DELIVERED', 'COMPLETED') 
+                  AND CAST(delivered_at AS DATE) = CAST(GETDATE() AS DATE)
             """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -340,6 +340,7 @@ public class OrderDAO extends DBContext {
     private final String UPDATE_STATUS_ORDER = """
             UPDATE sub_orders
             SET status = 'COMPLETED',
+                completed_at = GETDATE(),
                 delivered_at = COALESCE(delivered_at, GETDATE())
             WHERE sub_order_id = ?;
             """;
@@ -930,7 +931,8 @@ public class OrderDAO extends DBContext {
      * HoaNK - Hàm tự động hủy khi listener được kích hoạt
      */
     private final String AUTO_UPDATE_ORDER_COMPLETED= """
-                UPDATE sub_orders  SET status = 'COMPLETED'
+                UPDATE sub_orders  SET status = 'COMPLETED',
+                completed_at = GETDATE() -
                  WHERE status = 'DELIVERED' 
                  AND delivered_at IS NOT NULL 
                 AND DATEDIFF(day, delivered_at, GETDATE()) >= 3

@@ -23,7 +23,7 @@ public class AutoUpdateDelivered implements ServletContextListener {
         //chu kỳ lặp lại: 1 giờ (cứ 1 tiếng quét 1 lần)
         scheduler.scheduleAtFixedRate(() -> {
             orderDAO.autoUpdateDelevered();
-        }, 0, 1, TimeUnit.HOURS);
+        }, 0, 1, TimeUnit.MINUTES);
 
     }
 

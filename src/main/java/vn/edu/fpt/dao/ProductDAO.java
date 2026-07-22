@@ -494,7 +494,6 @@ public class ProductDAO extends DBContext {
             ORDER BY ISNULL(sold_data.total_sold, 0) DESC
             """;
 
-        System.err.println("[DEBUG] getShopBestSellingProducts -> shopId=" + shopId + ", limit=" + limit);
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, limit);
@@ -503,9 +502,7 @@ public class ProductDAO extends DBContext {
             while (rs.next()) {
                 products.add(buildProductResponse(rs));
             }
-            System.err.println("[DEBUG] Bestsellers found: " + products.size());
         } catch (SQLException e) {
-            System.err.println("[DEBUG] Bestseller query error: " + e.getMessage());
             e.printStackTrace();
         }
         return products;
