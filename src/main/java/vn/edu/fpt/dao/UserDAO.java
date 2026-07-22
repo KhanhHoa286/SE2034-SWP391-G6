@@ -555,9 +555,7 @@ public class UserDAO extends DBContext {
         user.setPasswordHash(rs.getString("password_hash"));
         user.setAvatarUrl(rs.getString("avatar_url"));
         user.setLegalFullName(rs.getString("legal_full_name"));
-        user.setCitizenId(rs.getString("citizen_id"));
-        user.setCitizenIdIssuePlace(rs.getString("citizen_id_issue_place"));
-        user.setPermanentAddress(rs.getString("permanent_address"));
+        user.setCitizenId(rs.getString("id_card_number"));        user.setPermanentAddress(rs.getString("permanent_address"));
         user.setFrontIdImage(rs.getString("front_id_image"));
         user.setBackIdImage(rs.getString("back_id_image"));
 
@@ -575,10 +573,10 @@ public class UserDAO extends DBContext {
             user.setDateOfBirth(dob.toLocalDate());
         }
 
-        Date citizenIssueDate = rs.getDate("citizen_id_issue_date");
-        if (citizenIssueDate != null) {
-            user.setCitizenIdIssueDate(citizenIssueDate.toLocalDate());
-        }
+        // Date citizenIssueDate = rs.getDate("citizen_id_issue_date");
+        // if (citizenIssueDate != null) {
+        //     user.setCitizenIdIssueDate(citizenIssueDate.toLocalDate());
+        // }
 
         String status = rs.getString("status");
         if (status != null && !status.trim().isEmpty()) {
