@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.dao.CustomerDAO;
-import vn.edu.fpt.dao.ProductDAO;
 import vn.edu.fpt.dao.ShopDAO;
 import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
@@ -49,24 +48,14 @@ public class ListSellerOrdersServlet extends HttpServlet {
             return;
         }
 
-        CustomerDAO customerDAO = new CustomerDAO();
-        if (!customerDAO.hasCompletedSellerIdentity(userId)) {
-            response.sendRedirect(request.getContextPath() + "/seller-register");
-            return;
-        }
-
         Shop shop = shopDAO.getShopByOwnerId(userId);
         if (shop == null) {
-            response.sendRedirect(request.getContextPath() + "/add-shop");
-            return;
-        }
-
-        ProductDAO productDAO = new ProductDAO();
-        int totalProducts = productDAO.countSellerProducts(shop.getShopId(), "", null, null);
-        if (totalProducts == 0) {
-            session.setAttribute("toastMessage", "Bạn cần tạo ít nhất một sản phẩm để quản lý đơn hàng.");
-            session.setAttribute("toastType", "error");
-            response.sendRedirect(request.getContextPath() + "/list-seller-products");
+            CustomerDAO customerDAO = new CustomerDAO();
+            if (!customerDAO.hasCompletedSellerIdentity(userId)) {
+                response.sendRedirect(request.getContextPath() + "/seller-register");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/add-shop");
+            }
             return;
         }
 
