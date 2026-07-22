@@ -105,13 +105,6 @@
                     </div>
                 </div>
             </main>
-
-            <!-- FOOTER -->
-            <footer class="profile-footer">
-                <div class="footer-left">
-                    <span>© MODA — ${shop.shopName} PROFILE</span>
-                </div>
-            </footer>
         </div>
     </div>
 </div>

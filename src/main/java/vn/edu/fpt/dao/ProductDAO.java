@@ -666,7 +666,7 @@ public class ProductDAO extends DBContext {
             }
         }
 
-        sql += " ORDER BY p.created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
+        sql += " ORDER BY ISNULL(stock_data.total_stock, 0) ASC, p.created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
         int offset = (page - 1) * pageSize;
         params.add(offset);
         params.add(pageSize);
