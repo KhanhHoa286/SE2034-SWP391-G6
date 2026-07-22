@@ -27,6 +27,7 @@ import java.util.Properties;
 public class ListSellerOrdersServlet extends HttpServlet {
 
     private static final String ORDERS_PAGE = "/seller/order/list-seller-orders.jsp";
+    private static final long SELLER_TOAST_DURATION_MILLIS = 10_000L;
 
     private final ShopDAO shopDAO = new ShopDAO();
 
@@ -310,7 +311,13 @@ public class ListSellerOrdersServlet extends HttpServlet {
                 request.setAttribute("assignedDeliveryToastSubOrderId", order.getSubOrderId());
                 request.setAttribute("assignedDeliveryToastMessage",
                         "#SUB-" + order.getSubOrderId() + " đã được shipper nhận giao");
+                session.setAttribute("sellerAssignedDeliveryToastSubOrderId", order.getSubOrderId());
+                session.setAttribute("sellerAssignedDeliveryToastMessage",
+                        "#SUB-" + order.getSubOrderId() + " đã được shipper nhận giao");
+                session.setAttribute("sellerAssignedDeliveryToastExpiresAt",
+                        System.currentTimeMillis() + SELLER_TOAST_DURATION_MILLIS);
                 session.setAttribute("sellerAssignedDeliveryToastShown", true);
+                session.removeAttribute("sellerAssignedDeliveryToastAnimated");
                 return;
             }
         }
@@ -338,7 +345,13 @@ public class ListSellerOrdersServlet extends HttpServlet {
                     request.setAttribute("pendingOrderToastSubOrderId", subOrderId);
                     request.setAttribute("pendingOrderToastMessage",
                             "#SUB-" + subOrderId + " chưa được xác nhận");
+                    session.setAttribute("sellerPendingOrderToastSubOrderId", subOrderId);
+                    session.setAttribute("sellerPendingOrderToastMessage",
+                            "#SUB-" + subOrderId + " chưa được xác nhận");
+                    session.setAttribute("sellerPendingOrderToastExpiresAt",
+                            System.currentTimeMillis() + SELLER_TOAST_DURATION_MILLIS);
                     session.setAttribute("sellerPendingOrderToastShown", true);
+                    session.removeAttribute("sellerPendingOrderToastAnimated");
                 }
             }
         }
