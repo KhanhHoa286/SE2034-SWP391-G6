@@ -21,10 +21,24 @@
     <%@ include file="/seller/taskbar-seller.jsp" %>
 
     <main class="seller-orders-main container-fluid">
-        <c:if test="${not empty assignedDeliveryToastMessage}">
-            <div class="seller-orders-toast" role="status" aria-live="polite">
-                <i data-lucide="truck"></i>
-                <span>${assignedDeliveryToastMessage}</span>
+        <c:if test="${not empty pendingOrderToastMessage || not empty assignedDeliveryToastMessage}">
+            <div class="seller-orders-toast-stack" aria-live="polite">
+                <c:if test="${not empty pendingOrderToastMessage}">
+                    <a class="seller-orders-toast seller-orders-toast-warning"
+                       href="${pageContext.request.contextPath}/seller/order/view?subOrderId=${pendingOrderToastSubOrderId}"
+                       aria-label="Xem chi tiết ${pendingOrderToastMessage}">
+                        <i data-lucide="alert-triangle"></i>
+                        <span>${pendingOrderToastMessage}</span>
+                    </a>
+                </c:if>
+                <c:if test="${not empty assignedDeliveryToastMessage}">
+                    <a class="seller-orders-toast seller-orders-toast-dark"
+                       href="${pageContext.request.contextPath}/seller/order/status?subOrderId=${assignedDeliveryToastSubOrderId}"
+                       aria-label="Chuyển trạng thái ${assignedDeliveryToastMessage}">
+                        <i data-lucide="truck"></i>
+                        <span>${assignedDeliveryToastMessage}</span>
+                    </a>
+                </c:if>
             </div>
         </c:if>
 
@@ -205,15 +219,18 @@
         lucide.createIcons();
     }
 
-    const assignedDeliveryToast = document.querySelector('.seller-orders-toast');
-    if (assignedDeliveryToast) {
+    document.querySelectorAll('.seller-orders-toast').forEach(function (toast) {
         window.setTimeout(function () {
-            assignedDeliveryToast.classList.add('is-hiding');
+            toast.classList.add('is-hiding');
             window.setTimeout(function () {
-                assignedDeliveryToast.remove();
+                const stack = toast.closest('.seller-orders-toast-stack');
+                toast.remove();
+                if (stack && stack.children.length === 0) {
+                    stack.remove();
+                }
             }, 220);
         }, 10000);
-    }
+    });
 
     document.querySelectorAll('.seller-orders-clickable-row').forEach(function (row) {
         row.addEventListener('click', function (event) {

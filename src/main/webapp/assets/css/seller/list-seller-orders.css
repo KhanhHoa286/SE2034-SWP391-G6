@@ -73,15 +73,24 @@ body {
     height: 18px;
 }
 
-.seller-orders-toast {
+.seller-orders-toast-stack {
     position: fixed;
     top: 24px;
     right: 24px;
     z-index: 1060;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+    max-width: min(420px, calc(100vw - 48px));
+}
+
+.seller-orders-toast {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    max-width: 360px;
+    width: fit-content;
+    max-width: 420px;
     padding: 14px 16px;
     border: 1px solid #000000;
     background: #000000;
@@ -91,6 +100,47 @@ body {
     font-weight: 800;
     line-height: 1.35;
     animation: sellerOrdersToastIn 0.22s ease-out both;
+    text-decoration: none;
+}
+
+.seller-orders-toast:hover,
+.seller-orders-toast:focus,
+.seller-orders-toast:visited {
+    text-decoration: none;
+}
+
+.seller-orders-toast:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 3px;
+}
+
+.seller-orders-toast-warning {
+    border-color: #f59e0b;
+    background: #fef3c7;
+    color: #78350f;
+    box-shadow: 0 14px 34px rgba(180, 83, 9, 0.18);
+}
+
+.seller-orders-toast-warning:hover,
+.seller-orders-toast-warning:focus,
+.seller-orders-toast-warning:visited {
+    color: #78350f;
+}
+
+.seller-orders-toast-dark {
+    border-color: #000000;
+    background: #000000;
+    color: #ffffff !important;
+}
+
+.seller-orders-toast-dark:hover,
+.seller-orders-toast-dark:focus,
+.seller-orders-toast-dark:visited {
+    color: #ffffff !important;
+}
+
+.seller-orders-toast-dark span {
+    color: #ffffff !important;
 }
 
 .seller-orders-toast.is-hiding {
@@ -104,6 +154,11 @@ body {
     flex: 0 0 auto;
     color: #ffffff;
     stroke: #ffffff;
+}
+
+.seller-orders-toast-warning svg {
+    color: #b45309;
+    stroke: #b45309;
 }
 
 @keyframes sellerOrdersToastIn {

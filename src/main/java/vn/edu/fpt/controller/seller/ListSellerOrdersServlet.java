@@ -85,6 +85,7 @@ public class ListSellerOrdersServlet extends HttpServlet {
             loadOrderMetrics(connection, request, shop.getShopId());
             List<SellerOrderRow> sellerOrders = loadSellerOrders(connection, shop.getShopId(), search, status, dateRange, sort);
             request.setAttribute("sellerOrders", sellerOrders);
+            preparePendingOrderToast(connection, request, shop.getShopId());
             prepareAssignedDeliveryToast(request, sellerOrders);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -317,10 +318,39 @@ public class ListSellerOrdersServlet extends HttpServlet {
 
         for (SellerOrderRow order : orders) {
             if (order.isShipperAssigned() && "PREPARING".equalsIgnoreCase(order.getStatus())) {
+                request.setAttribute("assignedDeliveryToastSubOrderId", order.getSubOrderId());
                 request.setAttribute("assignedDeliveryToastMessage",
-                        "#SUB-" + order.getSubOrderId() + " đã được nhận giao");
+                        "#SUB-" + order.getSubOrderId() + " đã được shipper nhận giao");
                 session.setAttribute("sellerAssignedDeliveryToastShown", true);
                 return;
+            }
+        }
+    }
+
+    private void preparePendingOrderToast(Connection connection, HttpServletRequest request, int shopId) throws Exception {
+        HttpSession session = request.getSession(false);
+        if (session == null || Boolean.TRUE.equals(session.getAttribute("sellerPendingOrderToastShown"))) {
+            return;
+        }
+
+        String sql = """
+                SELECT TOP 1 sub_order_id
+                FROM sub_orders
+                WHERE shop_id = ?
+                  AND status = 'PENDING'
+                ORDER BY created_at ASC, sub_order_id ASC
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, shopId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int subOrderId = rs.getInt("sub_order_id");
+                    request.setAttribute("pendingOrderToastSubOrderId", subOrderId);
+                    request.setAttribute("pendingOrderToastMessage",
+                            "#SUB-" + subOrderId + " chưa được xác nhận");
+                    session.setAttribute("sellerPendingOrderToastShown", true);
+                }
             }
         }
     }
