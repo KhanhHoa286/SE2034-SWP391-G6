@@ -932,7 +932,7 @@ public class OrderDAO extends DBContext {
      */
     private final String AUTO_UPDATE_ORDER_COMPLETED= """
                 UPDATE sub_orders  SET status = 'COMPLETED',
-                completed_at = GETDATE() -
+                completed_at = GETDATE()
                  WHERE status = 'DELIVERED' 
                  AND delivered_at IS NOT NULL 
                 AND DATEDIFF(day, delivered_at, GETDATE()) >= 3
