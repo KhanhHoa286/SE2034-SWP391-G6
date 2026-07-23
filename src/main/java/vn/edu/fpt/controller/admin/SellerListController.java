@@ -12,7 +12,7 @@ import vn.edu.fpt.dao.UserDAO;
 import vn.edu.fpt.controller.admin.UserAdminDTO;
 
 
-@WebServlet(name = "SellerListController", urlPatterns = {"/admin/seller-management"})
+@WebServlet(name = "SellerListController", urlPatterns = {"/admin/seller-management-old"})
 public class SellerListController extends HttpServlet {
 
     @Override

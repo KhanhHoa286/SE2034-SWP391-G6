@@ -207,32 +207,7 @@ button { font-family: inherit; cursor: pointer; outline: none; }
     overflow-x: auto;
 }
 
-/* ──────────────────────────────────────────────
-   Topbar
-   ────────────────────────────────────────────── */
-.topbar {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 16px;
-    padding-bottom: 8px;
-}
 
-.topbar-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.topbar-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid var(--border-color);
-    cursor: pointer;
-}
 
 /* ──────────────────────────────────────────────
    Page Header

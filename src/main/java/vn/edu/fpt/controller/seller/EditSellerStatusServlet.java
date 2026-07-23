@@ -320,7 +320,7 @@ public class EditSellerStatusServlet extends HttpServlet {
                 FROM deliveries
                 WHERE sub_order_id = ?
                   AND shipper_id IS NOT NULL
-                  AND status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED')
+                  AND status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'COMPLETED')
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -352,7 +352,7 @@ public class EditSellerStatusServlet extends HttpServlet {
         int currentIndex = 0;
         if ("PREPARING".equals(status) || "CONFIRMED".equals(status)) {
             currentIndex = 1;
-        } else if ("SHIPPING".equals(status) || "DELIVERED".equals(status)) {
+        } else if ("SHIPPING".equals(status) || "DELIVERED".equals(status) || "COMPLETED".equals(status)) {
             currentIndex = 2;
         } else if ("CANCELLED".equals(status)) {
             currentIndex = -1;

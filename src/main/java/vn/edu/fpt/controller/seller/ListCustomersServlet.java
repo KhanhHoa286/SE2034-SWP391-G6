@@ -133,7 +133,7 @@ public class ListCustomersServlet extends HttpServlet {
                            COUNT(*) AS total_orders,
                            SUM(CASE WHEN so.status <> 'CANCELLED' THEN so.total_amount ELSE 0 END) AS total_spent,
                            SUM(CASE WHEN so.status IN ('PENDING', 'CONFIRMED', 'PREPARING', 'SHIPPING') THEN 1 ELSE 0 END) AS active_orders,
-                           SUM(CASE WHEN so.status = 'DELIVERED' THEN 1 ELSE 0 END) AS delivered_orders,
+                           SUM(CASE WHEN so.status IN ('DELIVERED', 'COMPLETED') THEN 1 ELSE 0 END) AS delivered_orders,
                            SUM(CASE WHEN so.status = 'CANCELLED' THEN 1 ELSE 0 END) AS cancelled_orders,
                            MIN(mo.created_at) AS first_order_at,
                            MAX(mo.created_at) AS last_order_at,

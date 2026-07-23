@@ -12,7 +12,7 @@
     <title>Chi tiết khách hàng: ${not empty customer.fullName ? customer.fullName : 'N/A'} - MODA Admin</title>
     <meta name="description" content="Xem chi tiết thông tin và lịch sử mua hàng của khách hàng trong hệ thống MODA Admin.">
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin/view-customer.css?v=1.3">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin/view-customer.css?v=1.4">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -41,8 +41,8 @@
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/seller-management">
-                            <span class="menu-text">Người bán</span>
+                        <a href="${pageContext.request.contextPath}/admin/shop-management">
+                            <span class="menu-text">Danh sách Shop</span>
                         </a>
                     </li>
                     <li class="menu-item">
@@ -74,13 +74,6 @@
          ═══════════════════════════════════════ --%>
     <main class="main-content">
 
-        <%-- Topbar --%>
-        <div class="topbar" style="justify-content: flex-end;">
-            <div class="topbar-actions">
-                <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg"
-                     alt="Avatar" class="topbar-avatar" />
-            </div>
-        </div>
 
         <%-- Page Header --%>
         <section class="page-header">
@@ -180,7 +173,74 @@
                         </li>
                         <li class="contact-item">
                             <i data-lucide="map-pin" class="contact-icon"></i>
-                            <span>Chưa cập nhật</span>
+                            <%
+                                int currentUserId = ((vn.edu.fpt.controller.admin.CustomerDTO) request.getAttribute("customer")).getUserId();
+                                String addrStr = "Chưa cập nhật";
+                                String dbgErr = "";
+                                java.sql.Connection conn = null;
+                                try {
+                                    conn = new vn.edu.fpt.common.DBContext().getConnection();
+                                    if (conn != null) {
+                                        boolean found = false;
+                                        
+                                        // 1. Check addresses table
+                                        java.sql.PreparedStatement ps = conn.prepareStatement(
+                                            "SELECT a.street_address, w.name as ward_name, p.name as prov_name " +
+                                            "FROM addresses a LEFT JOIN wards w ON a.ward_id = w.id " +
+                                            "LEFT JOIN provinces p ON w.province_id = p.id WHERE a.user_id = ? ORDER BY a.is_default DESC, a.created_at DESC"
+                                        );
+                                        ps.setInt(1, currentUserId);
+                                        java.sql.ResultSet rs = ps.executeQuery();
+                                        if (rs.next()) {
+                                            String street = rs.getString("street_address");
+                                            String ward = rs.getString("ward_name");
+                                            String prov = rs.getString("prov_name");
+                                            String temp = "";
+                                            if (street != null && !street.trim().isEmpty()) temp += street;
+                                            if (ward != null && !ward.trim().isEmpty()) temp += (temp.isEmpty() ? "" : ", ") + ward;
+                                            if (prov != null && !prov.trim().isEmpty()) temp += (temp.isEmpty() ? "" : ", ") + prov;
+                                            if (!temp.isEmpty()) {
+                                                addrStr = temp;
+                                                found = true;
+                                            }
+                                        }
+                                        rs.close(); ps.close();
+
+                                        // 2. Check shops table
+                                        if (!found) {
+                                            ps = conn.prepareStatement(
+                                                "SELECT s.street_address, w.name as ward_name, p.name as prov_name " +
+                                                "FROM shops s LEFT JOIN wards w ON s.ward_id = w.id " +
+                                                "LEFT JOIN provinces p ON w.province_id = p.id WHERE s.owner_id = ?"
+                                            );
+                                            ps.setInt(1, currentUserId);
+                                            rs = ps.executeQuery();
+                                            if (rs.next()) {
+                                                String street = rs.getString("street_address");
+                                                String ward = rs.getString("ward_name");
+                                                String prov = rs.getString("prov_name");
+                                                String temp = "";
+                                                if (street != null && !street.trim().isEmpty()) temp += street;
+                                                if (ward != null && !ward.trim().isEmpty()) temp += (temp.isEmpty() ? "" : ", ") + ward;
+                                                if (prov != null && !prov.trim().isEmpty()) temp += (temp.isEmpty() ? "" : ", ") + prov;
+                                                if (!temp.isEmpty()) {
+                                                    addrStr = temp;
+                                                    found = true;
+                                                }
+                                            }
+                                            rs.close(); ps.close();
+                                        }
+
+                                    } else {
+                                        dbgErr = " (Conn Null)";
+                                    }
+                                } catch (Exception e) {
+                                    // Ignore errors instead of showing them on UI, or log them
+                                } finally {
+                                    if (conn != null) try { conn.close(); } catch(Exception e){}
+                                }
+                            %>
+                            <span><%= addrStr %><%= dbgErr %></span>
                         </li>
                         <li class="contact-item">
                             <i data-lucide="calendar" class="contact-icon"></i>
@@ -249,13 +309,13 @@
                                             <td>
                                                 <a href="${pageContext.request.contextPath}/admin/order-detail?id=${order.masterOrderId}"
                                                    class="order-id-link">
-                                                    <c:out value="${order.orderCode}"/>
+                                                    #ORD-<c:out value="${order.masterOrderId}"/>
                                                 </a>
                                             </td>
                                             <td class="col-date">
                                                 <c:choose>
                                                     <c:when test="${not empty order.createdAt}">
-                                                        <fmt:formatDate value="${order.createdAt}" pattern="dd/MM/yyyy"/>
+                                                        <c:out value="${order.createdAtFormat}"/>
                                                     </c:when>
                                                     <c:otherwise>—</c:otherwise>
                                                 </c:choose>
@@ -265,18 +325,21 @@
                                             </td>
                                             <td>
                                                 <c:choose>
-                                                    <c:when test="${order.status == 'SUCCESS' or order.status == 'COMPLETED' or order.status == 'THANH_CONG' or order.status == 'DELIVERED'}">
+                                                    <c:when test="${order.status.name() == 'DELIVERED'}">
+                                                        <span class="order-badge badge-pending">Đã giao hàng</span>
+                                                    </c:when>
+                                                    <c:when test="${order.status.name() == 'COMPLETED'}">
                                                         <span class="order-badge badge-success">Thành công</span>
                                                     </c:when>
-                                                    <c:when test="${order.status == 'DELIVERING' or order.status == 'SHIPPING' or order.status == 'DANG_GIAO' or order.status == 'PREPARING' or order.status == 'CONFIRMED'}">
+                                                    <c:when test="${order.status.name() == 'SHIPPING' or order.status.name() == 'PREPARING' or order.status.name() == 'CONFIRMED'}">
                                                         <span class="order-badge badge-delivering">Đang giao</span>
                                                     </c:when>
-                                                    <c:when test="${order.status == 'CANCELED' or order.status == 'CANCELLED' or order.status == 'DA_HUY'}">
+                                                    <c:when test="${order.status.name() == 'CANCELLED'}">
                                                         <span class="order-badge badge-canceled">Đã hủy</span>
                                                     </c:when>
                                                     <c:otherwise>
                                                         <span class="order-badge badge-pending">
-                                                            <c:out value="${order.status == 'PENDING' ? 'Chờ xác nhận' : order.status}"/>
+                                                            <c:out value="${order.status.displayName}"/>
                                                         </span>
                                                     </c:otherwise>
                                                 </c:choose>
@@ -288,56 +351,9 @@
                             </div>
                         </c:when>
                         <c:otherwise>
-                            <%-- Empty / Demo State --%>
-                            <div style="overflow-x:auto;">
-                                <table class="orders-table">
-                                    <thead>
-                                    <tr>
-                                        <th>Mã đơn hàng</th>
-                                        <th>Ngày đặt</th>
-                                        <th>Tổng tiền (VND)</th>
-                                        <th>Trạng thái</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr>
-                                        <td><a href="#" class="order-id-link">#ORD-001</a></td>
-                                        <td class="col-date">20/10/2023</td>
-                                        <td class="col-amount">1,250,000</td>
-                                        <td><span class="order-badge badge-success">Thành công</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><a href="#" class="order-id-link">#ORD-002</a></td>
-                                        <td class="col-date">15/09/2023</td>
-                                        <td class="col-amount">850,000</td>
-                                        <td><span class="order-badge badge-delivering">Đang giao</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><a href="#" class="order-id-link">#ORD-003</a></td>
-                                        <td class="col-date">01/09/2023</td>
-                                        <td class="col-amount">3,400,000</td>
-                                        <td><span class="order-badge badge-success">Thành công</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><a href="#" class="order-id-link">#ORD-004</a></td>
-                                        <td class="col-date">12/08/2023</td>
-                                        <td class="col-amount">450,000</td>
-                                        <td><span class="order-badge badge-canceled">Đã hủy</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><a href="#" class="order-id-link">#ORD-005</a></td>
-                                        <td class="col-date">25/07/2023</td>
-                                        <td class="col-amount">2,100,000</td>
-                                        <td><span class="order-badge badge-success">Thành công</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><a href="#" class="order-id-link">#ORD-006</a></td>
-                                        <td class="col-date">10/06/2023</td>
-                                        <td class="col-amount">950,000</td>
-                                        <td><span class="order-badge badge-success">Thành công</span></td>
-                                    </tr>
-                                    </tbody>
-                                </table>
+                            <%-- Empty State --%>
+                            <div style="padding: 24px; text-align: center; color: #6b7280; font-size: 14px; background: var(--bg-secondary); border-radius: 8px;">
+                                Khách hàng này chưa có đơn hàng nào.
                             </div>
                         </c:otherwise>
                     </c:choose>

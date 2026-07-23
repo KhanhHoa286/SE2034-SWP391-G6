@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
 
     <!-- CSS layout sidebar/profile dùng chung -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=4">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=20260722-shop-toast">
 
     <!-- CSS riêng màn sổ địa chỉ -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/list-addresses.css?v=1">
@@ -107,6 +107,12 @@
                                 </div>
 
                                 <div class="address-card-actions">
+                                    <c:if test="${!address.isDefault}">
+                                        <button type="button" class="address-action address-action--set-default" onclick="setDefaultAddress(${address.addressId})">
+                                            <span class="material-symbols-outlined">check_circle</span>
+                                            Thiết lập mặc định
+                                        </button>
+                                    </c:if>
                                     <a href="${pageContext.request.contextPath}/customer/addresses/edit?id=${address.addressId}"
                                        class="address-action address-action--edit">
                                         <span class="material-symbols-outlined">edit</span>
@@ -146,5 +152,28 @@
 
 </div>
 
+<script>
+function setDefaultAddress(addressId) {
+    fetch('${pageContext.request.contextPath}/api/customer/addresses/set-default', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'addressId=' + addressId
+    })
+    .then(response => response.json())
+    .then(response => {
+        if (response.success) {
+            window.location.href = response.redirectUrl;
+        } else {
+            alert('Có lỗi xảy ra: ' + response.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Lỗi kết nối khi lưu địa chỉ mặc định!');
+    });
+}
+</script>
 </body>
 </html>

@@ -3,6 +3,7 @@
 
 <c:set var="hasSellerAccount" value="${requestScope.hasSellerAccount or sessionScope.hasSellerAccount}" />
 <c:set var="hasPendingSellerRegistration" value="${requestScope.hasPendingSellerRegistration or sessionScope.hasPendingSellerRegistration}" />
+<c:set var="shopSuspended" value="${requestScope.shopSuspended or sessionScope.shopSuspended}" />
 
 <aside class="profile-sidebar">
     <div class="profile-sidebar__head">
@@ -32,6 +33,13 @@
         </a>
 
         <c:choose>
+            <c:when test="${hasSellerAccount and shopSuspended}">
+                <button class="profile-side-link profile-side-link--suspended"
+                        data-suspended-shop-trigger
+                        type="button">
+                    <span>Trang người bán</span>
+                </button>
+            </c:when>
             <c:when test="${hasSellerAccount}">
                 <a class="profile-side-link ${param.active == 'seller' ? 'active' : ''}"
                    href="${pageContext.request.contextPath}/seller/orders">
@@ -55,3 +63,34 @@
         </div>
     </nav>
 </aside>
+
+<c:if test="${hasSellerAccount and shopSuspended}">
+    <div id="shopSuspendedToast" class="shop-suspended-toast" role="status" aria-live="polite" hidden>
+        <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+        <span>Shop của bạn đã bị khóa</span>
+    </div>
+    <script>
+        (function () {
+            var trigger = document.querySelector('[data-suspended-shop-trigger]');
+            var toast = document.getElementById('shopSuspendedToast');
+            var hideTimer;
+
+            if (!trigger || !toast) return;
+
+            trigger.addEventListener('click', function () {
+                window.clearTimeout(hideTimer);
+                toast.hidden = false;
+                toast.classList.remove('is-hiding');
+                toast.classList.add('is-visible');
+
+                hideTimer = window.setTimeout(function () {
+                    toast.classList.add('is-hiding');
+                    window.setTimeout(function () {
+                        toast.classList.remove('is-visible', 'is-hiding');
+                        toast.hidden = true;
+                    }, 200);
+                }, 5000);
+            });
+        }());
+    </script>
+</c:if>

@@ -4,6 +4,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import vn.edu.fpt.dao.CustomerDAO;
+import vn.edu.fpt.dao.OrderDAO;
+import vn.edu.fpt.dto.response.OrderHistoryResponse;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,6 +25,7 @@ public class ViewCustomerServlet extends HttpServlet {
     private static final int PAGE_SIZE = 6; // số đơn hàng hiển thị mỗi trang
 
     private final CustomerDAO customerDAO = new CustomerDAO();
+    private final OrderDAO orderDAO = new OrderDAO();
 
     // ─────────────────────────────────────────────────────────────
     //  GET: Hiển thị chi tiết khách hàng
@@ -64,13 +67,24 @@ public class ViewCustomerServlet extends HttpServlet {
 
         int totalOrders = customerDAO.countOrders(userId);
         int totalPages  = (int) Math.ceil((double) totalOrders / PAGE_SIZE);
-
+        java.util.List<vn.edu.fpt.model.Address> addresses = new vn.edu.fpt.dao.AddressDAO().getAddressesByUserId(userId);
+        String addressString = "Chưa cập nhật";
+        if (addresses != null && !addresses.isEmpty()) {
+            vn.edu.fpt.model.Address addr = addresses.get(0);
+            String wardName = addr.getWard() != null ? addr.getWard().getName() : "";
+            String provinceName = (addr.getWard() != null && addr.getWard().getProvince() != null) ? addr.getWard().getProvince().getName() : "";
+            addressString = addr.getStreetAddress() + ", " + wardName + ", " + provinceName;
+        }
+        req.setAttribute("addressString", addressString);
 
         // ── 4. Đẩy dữ liệu ra view ──
         req.setAttribute("customer",     customer);
         req.setAttribute("currentPage",  currentPage);
         req.setAttribute("totalPages",   totalPages);
         req.setAttribute("totalOrders",  totalOrders);
+
+        List<OrderHistoryResponse> orderHistory = orderDAO.getRecentSubOrdersByCustomerId(userId, 5);
+        req.setAttribute("orderHistory", orderHistory);
 
         req.getRequestDispatcher("/admin/user_mgt/view-customer.jsp")
                 .forward(req, resp);

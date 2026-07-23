@@ -63,11 +63,11 @@ public class OrderDAO extends DBContext {
 
     public BigDecimal getTodayRevenue(int shopId) {
         String sql = """
-            SELECT SUM(total_amount - commission_fee) AS today_revenue
-            FROM sub_orders
-            WHERE shop_id = ? 
-              AND status = 'DELIVERED'
-              AND CAST(COALESCE(delivered_at, created_at) AS DATE) = CAST(GETDATE() AS DATE)
+                SELECT SUM(total_amount - commission_fee) AS today_revenue
+                    FROM sub_orders
+                    WHERE shop_id = ?
+                      AND status = 'COMPLETED'
+                      AND CAST(completed_at AS DATE) = CAST(GETDATE() AS DATE)
             """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -91,7 +91,7 @@ public class OrderDAO extends DBContext {
                 SUM(CASE WHEN CAST(COALESCE(delivered_at, created_at) AS DATE) = CAST(DATEADD(day, -1, GETDATE()) AS DATE)
                     THEN total_amount - commission_fee ELSE 0 END) AS yesterday_rev
             FROM sub_orders
-            WHERE shop_id = ? AND status = 'DELIVERED'
+            WHERE shop_id = ? AND status = 'COMPLETED'
             """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -115,11 +115,11 @@ public class OrderDAO extends DBContext {
 
     public int getTodayNewOrders(int shopId) {
         String sql = """
-            SELECT COUNT(*) AS today_orders
-            FROM sub_orders
-            WHERE shop_id = ? 
-              AND status = 'DELIVERED'
-              AND CAST(COALESCE(delivered_at, created_at) AS DATE) = CAST(GETDATE() AS DATE)
+                SELECT COUNT(*) AS today_orders
+                FROM sub_orders
+                WHERE shop_id = ?
+                  AND status IN ('DELIVERED', 'COMPLETED') 
+                  AND CAST(delivered_at AS DATE) = CAST(GETDATE() AS DATE)
             """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -173,7 +173,7 @@ public class OrderDAO extends DBContext {
             LEFT JOIN sub_orders so 
               ON CAST(COALESCE(so.delivered_at, so.created_at) AS DATE) = date_range.d 
              AND so.shop_id = ? 
-             AND so.status = 'DELIVERED'
+             AND so.status = 'COMPLETED'
             GROUP BY date_range.d
             ORDER BY date_range.d ASC
             """;
@@ -335,11 +335,12 @@ public class OrderDAO extends DBContext {
     }
 
     /**
-     * HoaNK - Update status của suborder khi khách nhận được hàng chuyển sang delivered
+     * HoaNK - Update status của suborder khi khách nhận được hàng chuyển sang completed
      */
     private final String UPDATE_STATUS_ORDER = """
             UPDATE sub_orders
-            SET status = 'DELIVERED',
+            SET status = 'COMPLETED',
+                completed_at = GETDATE(),
                 delivered_at = COALESCE(delivered_at, GETDATE())
             WHERE sub_order_id = ?;
             """;
@@ -923,6 +924,25 @@ public class OrderDAO extends DBContext {
                 stmt.addBatch();
             }
             stmt.executeBatch();
+        }
+    }
+
+    /**
+     * HoaNK - Hàm tự động hủy khi listener được kích hoạt
+     */
+    private final String AUTO_UPDATE_ORDER_COMPLETED= """
+                UPDATE sub_orders  SET status = 'COMPLETED',
+                completed_at = GETDATE()
+                 WHERE status = 'DELIVERED' 
+                 AND delivered_at IS NOT NULL 
+                AND DATEDIFF(day, delivered_at, GETDATE()) >= 3
+          """;
+    public void autoUpdateDelevered() {
+        String sql = AUTO_UPDATE_ORDER_COMPLETED;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

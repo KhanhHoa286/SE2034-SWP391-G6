@@ -22,7 +22,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/public/global.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/public/popup.css" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/customer/profile.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=20260722-shop-toast" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/customer/list-orders.css" rel="stylesheet">
 </head>
 
@@ -117,7 +117,7 @@
                             </td>
                             <td>
                                 <div class="action-links">
-                                    <c:if test="${order.status == 'SHIPPING'}">
+                                    <c:if test="${order.status == 'DELIVERED'}">
                                         <button class="btn-received" onclick="confirmReceiveOrder('${pageContext.request.contextPath}', ${order.subOrderId}, '${order.paymentMethod}', ${order.masterOrderId}, this)">
                                             Đã nhận được hàng
                                         </button>
@@ -127,7 +127,7 @@
                                             Hủy đơn hàng
                                         </button>
                                     </c:if>
-                                    <c:if test="${order.status == 'DELIVERED'}">
+                                    <c:if test="${order.status == 'COMPLETED'}">
                                         <button class="btn-received update-status-order">
                                             Đã nhận hàng
                                         </button>

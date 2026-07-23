@@ -5,7 +5,7 @@
 <!-- Header -->
 <header class="header">
     <div class="container header__inner">
-        <a href="view-home-page.jsp" class="header__logo">MODA</a>
+        <a href="${pageContext.request.contextPath}/home" class="header__logo">MODA</a>
 
         <nav class="header__nav d-none d-md-block">
             <ul>

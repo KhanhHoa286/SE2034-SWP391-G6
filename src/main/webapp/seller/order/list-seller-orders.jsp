@@ -21,13 +21,6 @@
     <%@ include file="/seller/taskbar-seller.jsp" %>
 
     <main class="seller-orders-main container-fluid">
-        <c:if test="${not empty assignedDeliveryToastMessage}">
-            <div class="seller-orders-toast" role="status" aria-live="polite">
-                <i data-lucide="truck"></i>
-                <span>${assignedDeliveryToastMessage}</span>
-            </div>
-        </c:if>
-
         <nav class="seller-orders-breadcrumb d-flex align-items-center">
             <span>Seller Center</span>
             <span>/</span>
@@ -82,7 +75,8 @@
                 <option value="CONFIRMED" ${status == 'CONFIRMED' ? 'selected' : ''}>Đã xác nhận</option>
                 <option value="PREPARING" ${status == 'PREPARING' ? 'selected' : ''}>Đang chuẩn bị</option>
                 <option value="SHIPPING" ${status == 'SHIPPING' ? 'selected' : ''}>Đang giao hàng</option>
-                <option value="DELIVERED" ${status == 'DELIVERED' ? 'selected' : ''}>Đã hoàn thành</option>
+                <option value="DELIVERED" ${status == 'DELIVERED' ? 'selected' : ''}>Đã giao hàng</option>
+                <option value="COMPLETED" ${status == 'COMPLETED' ? 'selected' : ''}>Đã hoàn thành</option>
                 <option value="CANCELLED" ${status == 'CANCELLED' ? 'selected' : ''}>Đã hủy</option>
             </select>
 
@@ -163,7 +157,8 @@
                                             <c:when test="${order.status == 'CONFIRMED'}">Đã xác nhận</c:when>
                                             <c:when test="${order.status == 'PREPARING'}">Đang chuẩn bị</c:when>
                                             <c:when test="${order.status == 'SHIPPING'}">Đang giao</c:when>
-                                            <c:when test="${order.status == 'DELIVERED'}">Hoàn thành</c:when>
+                                            <c:when test="${order.status == 'DELIVERED'}">Đã giao hàng</c:when>
+                                            <c:when test="${order.status == 'COMPLETED'}">Hoàn tất</c:when>
                                             <c:when test="${order.status == 'CANCELLED'}">Đã hủy</c:when>
                                             <c:otherwise>${order.status}</c:otherwise>
                                         </c:choose>
@@ -203,16 +198,6 @@
 <script>
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
-    }
-
-    const assignedDeliveryToast = document.querySelector('.seller-orders-toast');
-    if (assignedDeliveryToast) {
-        window.setTimeout(function () {
-            assignedDeliveryToast.classList.add('is-hiding');
-            window.setTimeout(function () {
-                assignedDeliveryToast.remove();
-            }, 220);
-        }, 10000);
     }
 
     document.querySelectorAll('.seller-orders-clickable-row').forEach(function (row) {

@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.dao.CustomerDAO;
-import vn.edu.fpt.dao.ProductDAO;
 import vn.edu.fpt.dao.ShopDAO;
 import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
@@ -28,6 +27,7 @@ import java.util.Properties;
 public class ListSellerOrdersServlet extends HttpServlet {
 
     private static final String ORDERS_PAGE = "/seller/order/list-seller-orders.jsp";
+    private static final long SELLER_TOAST_DURATION_MILLIS = 10_000L;
 
     private final ShopDAO shopDAO = new ShopDAO();
 
@@ -49,24 +49,14 @@ public class ListSellerOrdersServlet extends HttpServlet {
             return;
         }
 
-        CustomerDAO customerDAO = new CustomerDAO();
-        if (!customerDAO.hasCompletedSellerIdentity(userId)) {
-            response.sendRedirect(request.getContextPath() + "/seller-register");
-            return;
-        }
-
         Shop shop = shopDAO.getShopByOwnerId(userId);
         if (shop == null) {
-            response.sendRedirect(request.getContextPath() + "/add-shop");
-            return;
-        }
-
-        ProductDAO productDAO = new ProductDAO();
-        int totalProducts = productDAO.countSellerProducts(shop.getShopId(), "", null, null);
-        if (totalProducts == 0) {
-            session.setAttribute("toastMessage", "Bạn cần tạo ít nhất một sản phẩm để quản lý đơn hàng.");
-            session.setAttribute("toastType", "error");
-            response.sendRedirect(request.getContextPath() + "/list-seller-products");
+            CustomerDAO customerDAO = new CustomerDAO();
+            if (!customerDAO.hasCompletedSellerIdentity(userId)) {
+                response.sendRedirect(request.getContextPath() + "/seller-register");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/add-shop");
+            }
             return;
         }
 
@@ -85,6 +75,7 @@ public class ListSellerOrdersServlet extends HttpServlet {
             loadOrderMetrics(connection, request, shop.getShopId());
             List<SellerOrderRow> sellerOrders = loadSellerOrders(connection, shop.getShopId(), search, status, dateRange, sort);
             request.setAttribute("sellerOrders", sellerOrders);
+            preparePendingOrderToast(connection, request, shop.getShopId());
             prepareAssignedDeliveryToast(request, sellerOrders);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -129,7 +120,7 @@ public class ListSellerOrdersServlet extends HttpServlet {
                 SELECT COUNT(*) AS total_orders,
                        COALESCE(SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END), 0) AS pending_orders,
                        COALESCE(SUM(CASE WHEN status IN ('CONFIRMED', 'PREPARING', 'SHIPPING') THEN 1 ELSE 0 END), 0) AS processing_orders,
-                       COALESCE(SUM(CASE WHEN status = 'DELIVERED' THEN 1 ELSE 0 END), 0) AS delivered_orders,
+                       COALESCE(SUM(CASE WHEN status in('DELIVERED', 'COMPLETED') THEN 1 ELSE 0 END), 0) AS delivered_orders,
                        COALESCE(SUM(CASE WHEN status <> 'CANCELLED' THEN total_amount ELSE 0 END), 0) AS gross_amount
                 FROM sub_orders
                 WHERE shop_id = ?
@@ -212,7 +203,7 @@ public class ListSellerOrdersServlet extends HttpServlet {
                     INNER JOIN users shipper ON shipper.user_id = d.shipper_id
                     WHERE d.sub_order_id = so.sub_order_id
                       AND d.shipper_id IS NOT NULL
-                      AND d.status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED')
+                      AND d.status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'COMPLETED')
                     ORDER BY d.delivery_id DESC
                 ) delivery
                 WHERE so.shop_id = ?
@@ -317,10 +308,51 @@ public class ListSellerOrdersServlet extends HttpServlet {
 
         for (SellerOrderRow order : orders) {
             if (order.isShipperAssigned() && "PREPARING".equalsIgnoreCase(order.getStatus())) {
+                request.setAttribute("assignedDeliveryToastSubOrderId", order.getSubOrderId());
                 request.setAttribute("assignedDeliveryToastMessage",
-                        "#SUB-" + order.getSubOrderId() + " đã được nhận giao");
+                        "#SUB-" + order.getSubOrderId() + " đã được shipper nhận giao");
+                session.setAttribute("sellerAssignedDeliveryToastSubOrderId", order.getSubOrderId());
+                session.setAttribute("sellerAssignedDeliveryToastMessage",
+                        "#SUB-" + order.getSubOrderId() + " đã được shipper nhận giao");
+                session.setAttribute("sellerAssignedDeliveryToastExpiresAt",
+                        System.currentTimeMillis() + SELLER_TOAST_DURATION_MILLIS);
                 session.setAttribute("sellerAssignedDeliveryToastShown", true);
+                session.removeAttribute("sellerAssignedDeliveryToastAnimated");
                 return;
+            }
+        }
+    }
+
+    private void preparePendingOrderToast(Connection connection, HttpServletRequest request, int shopId) throws Exception {
+        HttpSession session = request.getSession(false);
+        if (session == null || Boolean.TRUE.equals(session.getAttribute("sellerPendingOrderToastShown"))) {
+            return;
+        }
+
+        String sql = """
+                SELECT TOP 1 sub_order_id
+                FROM sub_orders
+                WHERE shop_id = ?
+                  AND status = 'PENDING'
+                ORDER BY created_at ASC, sub_order_id ASC
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, shopId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int subOrderId = rs.getInt("sub_order_id");
+                    request.setAttribute("pendingOrderToastSubOrderId", subOrderId);
+                    request.setAttribute("pendingOrderToastMessage",
+                            "#SUB-" + subOrderId + " chưa được xác nhận");
+                    session.setAttribute("sellerPendingOrderToastSubOrderId", subOrderId);
+                    session.setAttribute("sellerPendingOrderToastMessage",
+                            "#SUB-" + subOrderId + " chưa được xác nhận");
+                    session.setAttribute("sellerPendingOrderToastExpiresAt",
+                            System.currentTimeMillis() + SELLER_TOAST_DURATION_MILLIS);
+                    session.setAttribute("sellerPendingOrderToastShown", true);
+                    session.removeAttribute("sellerPendingOrderToastAnimated");
+                }
             }
         }
     }
