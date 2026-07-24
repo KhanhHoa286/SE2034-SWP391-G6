@@ -170,7 +170,20 @@ public class EditAddressServlet extends HttpServlet {
             return;
         }
 
-        response.sendRedirect(request.getContextPath() + "/customer/addresses");
+        /*
+         * Thành công:
+         * 1. Nếu người dùng chọn địa chỉ này làm mặc định (isDefault == true):
+         *    Nếu có CHECKOUT_REFERER trong session -> chuyển hướng ngay về trang thanh toán.
+         * 2. Ngược lại (người dùng không chọn mặc định):
+         *    Gửi về trang danh sách địa chỉ. Giữ CHECKOUT_REFERER trong session để khi họ bấm "Thiết lập mặc định" tại danh sách mới chuyển về trang thanh toán.
+         */
+        String checkoutReferer = (String) session.getAttribute("CHECKOUT_REFERER");
+        if (checkoutReferer != null && !checkoutReferer.trim().isEmpty() && isDefault) {
+            session.removeAttribute("CHECKOUT_REFERER");
+            response.sendRedirect(checkoutReferer);
+        } else {
+            response.sendRedirect(request.getContextPath() + "/customer/addresses");
+        }
     }
 
     /*

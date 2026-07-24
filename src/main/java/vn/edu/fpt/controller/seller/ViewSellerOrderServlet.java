@@ -117,8 +117,6 @@ public class ViewSellerOrderServlet extends HttpServlet {
                        so.commission_fee,
                        mo.payment_method,
                        mo.payment_status,
-                       mo.transaction_code,
-                       mo.bank_name,
                        mo.payment_date,
                        mo.receiver_name,
                        mo.receiver_phone,
@@ -159,8 +157,6 @@ public class ViewSellerOrderServlet extends HttpServlet {
                 detail.setSellerReceivable(safe(rs.getBigDecimal("total_amount")).subtract(safe(rs.getBigDecimal("commission_fee"))));
                 detail.setPaymentMethod(rs.getString("payment_method"));
                 detail.setPaymentStatus(rs.getString("payment_status"));
-                detail.setTransactionCode(rs.getString("transaction_code"));
-                detail.setBankName(rs.getString("bank_name"));
                 detail.setPaymentDate(rs.getTimestamp("payment_date"));
                 detail.setReceiverName(rs.getString("receiver_name"));
                 detail.setReceiverPhone(rs.getString("receiver_phone"));
@@ -263,8 +259,6 @@ public class ViewSellerOrderServlet extends HttpServlet {
         private BigDecimal sellerReceivable;
         private String paymentMethod;
         private String paymentStatus;
-        private String transactionCode;
-        private String bankName;
         private Timestamp paymentDate;
         private String receiverName;
         private String receiverPhone;
@@ -385,22 +379,6 @@ public class ViewSellerOrderServlet extends HttpServlet {
 
         public void setPaymentStatus(String paymentStatus) {
             this.paymentStatus = paymentStatus;
-        }
-
-        public String getTransactionCode() {
-            return transactionCode;
-        }
-
-        public void setTransactionCode(String transactionCode) {
-            this.transactionCode = transactionCode;
-        }
-
-        public String getBankName() {
-            return bankName;
-        }
-
-        public void setBankName(String bankName) {
-            this.bankName = bankName;
         }
 
         public Timestamp getPaymentDate() {

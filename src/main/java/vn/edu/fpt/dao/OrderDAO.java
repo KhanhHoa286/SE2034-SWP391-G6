@@ -357,6 +357,74 @@ public class OrderDAO extends DBContext {
     }
 
     /**
+     * HoaNK - Xử lý hoàn tất đơn hàng, tính hoa hồng admin và chuyển doanh thu cho seler
+     */
+    private final String UPDATE_STATUS_COMPLETED = """
+            UPDATE sub_orders
+            SET status = 'COMPLETED',
+            completed_at = GETDATE(),
+            delivered_at = COALESCE(delivered_at, GETDATE())
+            WHERE sub_order_id = ?;
+            """;
+    private final String UPDATE_PAYMENT_STATUS = """
+            UPDATE master_orders
+            SET payment_status = 'PAID'
+            WHERE master_order_id = ?;
+            """;
+    private final String CALCULATE_COMMISSION = """
+            UPDATE sub_orders
+            SET commission_fee = total_amount * ?
+            WHERE sub_order_id = ? AND (commission_fee IS NULL OR commission_fee = 0);
+            """;
+    public boolean completeSubOrderAndCaculateRevenue(int subOrderId, int masterOrderId, String paymentMethod) {
+        String sqlUpdateSubOrder = UPDATE_STATUS_COMPLETED;
+        String sqlUpdateMasterPayment = UPDATE_PAYMENT_STATUS;
+        String sqlCalculateCommission = CALCULATE_COMMISSION;
+
+        boolean autoCommit = true;
+        try {
+            autoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            BigDecimal latestRate = getLatestCommissionRate();
+            try (PreparedStatement stmt = connection.prepareStatement(sqlCalculateCommission)) {
+                stmt.setBigDecimal(1, latestRate);
+                stmt.setInt(2, subOrderId);
+                stmt.executeUpdate();
+            }
+
+            try (PreparedStatement stmt = connection.prepareStatement(sqlUpdateSubOrder)) {
+                stmt.setInt(1, subOrderId);
+                stmt.executeUpdate();
+            }
+
+            if ("COD".equalsIgnoreCase(paymentMethod)) {
+                try (PreparedStatement stmt = connection.prepareStatement(sqlUpdateMasterPayment)) {
+                    stmt.setInt(1, masterOrderId);
+                    stmt.executeUpdate();
+                }
+            }
+
+            connection.commit();
+            return true;
+        } catch (Exception e) {
+            try {
+                connection.rollback();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(autoCommit);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    /**
      * HoaNK - Update Payment status khi khách nhận được hàng chuyển sang PAID nếu là COD
      */
     private final String UPDATE_PAYMENT_METHOD = """

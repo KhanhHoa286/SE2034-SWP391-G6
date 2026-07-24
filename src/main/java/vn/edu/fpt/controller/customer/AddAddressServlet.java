@@ -224,11 +224,19 @@ public class AddAddressServlet extends HttpServlet {
         }
 
         /*
-         * Thành công thì redirect về list address.
-         *
-         * Dùng redirect để tránh F5 bị insert lại dữ liệu.
+         * Thành công:
+         * 1. Nếu chưa có địa chỉ nào (addressCount == 0) hoặc người dùng chọn làm mặc định (isDefault == true):
+         *    Nếu có CHECKOUT_REFERER trong session -> chuyển hướng ngay về trang thanh toán.
+         * 2. Ngược lại (người dùng không chọn mặc định):
+         *    Gửi về trang danh sách địa chỉ. Giữ CHECKOUT_REFERER trong session để khi họ bấm "Thiết lập mặc định" tại danh sách mới chuyển về trang thanh toán.
          */
-        response.sendRedirect(request.getContextPath() + "/customer/addresses");
+        String checkoutReferer = (String) session.getAttribute("CHECKOUT_REFERER");
+        if (checkoutReferer != null && !checkoutReferer.trim().isEmpty() && (addressCount == 0 || isDefault)) {
+            session.removeAttribute("CHECKOUT_REFERER");
+            response.sendRedirect(checkoutReferer);
+        } else {
+            response.sendRedirect(request.getContextPath() + "/customer/addresses");
+        }
     }
 
     /*

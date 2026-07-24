@@ -139,6 +139,86 @@ public class CustomerDAO extends DBContext {
         return false;
     }
 
+    public boolean hasRejectedSellerRegistration(int userId) {
+        String sql = """
+                SELECT 1
+                FROM shops
+                WHERE owner_id = ?
+                  AND UPPER(LTRIM(RTRIM(approval_status))) = 'REJECTED'
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            System.err.println("[CustomerDAO] hasRejectedSellerRegistration error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean cancelRejectedSellerRegistration(int userId) {
+        String deleteRejectedShopSql = """
+                DELETE FROM shops
+                WHERE owner_id = ?
+                  AND UPPER(LTRIM(RTRIM(approval_status))) = 'REJECTED'
+                """;
+        String clearSellerIdentitySql = """
+                UPDATE users
+                SET legal_full_name = NULL,
+                    citizen_id = NULL,
+                    citizen_id_issue_date = NULL,
+                    citizen_id_issue_place = NULL,
+                    permanent_address = NULL,
+                    front_id_image = NULL,
+                    back_id_image = NULL,
+                    updated_at = GETDATE()
+                WHERE user_id = ?
+                """;
+
+        boolean oldAutoCommit = true;
+        try {
+            oldAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement ps = connection.prepareStatement(deleteRejectedShopSql)) {
+                ps.setInt(1, userId);
+                if (ps.executeUpdate() != 1) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            try (PreparedStatement ps = connection.prepareStatement(clearSellerIdentitySql)) {
+                ps.setInt(1, userId);
+                if (ps.executeUpdate() != 1) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            connection.commit();
+            return true;
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackError) {
+                rollbackError.printStackTrace();
+            }
+            System.err.println("[CustomerDAO] cancelRejectedSellerRegistration error: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(oldAutoCommit);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
     public boolean shopNameExists(String shopName) {
         String sql = "SELECT 1 FROM shops WHERE LOWER(LTRIM(RTRIM(shop_name))) = LOWER(LTRIM(RTRIM(?)))";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -179,8 +259,8 @@ public class CustomerDAO extends DBContext {
                 SELECT 1
                 FROM users
                 WHERE user_id = ?
-                  AND id_card_number IS NOT NULL
-                  AND LTRIM(RTRIM(id_card_number)) <> ''
+                  AND citizen_id IS NOT NULL
+                  AND LTRIM(RTRIM(citizen_id)) <> ''
                   AND legal_full_name IS NOT NULL
                   AND LTRIM(RTRIM(legal_full_name)) <> ''
                 """;
@@ -201,7 +281,7 @@ public class CustomerDAO extends DBContext {
         String sql = """
                 SELECT 1
                 FROM users
-                WHERE id_card_number = ?
+                WHERE citizen_id = ?
                   AND user_id <> ?
                 """;
 
@@ -230,10 +310,10 @@ public class CustomerDAO extends DBContext {
     ) {
         String sql = """
                 UPDATE users
-                SET -- legal_full_name = ?,
-                    id_card_number = ?,
-                    -- citizen_id_issue_date = ?,
-                    -- citizen_id_issue_place = ?,
+                SET legal_full_name = ?,
+                    citizen_id = ?,
+                    citizen_id_issue_date = ?,
+                    citizen_id_issue_place = ?,
                     permanent_address = ?,
                     front_id_image = COALESCE(?, front_id_image),
                     back_id_image = COALESCE(?, back_id_image),

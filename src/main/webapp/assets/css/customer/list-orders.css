@@ -165,33 +165,45 @@
     text-transform: uppercase;
     min-width: 110px;
     text-align: center;
-}
-
-.status-pending {
-    background-color: transparent;
-    color: #D4A373;
-    border: 1px solid #FFE3A8;
-}
-
-.status-preparing {
-    background-color: transparent;
-    color: #E67E22;
-    border: 1px solid #FFD5B8;
-}
-
-.status-shipping {
-    background-color: transparent;
-    color: #2F80ED;
-    border: 1px solid #CDE4FF;
-}
-
-.status-completed {
+    /* Mặc định màu xanh lá chuẩn cho Đã hoàn thành / COMPLETED */
     background-color: transparent;
     color: #27AE60;
     border: 1px solid #C3F2D3;
 }
 
-.status-cancelled {
+.status-pending,
+.status-PENDING {
+    background-color: transparent;
+    color: #D4A373;
+    border: 1px solid #FFE3A8;
+}
+
+.status-preparing,
+.status-CONFIRMED,
+.status-PREPARING {
+    background-color: transparent;
+    color: #E67E22;
+    border: 1px solid #FFD5B8;
+}
+
+.status-shipping,
+.status-SHIPPING {
+    background-color: transparent;
+    color: #2F80ED;
+    border: 1px solid #CDE4FF;
+}
+
+.status-completed,
+.status-COMPLETED,
+.status-delivered,
+.status-DELIVERED {
+    background-color: transparent;
+    color: #27AE60;
+    border: 1px solid #C3F2D3;
+}
+
+.status-cancelled,
+.status-CANCELLED {
     background-color: transparent;
     color: #EB5757;
     border: 1px solid #FAD1CC;

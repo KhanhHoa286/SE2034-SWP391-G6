@@ -174,14 +174,6 @@
                                         <c:otherwise>Chờ thanh toán</c:otherwise>
                                     </c:choose>
                                 </dd>
-                                <c:if test="${not empty orderDetail.transactionCode}">
-                                    <dt>Mã giao dịch</dt>
-                                    <dd>${orderDetail.transactionCode}</dd>
-                                </c:if>
-                                <c:if test="${not empty orderDetail.bankName}">
-                                    <dt>Ngân hàng</dt>
-                                    <dd>${orderDetail.bankName}</dd>
-                                </c:if>
                                 <c:if test="${not empty orderDetail.paymentDate}">
                                     <dt>Ngày thanh toán</dt>
                                     <dd><fmt:formatDate value="${orderDetail.paymentDate}" pattern="dd/MM/yyyy HH:mm"/></dd>
