@@ -49,91 +49,6 @@ public class UserDAO extends DBContext {
     }
 
 
-
-    public boolean isProvinceExist(int provinceId) {
-        String sql = "SELECT 1 FROM provinces WHERE id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, provinceId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    public boolean isWardBelongsToProvince(int wardId, int provinceId) {
-        String sql = "SELECT 1 FROM wards WHERE id = ? AND province_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, wardId);
-            ps.setInt(2, provinceId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    public List<Map<String, Object>> getAllProvincesForRegister() {
-        List<Map<String, Object>> provinces = new ArrayList<>();
-
-        String sql = "SELECT id, COALESCE(full_name, name) AS province_name "
-                + "FROM provinces "
-                + "ORDER BY province_name";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                Map<String, Object> item = new LinkedHashMap<>();
-                item.put("id", rs.getInt("id"));
-                item.put("name", rs.getString("province_name"));
-                provinces.add(item);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return provinces;
-    }
-
-    public List<Map<String, Object>> getAllWardsForRegister() {
-        List<Map<String, Object>> wards = new ArrayList<>();
-
-        String sql = "SELECT id, province_id, COALESCE(name_with_type, name) AS ward_name "
-                + "FROM wards "
-                + "ORDER BY ward_name";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                Map<String, Object> item = new LinkedHashMap<>();
-                item.put("id", rs.getInt("id"));
-                item.put("provinceId", rs.getInt("province_id"));
-                item.put("name", rs.getString("ward_name"));
-                wards.add(item);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return wards;
-    }
-
     public int getRoleIdByName(String roleName) {
         String sql = "SELECT TOP 1 role_id FROM roles "
                 + "WHERE UPPER(LTRIM(RTRIM(role_name))) = UPPER(LTRIM(RTRIM(?)))";
@@ -312,33 +227,9 @@ public class UserDAO extends DBContext {
         return 0;
     }
 
-    /*
-     * Overload cũ, giữ lại để tránh lỗi compile.
-     * Logic mới bỏ shipper nên các tham số shipper bị bỏ qua.
-     */
-    public int insertUserWithRole(User user,
-                                  int roleId,
-                                  String licensePlate,
-                                  String idCardNumber,
-                                  Integer shipperProvinceId,
-                                  Integer shipperWardId) {
-        return insertUserWithRole(user, roleId);
-    }
 
-    /*
-     * Overload cũ, giữ lại để tránh lỗi compile.
-     * Logic mới bỏ shipper nên các tham số shipper bị bỏ qua.
-     */
-    public int insertUserWithRole(User user,
-                                  int roleId,
-                                  String licensePlate,
-                                  String idCardNumber,
-                                  Integer shipperProvinceId,
-                                  Integer shipperWardId,
-                                  String driverLicenseFrontUrl,
-                                  String driverLicenseBackUrl) {
-        return insertUserWithRole(user, roleId);
-    }
+
+
 
     public boolean updatePendingUserBeforeResendOtp(int userId, User user) {
         String sql = "UPDATE users "
@@ -377,73 +268,9 @@ public class UserDAO extends DBContext {
         return false;
     }
 
-    /*
-     * Overload cũ, giữ lại để tránh lỗi compile.
-     * Logic mới bỏ shipper nên các tham số shipper bị bỏ qua.
-     */
-    public boolean updatePendingUserBeforeResendOtp(int userId,
-                                                    User user,
-                                                    int roleId,
-                                                    String licensePlate,
-                                                    String idCardNumber,
-                                                    Integer shipperProvinceId,
-                                                    Integer shipperWardId) {
 
-        boolean oldAutoCommit = true;
 
-        try {
-            oldAutoCommit = connection.getAutoCommit();
-            connection.setAutoCommit(false);
 
-            boolean updated = updatePendingUserBeforeResendOtp(userId, user);
-
-            if (!updated) {
-                connection.rollback();
-                return false;
-            }
-
-            if (roleId > 0) {
-                replaceUserRole(userId, roleId);
-            }
-
-            connection.commit();
-            return true;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-
-            try {
-                connection.rollback();
-            } catch (SQLException rollbackException) {
-                rollbackException.printStackTrace();
-            }
-
-        } finally {
-            try {
-                connection.setAutoCommit(oldAutoCommit);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return false;
-    }
-
-    private void replaceUserRole(int userId, int roleId) throws SQLException {
-        String deleteSql = "DELETE FROM user_roles WHERE user_id = ?";
-        String insertSql = "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)";
-
-        try (PreparedStatement ps = connection.prepareStatement(deleteSql)) {
-            ps.setInt(1, userId);
-            ps.executeUpdate();
-        }
-
-        try (PreparedStatement ps = connection.prepareStatement(insertSql)) {
-            ps.setInt(1, userId);
-            ps.setInt(2, roleId);
-            ps.executeUpdate();
-        }
-    }
 
     private void setBasicUserInsertParameters(PreparedStatement ps, User user) throws SQLException {
         ps.setString(1, user.getFirstName());
