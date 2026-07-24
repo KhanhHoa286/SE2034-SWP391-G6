@@ -17,24 +17,52 @@ public class AdminDashboardController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1. Gọi DAO lấy các số liệu từ Database
-        double totalRevenue = dashboardDAO.getTotalRevenue();
-        int newUsers = dashboardDAO.getNewUsersCount();
-        int totalOrders = dashboardDAO.getTotalOrdersCount();
-        int pendingProducts = dashboardDAO.getPendingProductsCount();
-        Map<String, Double> shopChartData = dashboardDAO.getRevenueDataByShop();
+        // 1. Lấy tham số ngày từ request
+        String dateParam = request.getParameter("date");
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDate selectedDateVal;
 
-        // 2. Gửi dữ liệu sang JSP
+        if (dateParam == null || dateParam.trim().isEmpty()) {
+            selectedDateVal = today;
+        } else {
+            try {
+                selectedDateVal = java.time.LocalDate.parse(dateParam);
+            } catch (Exception e) {
+                selectedDateVal = today;
+            }
+        }
+
+        String selectedDateStr = selectedDateVal.toString(); // yyyy-MM-dd
+
+        // Tạo nhãn hiển thị cho button chọn ngày
+        String dateLabel;
+        if (selectedDateVal.equals(today)) {
+            dateLabel = "Hôm nay";
+        } else {
+            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            dateLabel = selectedDateVal.format(formatter);
+        }
+
+        // 2. Gọi DAO lấy các số liệu từ Database theo ngày đã chọn
+        double totalRevenue = dashboardDAO.getTotalRevenue(selectedDateStr);
+        int newUsers = dashboardDAO.getNewUsersCount(selectedDateStr);
+        int totalOrders = dashboardDAO.getTotalOrdersCount(selectedDateStr);
+        int pendingProducts = dashboardDAO.getPendingProductsCount(selectedDateStr);
+        Map<String, Double> shopChartData = dashboardDAO.getRevenueDataByShop(selectedDateStr);
+
+        // 3. Gửi dữ liệu sang JSP
         request.setAttribute("totalRevenue", totalRevenue);
         request.setAttribute("newUsers", newUsers);
         request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("pendingProducts", pendingProducts);
         request.setAttribute("shopChartData", shopChartData);
+        request.setAttribute("selectedDate", selectedDateStr);
+        request.setAttribute("dateLabel", dateLabel);
 
         // KÍCH HOẠT BẪY REDIRECT: Đánh dấu dữ liệu đã được nạp từ Servlet thành công
         request.setAttribute("dashboardLoaded", true);
 
-        // 3. Đẩy request sang giao diện JSP
+        // 4. Đẩy request sang giao diện JSP
         request.getRequestDispatcher("/admin/dashboard/view-system-overview.jsp").forward(request, response);
     }
 

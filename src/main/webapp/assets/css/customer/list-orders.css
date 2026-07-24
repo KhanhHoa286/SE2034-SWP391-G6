@@ -5,6 +5,7 @@
     margin-bottom: 24px;
     border-bottom: 1px solid #e0e0e0;
     padding-bottom: 24px;
+    overflow: hidden;
 }
 .orders-header-text h1 {
     font-size: 2.2rem;
@@ -20,17 +21,21 @@
 .orders-filter-bar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 20px;
     flex-wrap: wrap;
     background-color: #fafafa;
     padding: 16px 20px;
     border-radius: 8px;
     border: 1px solid #eee;
+    width: 100%;
+    box-sizing: border-box;
 }
 .filter-group {
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
 }
 .filter-group label {
     font-size: 0.9rem;
@@ -49,6 +54,7 @@
     background-color: #fff;
     height: 38px;
     box-sizing: border-box;
+    width: 150px;
 }
 .filter-select {
     min-width: 150px;
@@ -157,34 +163,36 @@
     font-size: 0.65rem;
     font-weight: 600;
     text-transform: uppercase;
+    min-width: 110px;
+    text-align: center;
 }
 
 .status-pending {
-    /*background-color: #FFF9E6;*/
+    background-color: transparent;
     color: #D4A373;
     border: 1px solid #FFE3A8;
 }
 
 .status-preparing {
-    background-color: #FFF0E6;
+    background-color: transparent;
     color: #E67E22;
     border: 1px solid #FFD5B8;
 }
 
 .status-shipping {
-    background-color: #EBF5FF;
+    background-color: transparent;
     color: #2F80ED;
     border: 1px solid #CDE4FF;
 }
 
 .status-completed {
-    background-color: #E6F9ED;
+    background-color: transparent;
     color: #27AE60;
     border: 1px solid #C3F2D3;
 }
 
 .status-cancelled {
-    background-color: #FCE8E6;
+    background-color: transparent;
     color: #EB5757;
     border: 1px solid #FAD1CC;
 }
@@ -238,6 +246,8 @@
     cursor: pointer;
     transition: background-color 0.2s;
     white-space: nowrap;
+    min-width: 140px;
+    text-align: center;
 }
 
 .btn-received:disabled,
@@ -267,6 +277,8 @@
     cursor: pointer;
     transition: background-color 0.2s;
     white-space: nowrap;
+    min-width: 140px;
+    text-align: center;
 }
 
 /* Giữ nguyên logic ẩn/khóa nút khi bị disabled hoặc đang cập nhật */

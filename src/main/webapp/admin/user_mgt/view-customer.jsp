@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -12,8 +12,8 @@
     <title>Chi tiết khách hàng: ${not empty customer.fullName ? customer.fullName : 'N/A'} - MODA Admin</title>
     <meta name="description" content="Xem chi tiết thông tin và lịch sử mua hàng của khách hàng trong hệ thống MODA Admin.">
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin/view-customer.css">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin/view-customer.css?v=1.4">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
@@ -24,62 +24,47 @@
          ═══════════════════════════════════════ --%>
     <aside class="sidebar-wrapper">
         <div class="sidebar">
-            <!-- Brand -->
-            <div class="sidebar-brand">
-                <span class="sidebar-brand-name">MODA Admin</span>
-                <span class="sidebar-subtitle">Bảng điều khiển</span>
-            </div>
-
-            <!-- Navigation -->
-            <nav class="sidebar-nav">
-                <ul>
+            <div>
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-name">MODA Admin</span>
+                    <span class="sidebar-subtitle">Bảng điều khiển siêu cấp</span>
+                </div>
+                <ul class="sidebar-nav">
                     <li class="menu-item">
                         <a href="${pageContext.request.contextPath}/admin/dashboard/overview">
-                            <i data-lucide="layout-dashboard" class="menu-icon"></i>
-                            <span>Tổng quan</span>
+                            <span class="menu-text">Tổng quan</span>
                         </a>
                     </li>
                     <li class="menu-item active">
                         <a href="${pageContext.request.contextPath}/admin/user-management">
-                            <i data-lucide="users" class="menu-icon"></i>
-                            <span>Người dùng</span>
+                            <span class="menu-text">Người dùng</span>
                         </a>
                     </li>
                     <li class="menu-item">
                         <a href="${pageContext.request.contextPath}/admin/seller-management">
-                            <i data-lucide="home" class="menu-icon"></i>
-                            <span>Người bán</span>
+                            <span class="menu-text">Người bán</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/order-management">
-                            <i data-lucide="globe" class="menu-icon"></i>
-                            <span>Đơn hàng quốc tế</span>
+                        <a href="${pageContext.request.contextPath}/admin/seller-applications">
+                            <span class="menu-text">Duyệt đăng ký</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/finance">
-                            <i data-lucide="credit-card" class="menu-icon"></i>
-                            <span>Tài chính</span>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/settings">
-                            <i data-lucide="settings" class="menu-icon"></i>
-                            <span>Cài đặt hệ thống</span>
+                        <a href="${pageContext.request.contextPath}/admin/finance/view-finance.jsp">
+                            <span class="menu-text">Tài chính</span>
                         </a>
                     </li>
                 </ul>
-            </nav>
-
-            <!-- Footer -->
-            <div class="sidebar-footer">
-                <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg"
-                     alt="Admin Avatar" class="sidebar-footer-avatar" />
-                <div>
-                    <span class="sidebar-footer-name">Quản trị viên</span>
-                    <span class="sidebar-footer-role">admin@moda.com</span>
-                </div>
+            </div>
+            <div class="sidebar-logout">
+                <ul class="sidebar-nav">
+                    <li class="menu-item">
+                        <a href="${pageContext.request.contextPath}/logout">
+                            <span class="menu-text">Đăng xuất</span>
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
     </aside>
@@ -89,17 +74,6 @@
          ═══════════════════════════════════════ --%>
     <main class="main-content">
 
-        <%-- Topbar --%>
-        <div class="topbar">
-            <div class="topbar-search">
-                <i data-lucide="search" class="topbar-search-icon"></i>
-                <input type="text" class="topbar-search-input" placeholder="Tìm kiếm hệ thống...">
-            </div>
-            <div class="topbar-actions">
-                <img src="https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg"
-                     alt="Avatar" class="topbar-avatar" />
-            </div>
-        </div>
 
         <%-- Page Header --%>
         <section class="page-header">
@@ -118,11 +92,11 @@
             </div>
 
             <%-- Ban / Unban button --%>
-            <form action="${pageContext.request.contextPath}/admin/user-management" method="POST" style="display:inline;">
-                <input type="hidden" name="id" value="${customer.userId}">
+            <form action="${pageContext.request.contextPath}/admin/user_mgt/view-customer" method="POST" style="display:inline;">
+                <input type="hidden" name="userId" value="${customer.userId}">
                 <c:choose>
                     <c:when test="${customer.status == 'BANNED'}">
-                        <input type="hidden" name="action" value="unban">
+                        <input type="hidden" name="action" value="unlock">
                         <button type="submit" class="btn-ban" id="btn-unban-account"
                                 style="color:#047857;border-color:#6ee7b7;background:#ecfdf5;">
                             <i data-lucide="shield-check" class="btn-ban-icon"></i>
@@ -130,7 +104,7 @@
                         </button>
                     </c:when>
                     <c:otherwise>
-                        <input type="hidden" name="action" value="ban">
+                        <input type="hidden" name="action" value="lock">
                         <button type="submit" class="btn-ban" id="btn-ban-account">
                             <i data-lucide="shield-alert" class="btn-ban-icon"></i>
                             Khóa tài khoản
@@ -199,7 +173,74 @@
                         </li>
                         <li class="contact-item">
                             <i data-lucide="map-pin" class="contact-icon"></i>
-                            <span><c:out value="${not empty customer.address ? customer.address : 'Chưa cập nhật'}"/></span>
+                            <%
+                                int currentUserId = ((vn.edu.fpt.controller.admin.CustomerDTO) request.getAttribute("customer")).getUserId();
+                                String addrStr = "Chưa cập nhật";
+                                String dbgErr = "";
+                                java.sql.Connection conn = null;
+                                try {
+                                    conn = new vn.edu.fpt.common.DBContext().getConnection();
+                                    if (conn != null) {
+                                        boolean found = false;
+                                        
+                                        // 1. Check addresses table
+                                        java.sql.PreparedStatement ps = conn.prepareStatement(
+                                            "SELECT a.street_address, w.name as ward_name, p.name as prov_name " +
+                                            "FROM addresses a LEFT JOIN wards w ON a.ward_id = w.id " +
+                                            "LEFT JOIN provinces p ON w.province_id = p.id WHERE a.user_id = ? ORDER BY a.is_default DESC, a.created_at DESC"
+                                        );
+                                        ps.setInt(1, currentUserId);
+                                        java.sql.ResultSet rs = ps.executeQuery();
+                                        if (rs.next()) {
+                                            String street = rs.getString("street_address");
+                                            String ward = rs.getString("ward_name");
+                                            String prov = rs.getString("prov_name");
+                                            String temp = "";
+                                            if (street != null && !street.trim().isEmpty()) temp += street;
+                                            if (ward != null && !ward.trim().isEmpty()) temp += (temp.isEmpty() ? "" : ", ") + ward;
+                                            if (prov != null && !prov.trim().isEmpty()) temp += (temp.isEmpty() ? "" : ", ") + prov;
+                                            if (!temp.isEmpty()) {
+                                                addrStr = temp;
+                                                found = true;
+                                            }
+                                        }
+                                        rs.close(); ps.close();
+
+                                        // 2. Check shops table
+                                        if (!found) {
+                                            ps = conn.prepareStatement(
+                                                "SELECT s.street_address, w.name as ward_name, p.name as prov_name " +
+                                                "FROM shops s LEFT JOIN wards w ON s.ward_id = w.id " +
+                                                "LEFT JOIN provinces p ON w.province_id = p.id WHERE s.owner_id = ?"
+                                            );
+                                            ps.setInt(1, currentUserId);
+                                            rs = ps.executeQuery();
+                                            if (rs.next()) {
+                                                String street = rs.getString("street_address");
+                                                String ward = rs.getString("ward_name");
+                                                String prov = rs.getString("prov_name");
+                                                String temp = "";
+                                                if (street != null && !street.trim().isEmpty()) temp += street;
+                                                if (ward != null && !ward.trim().isEmpty()) temp += (temp.isEmpty() ? "" : ", ") + ward;
+                                                if (prov != null && !prov.trim().isEmpty()) temp += (temp.isEmpty() ? "" : ", ") + prov;
+                                                if (!temp.isEmpty()) {
+                                                    addrStr = temp;
+                                                    found = true;
+                                                }
+                                            }
+                                            rs.close(); ps.close();
+                                        }
+
+                                    } else {
+                                        dbgErr = " (Conn Null)";
+                                    }
+                                } catch (Exception e) {
+                                    // Ignore errors instead of showing them on UI, or log them
+                                } finally {
+                                    if (conn != null) try { conn.close(); } catch(Exception e){}
+                                }
+                            %>
+                            <span><%= addrStr %><%= dbgErr %></span>
                         </li>
                         <li class="contact-item">
                             <i data-lucide="calendar" class="contact-icon"></i>
@@ -216,25 +257,19 @@
                 </div>
 
                 <%-- Stats Cards --%>
-                <div class="stats-grid">
+                <div class="stats-grid" style="display: flex; flex-direction: column; gap: 12px;">
                     <div class="stat-card">
                         <p class="stat-label">Tổng đơn hàng</p>
                         <p class="stat-value" id="total-orders">
                             <c:out value="${not empty totalOrders ? totalOrders : 0}"/>
                         </p>
                     </div>
-                    <div class="stat-card">
-                        <p class="stat-label">Tỷ lệ hoàn trả</p>
-                        <p class="stat-value" id="return-rate">
-                            <c:out value="${not empty returnRate ? returnRate : '0.0'}"/>%
-                        </p>
-                    </div>
                     <div class="stat-card full-width">
                         <p class="stat-label">Tổng chi tiêu (VNĐ)</p>
                         <p class="stat-value" id="total-spent">
                             <c:choose>
-                                <c:when test="${not empty totalSpent}">
-                                    <fmt:formatNumber value="${totalSpent}" type="number" groupingUsed="true"/>
+                                <c:when test="${not empty customer.totalSpent}">
+                                    <fmt:formatNumber value="${customer.totalSpent}" type="number" groupingUsed="true"/>
                                 </c:when>
                                 <c:otherwise>0</c:otherwise>
                             </c:choose>
@@ -249,7 +284,7 @@
                 <div class="orders-card">
                     <div class="orders-card-header">
                         <h2 class="orders-card-title">Lịch sử mua hàng</h2>
-                        <a href="${pageContext.request.contextPath}/admin/order-management?customerId=${customer.userId}"
+                        <a href="${pageContext.request.contextPath}/admin/orders?customerId=${customer.userId}"
                            class="btn-view-all" id="btn-view-all-orders">
                             Xem tất cả
                             <i data-lucide="arrow-right" style="width:13px;height:13px;"></i>
@@ -272,15 +307,15 @@
                                     <c:forEach var="order" items="${orderHistory}">
                                         <tr>
                                             <td>
-                                                <a href="${pageContext.request.contextPath}/admin/order-detail?id=${order.orderId}"
+                                                <a href="${pageContext.request.contextPath}/admin/order-detail?id=${order.masterOrderId}"
                                                    class="order-id-link">
-                                                    #<c:out value="${order.orderId}"/>
+                                                    #ORD-<c:out value="${order.masterOrderId}"/>
                                                 </a>
                                             </td>
                                             <td class="col-date">
                                                 <c:choose>
-                                                    <c:when test="${not empty order.orderDate}">
-                                                        <fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy"/>
+                                                    <c:when test="${not empty order.createdAt}">
+                                                        <c:out value="${order.createdAtFormat}"/>
                                                     </c:when>
                                                     <c:otherwise>—</c:otherwise>
                                                 </c:choose>
@@ -290,18 +325,18 @@
                                             </td>
                                             <td>
                                                 <c:choose>
-                                                    <c:when test="${order.status == 'SUCCESS' or order.status == 'COMPLETED' or order.status == 'THANH_CONG'}">
+                                                    <c:when test="${order.status.name() == 'DELIVERED'}">
                                                         <span class="order-badge badge-success">Thành công</span>
                                                     </c:when>
-                                                    <c:when test="${order.status == 'DELIVERING' or order.status == 'SHIPPING' or order.status == 'DANG_GIAO'}">
+                                                    <c:when test="${order.status.name() == 'SHIPPING' or order.status.name() == 'PREPARING' or order.status.name() == 'CONFIRMED'}">
                                                         <span class="order-badge badge-delivering">Đang giao</span>
                                                     </c:when>
-                                                    <c:when test="${order.status == 'CANCELED' or order.status == 'CANCELLED' or order.status == 'DA_HUY'}">
+                                                    <c:when test="${order.status.name() == 'CANCELLED'}">
                                                         <span class="order-badge badge-canceled">Đã hủy</span>
                                                     </c:when>
                                                     <c:otherwise>
                                                         <span class="order-badge badge-pending">
-                                                            <c:out value="${order.status}"/>
+                                                            <c:out value="${order.status.displayName}"/>
                                                         </span>
                                                     </c:otherwise>
                                                 </c:choose>
@@ -313,56 +348,9 @@
                             </div>
                         </c:when>
                         <c:otherwise>
-                            <%-- Empty / Demo State --%>
-                            <div style="overflow-x:auto;">
-                                <table class="orders-table">
-                                    <thead>
-                                    <tr>
-                                        <th>Mã đơn hàng</th>
-                                        <th>Ngày đặt</th>
-                                        <th>Tổng tiền (VND)</th>
-                                        <th>Trạng thái</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr>
-                                        <td><a href="#" class="order-id-link">#ORD-001</a></td>
-                                        <td class="col-date">20/10/2023</td>
-                                        <td class="col-amount">1,250,000</td>
-                                        <td><span class="order-badge badge-success">Thành công</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><a href="#" class="order-id-link">#ORD-002</a></td>
-                                        <td class="col-date">15/09/2023</td>
-                                        <td class="col-amount">850,000</td>
-                                        <td><span class="order-badge badge-delivering">Đang giao</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><a href="#" class="order-id-link">#ORD-003</a></td>
-                                        <td class="col-date">01/09/2023</td>
-                                        <td class="col-amount">3,400,000</td>
-                                        <td><span class="order-badge badge-success">Thành công</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><a href="#" class="order-id-link">#ORD-004</a></td>
-                                        <td class="col-date">12/08/2023</td>
-                                        <td class="col-amount">450,000</td>
-                                        <td><span class="order-badge badge-canceled">Đã hủy</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><a href="#" class="order-id-link">#ORD-005</a></td>
-                                        <td class="col-date">25/07/2023</td>
-                                        <td class="col-amount">2,100,000</td>
-                                        <td><span class="order-badge badge-success">Thành công</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><a href="#" class="order-id-link">#ORD-006</a></td>
-                                        <td class="col-date">10/06/2023</td>
-                                        <td class="col-amount">950,000</td>
-                                        <td><span class="order-badge badge-success">Thành công</span></td>
-                                    </tr>
-                                    </tbody>
-                                </table>
+                            <%-- Empty State --%>
+                            <div style="padding: 24px; text-align: center; color: #6b7280; font-size: 14px; background: var(--bg-secondary); border-radius: 8px;">
+                                Khách hàng này chưa có đơn hàng nào.
                             </div>
                         </c:otherwise>
                     </c:choose>
@@ -383,3 +371,5 @@
 </script>
 </body>
 </html>
+
+

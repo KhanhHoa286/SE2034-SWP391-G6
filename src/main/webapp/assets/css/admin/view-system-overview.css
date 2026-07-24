@@ -166,54 +166,21 @@ ul {
 }
 
 /* ──────────────────────────────────────────────
-   Top Bar (Search + Avatar)
+   Top Bar (Đã dọn dẹp Search & fix cứng góc phải)
    ────────────────────────────────────────────── */
 .topbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end; /* Thay space-between thành flex-end cho màn hình lớn PC */
     gap: 16px;
     padding-bottom: 8px;
 }
 
-.topbar-search {
-    flex: 1;
-    max-width: 560px;
-    position: relative;
-}
-
-.topbar-search-icon {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
-    color: var(--text-muted);
-    pointer-events: none;
-}
-
-.topbar-search-input {
-    width: 100%;
-    padding: 12px 16px 12px 48px;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    font-family: inherit;
-    font-size: 14px;
-    color: var(--text-primary);
-    background-color: var(--bg-secondary);
-    box-shadow: var(--shadow-sm);
-    transition: all 0.2s ease;
-    outline: none;
-}
-
-.topbar-search-input::placeholder {
-    color: var(--text-muted);
-}
-
-.topbar-search-input:focus {
-    border-color: var(--sidebar-item-active);
-    box-shadow: 0 0 0 3px rgba(88, 80, 236, 0.1);
+/* Thêm Class bọc ngoài Avatar để ép dịch chuyển an toàn */
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    margin-left: auto; /* Bảo hiểm đẩy kịch phải nếu có class lạ xen vào */
 }
 
 .topbar-avatar-wrapper {
@@ -624,12 +591,11 @@ ul {
     }
 
     .topbar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .topbar-search {
-        max-width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end; /* Thống nhất đẩy phải */
+        gap: 16px;
+        padding-bottom: 8px;
     }
 
     .topbar-avatar-wrapper {

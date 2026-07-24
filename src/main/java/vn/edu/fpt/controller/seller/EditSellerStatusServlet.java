@@ -77,6 +77,13 @@ public class EditSellerStatusServlet extends HttpServlet {
                 return;
             }
 
+            if ("PREPARING".equals(order.getStatus()) && "SHIPPING".equals(newStatus)
+                    && !hasAssignedDelivery(connection, order.getSubOrderId())) {
+                renderLoadedPage(request, response, shop, order,
+                        "Chưa thể chuyển sang đã giao vận chuyển vì chưa có nhân viên giao hàng nhận đơn. Vui lòng chờ shipper nhận đơn trong danh sách đơn giao.");
+                return;
+            }
+
             boolean updated = updateOrderStatus(connection, order, newStatus);
             if (!updated) {
                 renderStatusPage(request, response, "Trạng thái đơn hàng đã thay đổi. Vui lòng tải lại và thử lại.", null);
@@ -84,7 +91,6 @@ public class EditSellerStatusServlet extends HttpServlet {
             }
 
             if ("PREPARING".equals(newStatus)) {
-                ensureDeliveryRecord(connection, order);
                 response.sendRedirect(request.getContextPath()
                         + "/seller/order/status?subOrderId=" + subOrderId
                         + "&labelReady=1");
@@ -203,6 +209,9 @@ public class EditSellerStatusServlet extends HttpServlet {
                        so.total_amount,
                        so.commission_fee,
                        COALESCE(delivery.tracking_number, CONCAT('MODA-SUB-', so.sub_order_id, '-MO-', so.master_order_id)) AS tracking_number,
+                       delivery.shipper_id AS assigned_shipper_id,
+                       delivery.shipper_name,
+                       delivery.shipper_phone,
                        mo.payment_method,
                        mo.payment_status,
                        mo.receiver_name,
@@ -233,8 +242,13 @@ public class EditSellerStatusServlet extends HttpServlet {
                 INNER JOIN master_orders mo ON mo.master_order_id = so.master_order_id
                 INNER JOIN users u ON u.user_id = mo.customer_id
                 OUTER APPLY (
-                    SELECT TOP 1 d.tracking_number
+                    SELECT TOP 1
+                           d.tracking_number,
+                           d.shipper_id,
+                           shipper.first_name + ' ' + shipper.last_name AS shipper_name,
+                           shipper.phone AS shipper_phone
                     FROM deliveries d
+                    LEFT JOIN users shipper ON shipper.user_id = d.shipper_id
                     WHERE d.sub_order_id = so.sub_order_id
                     ORDER BY d.delivery_id DESC
                 ) delivery
@@ -264,6 +278,9 @@ public class EditSellerStatusServlet extends HttpServlet {
                 order.setTotalAmount(rs.getBigDecimal("total_amount"));
                 order.setCommissionFee(rs.getBigDecimal("commission_fee"));
                 order.setTrackingNumber(rs.getString("tracking_number"));
+                order.setShipperAssigned(rs.getObject("assigned_shipper_id") != null);
+                order.setShipperName(rs.getString("shipper_name"));
+                order.setShipperPhone(rs.getString("shipper_phone"));
                 order.setPaymentMethod(rs.getString("payment_method"));
                 order.setPaymentStatus(rs.getString("payment_status"));
                 order.setReceiverName(rs.getString("receiver_name"));
@@ -297,37 +314,21 @@ public class EditSellerStatusServlet extends HttpServlet {
         }
     }
 
-    private void ensureDeliveryRecord(Connection connection, SellerStatusOrder order) throws Exception {
+    private boolean hasAssignedDelivery(Connection connection, int subOrderId) throws Exception {
         String sql = """
-                IF NOT EXISTS (SELECT 1 FROM deliveries WHERE sub_order_id = ?)
-                BEGIN
-                    DECLARE @shipperId INT;
-
-                    SELECT TOP 1 @shipperId = u.user_id
-                    FROM users u
-                    INNER JOIN user_roles ur ON ur.user_id = u.user_id
-                    INNER JOIN roles r ON r.role_id = ur.role_id
-                    WHERE r.role_name = 'DELIVERY'
-                    ORDER BY u.user_id;
-
-                    IF @shipperId IS NOT NULL
-                    BEGIN
-                        INSERT INTO deliveries (tracking_number, sub_order_id, shipper_id, status)
-                        VALUES (?, ?, @shipperId, 'ASSIGNED');
-                    END
-                END
+                SELECT TOP 1 1
+                FROM deliveries
+                WHERE sub_order_id = ?
+                  AND shipper_id IS NOT NULL
+                  AND status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED')
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, order.getSubOrderId());
-            ps.setString(2, buildTrackingNumber(order));
-            ps.setInt(3, order.getSubOrderId());
-            ps.executeUpdate();
+            ps.setInt(1, subOrderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
         }
-    }
-
-    private String buildTrackingNumber(SellerStatusOrder order) {
-        return "MODA-SUB-" + order.getSubOrderId() + "-MO-" + order.getMasterOrderId();
     }
 
     private List<StatusOption> buildNextStatusOptions(String currentStatus) {
@@ -420,6 +421,9 @@ public class EditSellerStatusServlet extends HttpServlet {
         private BigDecimal totalAmount;
         private BigDecimal commissionFee;
         private String trackingNumber;
+        private boolean shipperAssigned;
+        private String shipperName;
+        private String shipperPhone;
         private String paymentMethod;
         private String paymentStatus;
         private String receiverName;
@@ -525,6 +529,30 @@ public class EditSellerStatusServlet extends HttpServlet {
 
         public void setTrackingNumber(String trackingNumber) {
             this.trackingNumber = trackingNumber;
+        }
+
+        public boolean isShipperAssigned() {
+            return shipperAssigned;
+        }
+
+        public void setShipperAssigned(boolean shipperAssigned) {
+            this.shipperAssigned = shipperAssigned;
+        }
+
+        public String getShipperName() {
+            return shipperName;
+        }
+
+        public void setShipperName(String shipperName) {
+            this.shipperName = shipperName;
+        }
+
+        public String getShipperPhone() {
+            return shipperPhone;
+        }
+
+        public void setShipperPhone(String shipperPhone) {
+            this.shipperPhone = shipperPhone;
         }
 
         public String getPaymentMethod() {

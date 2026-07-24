@@ -27,22 +27,7 @@ public class DeleteProductServlet extends HttpServlet {
 
         // 1. Lấy thông tin user đăng nhập để xác định shop
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
-
-        int ownerId = (account != null) ? account.getUserId() : -1;
-        Shop shop = null;
-
-        if (ownerId != -1) {
-            shop = shopDAO.getShopByOwnerId(ownerId);
-        }
-
-        // Demo fallback: lấy shop đầu tiên nếu chưa đăng nhập/chưa có shop
-        if (shop == null) {
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                shop = allShops.get(0);
-            }
-        }
+        Shop shop = resolveCurrentShop(session);
 
         if (shop == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Không tìm thấy Shop hợp lệ!");
@@ -73,5 +58,40 @@ public class DeleteProductServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
+    }
+
+    private Shop resolveCurrentShop(HttpSession session) {
+        Integer ownerId = getLoggedInUserId(session);
+        return ownerId == null ? null : shopDAO.getShopByOwnerId(ownerId);
+    }
+
+    private Integer getLoggedInUserId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object rawUserId = session.getAttribute("userId");
+        if (rawUserId instanceof Integer) {
+            return (Integer) rawUserId;
+        }
+        if (rawUserId != null) {
+            try {
+                return Integer.parseInt(rawUserId.toString());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+
+        Object rawUser = session.getAttribute("user");
+        if (rawUser instanceof User) {
+            return ((User) rawUser).getUserId();
+        }
+
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
+        return null;
     }
 }

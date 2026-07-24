@@ -50,6 +50,12 @@
     <main class="profile-main dashboard-main">
         <div class="dashboard-container">
 
+            <c:if test="${not empty successMessage}">
+                <div class="dashboard-alert dashboard-alert--success">
+                    <c:out value="${successMessage}" />
+                </div>
+            </c:if>
+
             <!-- Greeting -->
             <section class="dashboard-hero">
                 <h1>
@@ -172,7 +178,6 @@
 
 </div>
 
-<jsp:include page="/common/footer.jsp" />
 
 </body>
 </html>

@@ -4,6 +4,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import vn.edu.fpt.dao.CustomerDAO;
+import vn.edu.fpt.dao.OrderDAO;
+import vn.edu.fpt.dto.response.OrderHistoryResponse;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,6 +25,7 @@ public class ViewCustomerServlet extends HttpServlet {
     private static final int PAGE_SIZE = 6; // số đơn hàng hiển thị mỗi trang
 
     private final CustomerDAO customerDAO = new CustomerDAO();
+    private final OrderDAO orderDAO = new OrderDAO();
 
     // ─────────────────────────────────────────────────────────────
     //  GET: Hiển thị chi tiết khách hàng
@@ -31,19 +34,12 @@ public class ViewCustomerServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // ── 1. Kiểm tra quyền Admin ──
-        HttpSession session = req.getSession(false);
-        if (!isAdmin(session)) {
-            resp.sendRedirect(req.getContextPath() + "/login");
-            return;
-        }
-
-        // ── 2. Lấy tham số ──
+        // ── 1. Lấy tham số ──
         String userIdParam = req.getParameter("id");
         String pageParam   = req.getParameter("page");
 
         if (userIdParam == null || userIdParam.trim().isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/admin/user_mgt/list-customer");
+            resp.sendRedirect(req.getContextPath() + "/admin/user-management");
             return;
         }
 
@@ -51,7 +47,7 @@ public class ViewCustomerServlet extends HttpServlet {
         try {
             userId = Integer.parseInt(userIdParam.trim());
         } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/admin/user_mgt/list-customer");
+            resp.sendRedirect(req.getContextPath() + "/admin/user-management");
             return;
         }
 
@@ -71,16 +67,24 @@ public class ViewCustomerServlet extends HttpServlet {
 
         int totalOrders = customerDAO.countOrders(userId);
         int totalPages  = (int) Math.ceil((double) totalOrders / PAGE_SIZE);
-
-        List<OrderHistoryDTO> orderHistory =
-                customerDAO.getOrderHistory(userId, currentPage, PAGE_SIZE);
+        java.util.List<vn.edu.fpt.model.Address> addresses = new vn.edu.fpt.dao.AddressDAO().getAddressesByUserId(userId);
+        String addressString = "Chưa cập nhật";
+        if (addresses != null && !addresses.isEmpty()) {
+            vn.edu.fpt.model.Address addr = addresses.get(0);
+            String wardName = addr.getWard() != null ? addr.getWard().getName() : "";
+            String provinceName = (addr.getWard() != null && addr.getWard().getProvince() != null) ? addr.getWard().getProvince().getName() : "";
+            addressString = addr.getStreetAddress() + ", " + wardName + ", " + provinceName;
+        }
+        req.setAttribute("addressString", addressString);
 
         // ── 4. Đẩy dữ liệu ra view ──
         req.setAttribute("customer",     customer);
-        req.setAttribute("orderHistory", orderHistory);
         req.setAttribute("currentPage",  currentPage);
         req.setAttribute("totalPages",   totalPages);
         req.setAttribute("totalOrders",  totalOrders);
+
+        List<OrderHistoryResponse> orderHistory = orderDAO.getRecentSubOrdersByCustomerId(userId, 5);
+        req.setAttribute("orderHistory", orderHistory);
 
         req.getRequestDispatcher("/admin/user_mgt/view-customer.jsp")
                 .forward(req, resp);
@@ -93,20 +97,16 @@ public class ViewCustomerServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // ── 1. Kiểm tra quyền Admin ──
-        HttpSession session = req.getSession(false);
-        if (!isAdmin(session)) {
-            resp.sendRedirect(req.getContextPath() + "/login");
-            return;
-        }
-
         req.setCharacterEncoding("UTF-8");
 
-        String action      = req.getParameter("action");   // "lock" hoặc "unlock"
+        String action      = req.getParameter("action");   // "lock"/"ban" hoặc "unlock"/"unban"
         String userIdParam = req.getParameter("userId");
+        if (userIdParam == null || userIdParam.trim().isEmpty()) {
+            userIdParam = req.getParameter("id");
+        }
 
-        if (action == null || userIdParam == null) {
-            resp.sendRedirect(req.getContextPath() + "/admin/user_mgt/list-customer");
+        if (action == null || userIdParam == null || userIdParam.trim().isEmpty()) {
+            resp.sendRedirect(req.getContextPath() + "/admin/user-management");
             return;
         }
 
@@ -114,15 +114,15 @@ public class ViewCustomerServlet extends HttpServlet {
         try {
             userId = Integer.parseInt(userIdParam.trim());
         } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/admin/user_mgt/list-customer");
+            resp.sendRedirect(req.getContextPath() + "/admin/user-management");
             return;
         }
 
         // ── 2. Xác định trạng thái mới ──
         String newStatus;
-        if ("lock".equalsIgnoreCase(action)) {
+        if ("lock".equalsIgnoreCase(action) || "ban".equalsIgnoreCase(action)) {
             newStatus = "BANNED";
-        } else if ("unlock".equalsIgnoreCase(action)) {
+        } else if ("unlock".equalsIgnoreCase(action) || "unban".equalsIgnoreCase(action)) {
             newStatus = "ACTIVE";
         } else {
             resp.sendRedirect(req.getContextPath() +

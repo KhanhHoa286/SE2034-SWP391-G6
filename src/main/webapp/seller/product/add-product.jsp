@@ -223,7 +223,7 @@
                                             <i data-lucide="camera"></i>
                                             <span>ẢNH CHÍNH</span>
                                         </div>
-                                        <input type="file" id="imgInput0" name="productImages" accept="image/jpeg,image/png" style="display:none;" onchange="handleSlotImage(this, 0)">
+                                        <input type="file" id="imgInput0" name="mainProductImage" accept="image/jpeg,image/png" style="display:none;" onchange="handleSlotImage(this, 0)">
 
                                         <!-- Ô 2: Sub Image 1 -->
                                         <div class="image-slot upload-slot" onclick="document.getElementById('imgInput1').click()" id="slot1">
@@ -423,7 +423,7 @@
             let raw = parsePriceRaw(this.value);
             if (raw === '') return;
             let num = parseInt(raw);
-            if (num > 0 && num < 1000) {
+            if (num > 0 && num < 10000) {
                 num = num * 1000;
             }
             this.value = formatPriceDisplay(num.toString());

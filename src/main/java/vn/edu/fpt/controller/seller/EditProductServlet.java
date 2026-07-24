@@ -23,7 +23,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @WebServlet("/edit-product")
 @MultipartConfig(
@@ -42,21 +44,10 @@ public class EditProductServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
-
-        int ownerId = (account != null) ? account.getUserId() : -1;
-        Shop shop = null;
-
-        if (ownerId != -1) {
-            shop = shopDAO.getShopByOwnerId(ownerId);
-        }
-
-        // Demo fallback
+        Shop shop = resolveCurrentShop(session);
         if (shop == null) {
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                shop = allShops.get(0);
-            }
+            response.sendRedirect(request.getContextPath() + "/list-seller-products");
+            return;
         }
 
         String idStr = request.getParameter("id");
@@ -99,20 +90,10 @@ public class EditProductServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
-
-        int ownerId = (account != null) ? account.getUserId() : -1;
-        Shop shop = null;
-
-        if (ownerId != -1) {
-            shop = shopDAO.getShopByOwnerId(ownerId);
-        }
-
+        Shop shop = resolveCurrentShop(session);
         if (shop == null) {
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                shop = allShops.get(0);
-            }
+            response.sendRedirect(request.getContextPath() + "/list-seller-products");
+            return;
         }
 
         String productIdStr = request.getParameter("productId");
@@ -253,6 +234,7 @@ public class EditProductServlet extends HttpServlet {
         String[] variantColors = request.getParameterValues("variantColor");
         String[] variantSizes = request.getParameterValues("variantSize");
         String[] variantStocks = request.getParameterValues("variantStock");
+        String[] variantIds = request.getParameterValues("variantId");
 
         if (variantColors == null || variantSizes == null || variantStocks == null) {
             errors.put("variants", "Sản phẩm phải chứa ít nhất 1 biến thể.");
@@ -341,8 +323,9 @@ public class EditProductServlet extends HttpServlet {
                 productDAO.insertProductImage(productImage);
             }
 
-            // Cập nhật các biến thể (xóa biến thể cũ và insert lại)
-            productDAO.deleteVariantsByProductId(productId);
+            // Cập nhật biến thể cũ theo variantId để tránh tạo tồn kho trùng.
+            List<ProductVariant> existingVariants = productDAO.getVariantsByProductId(productId);
+            Set<Integer> submittedVariantIds = new HashSet<>();
             int variantCount = Math.min(variantColors.length, Math.min(variantSizes.length, variantStocks.length));
             for (int i = 0; i < variantCount; i++) {
                 if (variantColors[i] == null || variantColors[i].trim().isEmpty()) continue;
@@ -361,13 +344,34 @@ public class EditProductServlet extends HttpServlet {
                         .colorId(colorId)
                         .sizeId(sizeId)
                         .variantName(productName + " (" + colorName + " / " + sizeName + ")")
-                        .price(basePrice)
                         .stockQuantity(stock)
                         .build();
 
-                productDAO.insertProductVariant(variant);
+                Integer variantId = null;
+                if (variantIds != null && i < variantIds.length && variantIds[i] != null && !variantIds[i].trim().isEmpty()) {
+                    variantId = Integer.parseInt(variantIds[i].trim());
+                }
+
+                if (variantId != null) {
+                    variant.setVariantId(variantId);
+                    if (!productDAO.updateProductVariant(variant)) {
+                        throw new IllegalStateException("Không thể cập nhật biến thể sản phẩm.");
+                    }
+                    submittedVariantIds.add(variantId);
+                } else if (!productDAO.insertProductVariant(variant)) {
+                    throw new IllegalStateException("Không thể thêm biến thể sản phẩm.");
+                }
             }
 
+            for (ProductVariant existingVariant : existingVariants) {
+                Integer existingVariantId = existingVariant.getVariantId();
+                if (existingVariantId != null && !submittedVariantIds.contains(existingVariantId)) {
+                    if (!productDAO.deleteVariantById(existingVariantId, productId)
+                            && !productDAO.retireVariantById(existingVariantId, productId)) {
+                        throw new IllegalStateException("Không thể xóa biến thể sản phẩm.");
+                    }
+                }
+            }
             session.setAttribute("toastMessage", "Cập nhật sản phẩm thành công!");
             session.setAttribute("toastType", "success");
             response.sendRedirect(request.getContextPath() + "/list-seller-products");
@@ -386,5 +390,40 @@ public class EditProductServlet extends HttpServlet {
             request.setAttribute("activePage", "products");
             request.getRequestDispatcher("/seller/product/edit-product.jsp").forward(request, response);
         }
+    }
+
+    private Shop resolveCurrentShop(HttpSession session) {
+        Integer ownerId = getLoggedInUserId(session);
+        return ownerId == null ? null : shopDAO.getShopByOwnerId(ownerId);
+    }
+
+    private Integer getLoggedInUserId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object rawUserId = session.getAttribute("userId");
+        if (rawUserId instanceof Integer) {
+            return (Integer) rawUserId;
+        }
+        if (rawUserId != null) {
+            try {
+                return Integer.parseInt(rawUserId.toString());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+
+        Object rawUser = session.getAttribute("user");
+        if (rawUser instanceof User) {
+            return ((User) rawUser).getUserId();
+        }
+
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
+        return null;
     }
 }

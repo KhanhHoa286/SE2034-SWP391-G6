@@ -685,3 +685,10 @@ select.form-control-custom {
     color: #a1a5b7 !important;
     border-color: #e4e6ef !important;
 }
+
+.disabled-section {
+    opacity: 0.5 !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    cursor: not-allowed !important;
+}

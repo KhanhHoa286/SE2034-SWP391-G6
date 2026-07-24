@@ -155,7 +155,16 @@ public class UserDAO extends DBContext {
     }
 
     public Integer getRoleIdByUserId(int userId) {
-        String sql = "SELECT TOP 1 role_id FROM user_roles WHERE user_id = ?";
+        String sql = "SELECT TOP 1 ur.role_id "
+                + "FROM user_roles ur "
+                + "JOIN roles r ON ur.role_id = r.role_id "
+                + "WHERE ur.user_id = ? "
+                + "ORDER BY CASE UPPER(LTRIM(RTRIM(r.role_name))) "
+                + "WHEN 'ADMIN' THEN 1 "
+                + "WHEN 'SELLER' THEN 2 "
+                + "WHEN 'DELIVERY' THEN 3 "
+                + "WHEN 'CUSTOMER' THEN 4 "
+                + "ELSE 5 END";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, userId);
@@ -545,6 +554,10 @@ public class UserDAO extends DBContext {
         user.setPhone(rs.getString("phone"));
         user.setPasswordHash(rs.getString("password_hash"));
         user.setAvatarUrl(rs.getString("avatar_url"));
+        user.setLegalFullName(rs.getString("legal_full_name"));
+        user.setPermanentAddress(rs.getString("permanent_address"));
+        user.setFrontIdImage(rs.getString("front_id_image"));
+        user.setBackIdImage(rs.getString("back_id_image"));
 
         String gender = rs.getString("gender");
         if (gender != null && !gender.trim().isEmpty()) {
@@ -560,6 +573,11 @@ public class UserDAO extends DBContext {
             user.setDateOfBirth(dob.toLocalDate());
         }
 
+        // Date citizenIssueDate = rs.getDate("citizen_id_issue_date");
+        // if (citizenIssueDate != null) {
+        //     user.setCitizenIdIssueDate(citizenIssueDate.toLocalDate());
+        // }
+
         String status = rs.getString("status");
         if (status != null && !status.trim().isEmpty()) {
             try {
@@ -572,6 +590,11 @@ public class UserDAO extends DBContext {
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {
             user.setCreatedAt(createdAt.toLocalDateTime());
+        }
+
+        Timestamp updatedAt = rs.getTimestamp("updated_at");
+        if (updatedAt != null) {
+            user.setUpdatedAt(updatedAt.toLocalDateTime());
         }
 
         return user;
@@ -623,6 +646,8 @@ public class UserDAO extends DBContext {
                     + "JOIN roles r2 ON ur2.role_id = r2.role_id "
                     + "WHERE ur2.user_id = u.user_id AND r2.role_name = ?) ";
         }
+        
+        sql += " AND NOT EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.role_id = r3.role_id WHERE ur3.user_id = u.user_id AND r3.role_name = 'ADMIN') ";
 
         sql += " ORDER BY u.user_id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
 
@@ -684,6 +709,8 @@ public class UserDAO extends DBContext {
                     + "JOIN roles r2 ON ur2.role_id = r2.role_id "
                     + "WHERE ur2.user_id = u.user_id AND r2.role_name = ?) ";
         }
+        
+        sql += " AND NOT EXISTS (SELECT 1 FROM user_roles ur3 JOIN roles r3 ON ur3.role_id = r3.role_id WHERE ur3.user_id = u.user_id AND r3.role_name = 'ADMIN') ";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             int paramIndex = 1;
@@ -1119,6 +1146,34 @@ public class UserDAO extends DBContext {
              * executeUpdate dùng cho UPDATE/INSERT/DELETE.
              * Nếu số dòng ảnh hưởng > 0 nghĩa là update thành công.
              */
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    /*
+     * Cập nhật mật khẩu mới theo email.
+     *
+     * Dùng cho chức năng quên mật khẩu.
+     */
+    public boolean updatePasswordByEmail(String email, String passwordHash) {
+        if (email == null || email.trim().isEmpty()
+                || passwordHash == null || passwordHash.trim().isEmpty()) {
+            return false;
+        }
+
+        String sql = "UPDATE users "
+                + "SET password_hash = ? "
+                + "WHERE email = ? AND status = 'ACTIVE'";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, passwordHash);
+            ps.setString(2, email.trim().toLowerCase());
+
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {

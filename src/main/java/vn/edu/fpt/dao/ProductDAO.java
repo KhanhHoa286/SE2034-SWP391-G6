@@ -38,7 +38,7 @@ public class ProductDAO extends DBContext {
                   WHERE so.status = 'DELIVERED'
                   GROUP BY od.product_id
              ) sold_data ON p.product_id = sold_data.product_id
-    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED'
+    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED' AND p.status = 'ACTIVE'
 """;
 
     private static final String GROUP_PRODUCT = """
@@ -201,7 +201,7 @@ public class ProductDAO extends DBContext {
                   WHERE so.status = 'DELIVERED'
                   GROUP BY od.product_id
              ) sold_data ON p.product_id = sold_data.product_id
-    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED'
+    WHERE p.is_active = 1 AND p.is_deleted = 0 AND s.status = 'ACTIVE' AND s.approval_status = 'APPROVED' AND p.status = 'ACTIVE'
 """;
 
     public int getTotalProductFilter(ProductFilterRequest productFilterRequest) {
@@ -322,7 +322,7 @@ public class ProductDAO extends DBContext {
                 WHERE so.status = ?
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
-            WHERE p.product_id = ? AND s.status = ? AND s.approval_status = ?;
+            WHERE p.product_id = ? AND s.status = ? AND s.approval_status = ? AND p.status = 'ACTIVE';
             """;
 
     public ProductDetailResponse getProductDetailByProductId(Integer productId) {
@@ -490,7 +490,7 @@ public class ProductDAO extends DBContext {
                 WHERE so.status = 'DELIVERED'
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
-            WHERE p.shop_id = ? AND p.is_deleted = 0
+            WHERE p.shop_id = ? AND p.is_deleted = 0 AND p.status = 'ACTIVE'
             ORDER BY ISNULL(sold_data.total_sold, 0) DESC
             """;
 
@@ -563,7 +563,7 @@ public class ProductDAO extends DBContext {
     }
 
     public int countActiveProductsByShopId(int shopId) {
-        String sql = "SELECT COUNT(*) FROM products WHERE shop_id = ? AND is_active = 1 AND is_deleted = 0";
+        String sql = "SELECT COUNT(*) FROM products WHERE shop_id = ? AND is_active = 1 AND is_deleted = 0 AND status = 'ACTIVE'";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, shopId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -633,7 +633,7 @@ public class ProductDAO extends DBContext {
                 WHERE so.status = 'DELIVERED'
                 GROUP BY od.product_id
             ) sold_data ON p.product_id = sold_data.product_id
-            WHERE p.shop_id = ? AND p.is_deleted = 0
+            WHERE p.shop_id = ? AND p.is_deleted = 0 AND p.status = 'ACTIVE'
             """;
         params.add(shopId);
 
@@ -666,7 +666,7 @@ public class ProductDAO extends DBContext {
             }
         }
 
-        sql += " ORDER BY p.created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
+        sql += " ORDER BY ISNULL(stock_data.total_stock, 0) ASC, p.created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
         int offset = (page - 1) * pageSize;
         params.add(offset);
         params.add(pageSize);
@@ -704,7 +704,7 @@ public class ProductDAO extends DBContext {
                 FROM product_variants
                 GROUP BY product_id
             ) stock_data ON p.product_id = stock_data.product_id
-            WHERE p.shop_id = ? AND p.is_deleted = 0
+            WHERE p.shop_id = ? AND p.is_deleted = 0 AND p.status = 'ACTIVE'
             """;
         params.add(shopId);
 
@@ -868,6 +868,34 @@ public class ProductDAO extends DBContext {
             }
             stmt.setString(4, variant.getVariantName());
             stmt.setInt(5, variant.getStockQuantity());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateProductVariant(ProductVariant variant) {
+        String sql = """
+            UPDATE product_variants
+            SET color_id = ?, size_id = ?, variant_name = ?, stock_quantity = ?
+            WHERE variant_id = ? AND product_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            if (variant.getColorId() != null) {
+                stmt.setInt(1, variant.getColorId());
+            } else {
+                stmt.setNull(1, java.sql.Types.INTEGER);
+            }
+            if (variant.getSizeId() != null) {
+                stmt.setInt(2, variant.getSizeId());
+            } else {
+                stmt.setNull(2, java.sql.Types.INTEGER);
+            }
+            stmt.setString(3, variant.getVariantName());
+            stmt.setInt(4, variant.getStockQuantity());
+            stmt.setInt(5, variant.getVariantId());
+            stmt.setInt(6, variant.getProductId());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -1161,6 +1189,34 @@ public class ProductDAO extends DBContext {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, productId);
             return stmt.executeUpdate() >= 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteVariantById(int variantId, int productId) {
+        String sql = "DELETE FROM product_variants WHERE variant_id = ? AND product_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, variantId);
+            stmt.setInt(2, productId);
+            return stmt.executeUpdate() >= 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean retireVariantById(int variantId, int productId) {
+        String sql = """
+            UPDATE product_variants
+            SET stock_quantity = 0
+            WHERE variant_id = ? AND product_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, variantId);
+            stmt.setInt(2, productId);
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }

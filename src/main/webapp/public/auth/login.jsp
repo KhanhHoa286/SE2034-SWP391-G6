@@ -112,7 +112,9 @@
                 </div>
 
                 <div class="form-actions">
-                    <a href="#" class="forgot-link">Quên mật khẩu?</a>
+                    <a href="<%= request.getContextPath() %>/forgot-password" class="forgot-link">
+                        Quên mật khẩu?
+                    </a>
                 </div>
 
                 <button type="submit" class="submit-btn">

@@ -25,8 +25,7 @@ public class UserListController extends HttpServlet {
         String txtSearch = request.getParameter("search");
         if (txtSearch == null) txtSearch = "";
 
-        String roleFilter = request.getParameter("role");
-        if (roleFilter == null || roleFilter.isEmpty()) roleFilter = "all";
+        String roleFilter = "CUSTOMER";
 
         String statusFilter = request.getParameter("status");
         if (statusFilter == null || statusFilter.isEmpty()) statusFilter = "all";

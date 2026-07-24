@@ -6,7 +6,7 @@
 :root {
     --edit-profile-primary: #000000;
     --edit-profile-secondary: #5c5f60;
-    --edit-profile-background: #f8f9ff;
+    --edit-profile-background: var(--secondary-color, #ffffff);
     --edit-profile-surface: #ffffff;
     --edit-profile-border: #e0e0e0;
     --edit-profile-text-main: #121c28;
@@ -141,6 +141,7 @@
 .edit-profile-container {
     width: 100%;
     max-width: 1000px;
+    margin: 0 auto
 }
 
 .edit-profile-header h1 {

@@ -195,11 +195,7 @@
                                 <strong><fmt:formatNumber value="${orderDetail.subTotal}" type="number" maxFractionDigits="0"/>đ</strong>
                             </div>
                             <div class="seller-order-detail-summary-row">
-                                <span>Giảm giá</span>
-                                <strong>-<fmt:formatNumber value="${orderDetail.discountAmount}" type="number" maxFractionDigits="0"/>đ</strong>
-                            </div>
-                            <div class="seller-order-detail-summary-row">
-                                <span>Commission</span>
+                                <span>Phí nền tảng</span>
                                 <strong>-<fmt:formatNumber value="${orderDetail.commissionFee}" type="number" maxFractionDigits="0"/>đ</strong>
                             </div>
                             <div class="seller-order-detail-summary-total">

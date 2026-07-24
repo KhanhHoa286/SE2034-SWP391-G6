@@ -43,21 +43,11 @@ public class AddProductServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
+        Shop shop = resolveCurrentShop(session);
 
-        int ownerId = (account != null) ? account.getUserId() : -1;
-        Shop shop = null;
-
-        if (ownerId != -1) {
-            shop = shopDAO.getShopByOwnerId(ownerId);
-        }
-
-        // Nếu chưa có shop -> lấy shop đầu tiên để demo
         if (shop == null) {
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                shop = allShops.get(0);
-            }
+            response.sendRedirect(request.getContextPath() + "/seller-register");
+            return;
         }
 
         request.setAttribute("shop", shop);
@@ -77,22 +67,7 @@ public class AddProductServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
-
-        int ownerId = (account != null) ? account.getUserId() : -1;
-        Shop shop = null;
-
-        if (ownerId != -1) {
-            shop = shopDAO.getShopByOwnerId(ownerId);
-        }
-
-        // Demo fallback
-        if (shop == null) {
-            List<Shop> allShops = shopDAO.getAllShops();
-            if (allShops != null && !allShops.isEmpty()) {
-                shop = allShops.get(0);
-            }
-        }
+        Shop shop = resolveCurrentShop(session);
 
         if (shop == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Không tìm thấy Shop hợp lệ để đăng sản phẩm!");
@@ -161,24 +136,43 @@ public class AddProductServlet extends HttpServlet {
         // 2. Xử lý các file ảnh tải lên Cloudinary
         List<String> imageUrls = new ArrayList<>();
         try {
+            Part mainImagePart = request.getPart("mainProductImage");
+            if (mainImagePart != null && mainImagePart.getSize() > 0) {
+                try {
+                    String mainImageUrl = UploadImage.uploadImage(mainImagePart, "products");
+                    if (mainImageUrl != null && !mainImageUrl.isBlank()) {
+                        imageUrls.add(mainImageUrl);
+                    } else {
+                        errors.put("images", "Không thể tải ảnh chính lên hệ thống. Vui lòng thử lại.");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    errors.put("images", "Không thể tải ảnh chính lên hệ thống: " + e.getMessage());
+                }
+            } else {
+                errors.put("images", "Vui lòng tải lên ít nhất ảnh chính của sản phẩm.");
+            }
+
             Collection<Part> parts = request.getParts();
             for (Part part : parts) {
                 if (part.getName().equals("productImages") && part.getSize() > 0) {
                     try {
                         String imageUrl = UploadImage.uploadImage(part, "products");
-                        if (imageUrl != null) {
+                        if (imageUrl != null && !imageUrl.isBlank()) {
                             imageUrls.add(imageUrl);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
+                        errors.putIfAbsent("images", "Có ảnh phụ không thể tải lên hệ thống: " + e.getMessage());
                     }
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
+            errors.putIfAbsent("images", "Không thể đọc file ảnh từ form. Vui lòng chọn lại ảnh và thử lại.");
         }
 
-        if (imageUrls.isEmpty()) {
+        if (imageUrls.isEmpty() && !errors.containsKey("images")) {
             errors.put("images", "Vui lòng tải lên ít nhất ảnh chính của sản phẩm.");
         }
 
@@ -308,7 +302,6 @@ public class AddProductServlet extends HttpServlet {
                         .colorId(colorId)
                         .sizeId(sizeId)
                         .variantName(productName + " (" + colorName + " / " + sizeName + ")")
-                        .price(basePrice)
                         .stockQuantity(stock)
                         .build();
 
@@ -331,5 +324,40 @@ public class AddProductServlet extends HttpServlet {
             request.setAttribute("activePage", "products");
             request.getRequestDispatcher("/seller/product/add-product.jsp").forward(request, response);
         }
+    }
+
+    private Shop resolveCurrentShop(HttpSession session) {
+        Integer ownerId = getLoggedInUserId(session);
+        return ownerId == null ? null : shopDAO.getShopByOwnerId(ownerId);
+    }
+
+    private Integer getLoggedInUserId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object rawUserId = session.getAttribute("userId");
+        if (rawUserId instanceof Integer) {
+            return (Integer) rawUserId;
+        }
+        if (rawUserId != null) {
+            try {
+                return Integer.parseInt(rawUserId.toString());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+
+        Object rawUser = session.getAttribute("user");
+        if (rawUser instanceof User) {
+            return ((User) rawUser).getUserId();
+        }
+
+        Object rawAccount = session.getAttribute("account");
+        if (rawAccount instanceof User) {
+            return ((User) rawAccount).getUserId();
+        }
+
+        return null;
     }
 }

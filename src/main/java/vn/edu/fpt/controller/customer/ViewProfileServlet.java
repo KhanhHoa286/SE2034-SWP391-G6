@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import vn.edu.fpt.dao.CustomerDAO;
 import vn.edu.fpt.dao.UserDAO;
 import vn.edu.fpt.enums.Gender;
 import vn.edu.fpt.model.User;
@@ -17,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 public class ViewProfileServlet extends HttpServlet {
 
     private final UserDAO userDAO = new UserDAO();
+    private final CustomerDAO customerDAO = new CustomerDAO();
 
     private static final String DEFAULT_AVATAR =
             "https://res.cloudinary.com/dej5mxdrt/image/upload/v1780061324/OIP_dbbjuo.jpg";
@@ -94,6 +96,16 @@ public class ViewProfileServlet extends HttpServlet {
         session.setAttribute("user", profileUser);
         session.setAttribute("userId", profileUser.getUserId());
         session.setAttribute("fullName", fullNameText);
+        boolean hasSellerAccount = customerDAO.hasSellerAccount(profileUser.getUserId());
+        boolean hasPendingSellerRegistration = !hasSellerAccount && customerDAO.hasPendingSellerRegistration(profileUser.getUserId());
+        session.setAttribute("hasSellerAccount", hasSellerAccount);
+        session.setAttribute("hasPendingSellerRegistration", hasPendingSellerRegistration);
+        request.setAttribute("hasSellerAccount", hasSellerAccount);
+        request.setAttribute("hasPendingSellerRegistration", hasPendingSellerRegistration);
+
+        if ("1".equals(request.getParameter("shopCreated")) || "1".equals(request.getParameter("shopPending"))) {
+            request.setAttribute("successMessage", "Tạo shop thành công, yêu cầu tạo đang được kiểm duyệt.");
+        }
 
         request.getRequestDispatcher("/customer/account/view-profile.jsp")
                 .forward(request, response);

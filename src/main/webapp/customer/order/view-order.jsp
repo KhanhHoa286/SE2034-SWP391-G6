@@ -32,9 +32,11 @@
 
     <!-- Main Content -->
     <main class="profile-main">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="${pageContext.request.contextPath}/customer/order-list" class="text-dark text-decoration-none"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
+        </div>
         <div class="profile-container">
-            <!-- Back to orders -->
-            <a href="javascript:history.back()" class="back-link"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</a>
 
             <!-- Order Header -->
             <div class="order-detail-header">
@@ -43,7 +45,14 @@
                     <p class="order-date">Đặt ngày ${subOrderDetail.dateFormatted}</p>
                 </div>
                 <div class="order-status-group">
-                    <span class="status-badge status-shipping">${subOrderDetail.statusOrder.displayName}</span>
+                    <span class="status-badge 
+                        ${subOrderDetail.statusOrder == 'PENDING' ? 'status-pending' : ''}
+                        ${subOrderDetail.statusOrder == 'CONFIRMED' ? 'status-preparing' : ''}
+                        ${subOrderDetail.statusOrder == 'PREPARING' ? 'status-preparing' : ''}
+                        ${subOrderDetail.statusOrder == 'SHIPPING' ? 'status-shipping' : ''}
+                        ${subOrderDetail.statusOrder == 'DELIVERED' ? 'status-completed' : ''}
+                        ${subOrderDetail.statusOrder == 'CANCELLED' ? 'status-cancelled' : ''}
+                    ">${subOrderDetail.statusOrder.displayName}</span>
                 </div>
             </div>
 
@@ -89,10 +98,10 @@
                             </div>
                         </div>
                         </c:forEach>
-                        <div class="shop-subtotal">
-                            <span>Tạm tính đơn hàng:</span>
-                            <span class="price"><fmt:formatNumber type="currency" value="${shopOrder.shopTotal}" maxFractionDigits="0"></fmt:formatNumber> </span>
-                        </div>
+<%--                        <div class="shop-subtotal">--%>
+<%--                            <span>Tạm tính đơn hàng:</span>--%>
+<%--                            <span class="price"><fmt:formatNumber type="currency" value="${shopOrder.shopTotal}" maxFractionDigits="0"></fmt:formatNumber> </span>--%>
+<%--                        </div>--%>
                     </div>
                     </c:forEach>
 

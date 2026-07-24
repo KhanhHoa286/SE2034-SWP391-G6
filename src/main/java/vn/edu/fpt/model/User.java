@@ -32,6 +32,16 @@ public class User {
 
     // users.status: PENDING / ACTIVE
     private UserStatus status;
+
+    private String legalFullName;
+    private String citizenId;
+    private LocalDate citizenIdIssueDate;
+    private String citizenIdIssuePlace;
+    private String permanentAddress;
+    private String frontIdImage;
+    private String backIdImage;
+
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 }
