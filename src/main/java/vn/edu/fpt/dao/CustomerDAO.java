@@ -139,6 +139,44 @@ public class CustomerDAO extends DBContext {
         return false;
     }
 
+    public boolean hasRejectedSellerRegistration(int userId) {
+        String sql = """
+                SELECT 1
+                FROM shops
+                WHERE owner_id = ?
+                  AND UPPER(LTRIM(RTRIM(approval_status))) = 'REJECTED'
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            System.err.println("[CustomerDAO] hasRejectedSellerRegistration error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean confirmRejectedSellerRegistration(int userId) {
+        String sql = """
+                UPDATE shops
+                SET approval_status = 'PENDING'
+                WHERE owner_id = ?
+                  AND UPPER(LTRIM(RTRIM(approval_status))) = 'REJECTED'
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            System.err.println("[CustomerDAO] confirmRejectedSellerRegistration error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean shopNameExists(String shopName) {
         String sql = "SELECT 1 FROM shops WHERE LOWER(LTRIM(RTRIM(shop_name))) = LOWER(LTRIM(RTRIM(?)))";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

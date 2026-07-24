@@ -193,6 +193,36 @@
     color: #146c2e;
 }
 
+.profile-alert--error {
+    border-color: #ef9a9a;
+    background: #fff1f1;
+    color: #9f1d1d;
+}
+
+.profile-rejected-shop-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.profile-rejected-shop-alert form {
+    flex: 0 0 auto;
+}
+
+.profile-rejected-shop-alert button {
+    min-height: 38px;
+    padding: 9px 18px;
+    border: 1px solid #9f1d1d;
+    background: #9f1d1d;
+    color: #ffffff;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
 /* ================================
    Header / Title
 ================================ */

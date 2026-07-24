@@ -66,6 +66,28 @@
             </div>
         </c:if>
 
+        <c:if test="${hasRejectedSellerRegistration}">
+            <div class="profile-alert profile-alert--error profile-rejected-shop-alert">
+                <span>Yêu cầu đăng kí shop đã bị từ chối, vui lòng điền đúng thông tin theo yêu cầu.</span>
+                <form action="${pageContext.request.contextPath}/customer/profile" method="post">
+                    <input type="hidden" name="action" value="confirmRejectedShop">
+                    <button type="submit">Xác nhận</button>
+                </form>
+            </div>
+        </c:if>
+
+        <c:if test="${param.retryConfirmed == '1'}">
+            <div class="profile-alert profile-alert--success">
+                Đã xác nhận. Vui lòng chọn “Đăng ký người bán” để cập nhật và gửi lại thông tin shop.
+            </div>
+        </c:if>
+
+        <c:if test="${param.retryError == '1'}">
+            <div class="profile-alert profile-alert--error">
+                Không thể xác nhận yêu cầu đăng ký lại. Vui lòng tải lại trang và thử lại.
+            </div>
+        </c:if>
+
         <!-- Header & Action -->
         <div class="profile-title-row">
             <div>

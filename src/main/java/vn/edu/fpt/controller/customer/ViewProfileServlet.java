@@ -102,6 +102,9 @@ public class ViewProfileServlet extends HttpServlet {
         session.setAttribute("fullName", fullNameText);
         boolean hasSellerAccount = customerDAO.hasSellerAccount(profileUser.getUserId());
         boolean hasPendingSellerRegistration = !hasSellerAccount && customerDAO.hasPendingSellerRegistration(profileUser.getUserId());
+        boolean hasRejectedSellerRegistration = !hasSellerAccount
+                && customerDAO.hasRejectedSellerRegistration(profileUser.getUserId());
+        boolean sellerRegistrationRetry = Boolean.TRUE.equals(session.getAttribute("sellerRegistrationRetry"));
 
         // Kiểm tra nếu shop bị admin khóa (SUSPENDED):
         // hasSellerAccount() chỉ trả về true khi status=ACTIVE, nên cần query riêng
@@ -119,6 +122,8 @@ public class ViewProfileServlet extends HttpServlet {
         session.setAttribute("hasPendingSellerRegistration", hasPendingSellerRegistration);
         request.setAttribute("hasSellerAccount", hasSellerAccount);
         request.setAttribute("hasPendingSellerRegistration", hasPendingSellerRegistration);
+        request.setAttribute("hasRejectedSellerRegistration", hasRejectedSellerRegistration);
+        request.setAttribute("sellerRegistrationRetry", sellerRegistrationRetry);
         request.setAttribute("shopSuspended", shopSuspended);
         session.setAttribute("shopSuspended", shopSuspended);
 
@@ -206,6 +211,27 @@ public class ViewProfileServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        doGet(request, response);
+        request.setCharacterEncoding("UTF-8");
+        HttpSession session = request.getSession(false);
+        Integer userId = session == null ? null : getLoggedInUserId(session);
+        if (userId == null || userId <= 0) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        if (!"confirmRejectedShop".equals(request.getParameter("action"))) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        if (customerDAO.confirmRejectedSellerRegistration(userId)) {
+            session.setAttribute("sellerRegistrationRetry", true);
+            session.setAttribute("hasSellerAccount", false);
+            session.setAttribute("hasPendingSellerRegistration", false);
+            response.sendRedirect(request.getContextPath() + "/customer/profile?retryConfirmed=1");
+            return;
+        }
+
+        response.sendRedirect(request.getContextPath() + "/customer/profile?retryError=1");
     }
 }

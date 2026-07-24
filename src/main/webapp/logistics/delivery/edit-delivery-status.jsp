@@ -141,13 +141,6 @@
                                             </span>
                                         </label>
 
-                                        <label class="delivery-status-note">
-                                            <span>Ghi chú giao hàng</span>
-                                            <textarea name="note"
-                                                      rows="3"
-                                                      placeholder="Ví dụ: Người mua đã nhận hàng tại địa chỉ giao."></textarea>
-                                        </label>
-
                                         <div class="delivery-status-actions">
                                             <a class="btn btn-outline-dark"
                                                href="${pageContext.request.contextPath}/logistics/delivery/my-orders">
@@ -175,37 +168,6 @@
                             </c:choose>
                         </section>
 
-                        <section class="delivery-status-card card shadow-sm">
-                            <div class="delivery-status-card-header">
-                                <h2>Lịch sử vận chuyển</h2>
-                                <span>${fn:length(logs)} lần ghi nhận</span>
-                            </div>
-                            <c:choose>
-                                <c:when test="${not empty logs}">
-                                    <div class="delivery-status-log-list">
-                                        <c:forEach var="log" items="${logs}">
-                                            <article class="delivery-status-log">
-                                                <strong>
-                                                    <c:choose>
-                                                        <c:when test="${log.newStatus == 'ASSIGNED'}">Đã nhận đơn</c:when>
-                                                        <c:when test="${log.newStatus == 'PICKED_UP'}">Đã lấy hàng</c:when>
-                                                        <c:when test="${log.newStatus == 'IN_TRANSIT'}">Đang giao</c:when>
-                                                        <c:when test="${log.newStatus == 'DELIVERED'}">Đã giao</c:when>
-                                                        <c:when test="${log.newStatus == 'FAILED'}">Giao thất bại</c:when>
-                                                        <c:otherwise>${log.newStatus}</c:otherwise>
-                                                    </c:choose>
-                                                </strong>
-                                                <span>${log.currentLocation}</span>
-                                                <small><fmt:formatDate value="${log.createdAt}" pattern="dd/MM/yyyy HH:mm"/></small>
-                                            </article>
-                                        </c:forEach>
-                                    </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <p class="delivery-status-empty">Chưa có lịch sử vận chuyển.</p>
-                                </c:otherwise>
-                            </c:choose>
-                        </section>
                     </div>
 
                     <aside class="delivery-status-side">
