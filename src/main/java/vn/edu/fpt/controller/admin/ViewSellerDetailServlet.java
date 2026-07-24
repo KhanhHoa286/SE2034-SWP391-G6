@@ -39,7 +39,7 @@ public class ViewSellerDetailServlet extends HttpServlet {
 
                 if (idStr != null && !idStr.trim().isEmpty()) {
                     int appId = Integer.parseInt(idStr);
-                    String sql = "SELECT s.shop_id AS application_id, s.*, u.user_id AS u_user_id, u.first_name, u.last_name, u.phone, u.email, u.id_card_number AS tax_code " +
+                    String sql = "SELECT s.shop_id AS application_id, s.*, u.user_id AS u_user_id, u.first_name, u.last_name, u.phone, u.email, u.citizen_id AS tax_code " +
                                  "FROM shops s " +
                                  "JOIN users u ON s.owner_id = u.user_id " +
                                  "WHERE s.shop_id = ?";
@@ -48,7 +48,7 @@ public class ViewSellerDetailServlet extends HttpServlet {
                     rs = ps.executeQuery();
                 } else if (userIdStr != null && !userIdStr.trim().isEmpty()) {
                     int userId = Integer.parseInt(userIdStr);
-                    String sql = "SELECT s.shop_id AS application_id, s.*, u.user_id AS u_user_id, u.first_name, u.last_name, u.phone, u.email, u.id_card_number AS tax_code " +
+                    String sql = "SELECT s.shop_id AS application_id, s.*, u.user_id AS u_user_id, u.first_name, u.last_name, u.phone, u.email, u.citizen_id AS tax_code " +
                                  "FROM users u " +
                                  "LEFT JOIN shops s ON u.user_id = s.owner_id " +
                                  "WHERE u.user_id = ?";

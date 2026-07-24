@@ -27,7 +27,7 @@ public class SellerApplicationDAO extends DBContext {
         List<SellerApplication> list = new ArrayList<>();
 
         String sql = "SELECT s.shop_id AS application_id, s.owner_id AS user_id, (u.first_name + ' ' + u.last_name) AS owner_name, " +
-                "s.shop_name, u.email AS business_email, '' AS tax_code, NULL AS front_id_image, NULL AS back_id_image, s.approval_status AS status, " +
+                "s.shop_name, u.email AS business_email, u.citizen_id AS tax_code, u.front_id_image, u.back_id_image, s.approval_status AS status, " +
                 "0 AS resolved_by, s.created_at " +
                 "FROM shops s " +
                 "JOIN users u ON s.owner_id = u.user_id ";
@@ -93,7 +93,7 @@ public class SellerApplicationDAO extends DBContext {
 
     public SellerApplication getApplicationById(int appId) {
         String sql = "SELECT s.shop_id AS application_id, s.owner_id AS user_id, (u.first_name + ' ' + u.last_name) AS owner_name, " +
-                "s.shop_name, u.email AS business_email, '' AS tax_code, NULL AS front_id_image, NULL AS back_id_image, s.approval_status AS status, " +
+                "s.shop_name, u.email AS business_email, u.citizen_id AS tax_code, u.front_id_image, u.back_id_image, s.approval_status AS status, " +
                 "0 AS resolved_by, s.created_at " +
                 "FROM shops s " +
                 "JOIN users u ON s.owner_id = u.user_id " +
