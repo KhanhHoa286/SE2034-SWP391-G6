@@ -85,9 +85,6 @@
                   class="register-form"
                   novalidate>
 
-                <!-- Backend vẫn nhận accountType CUSTOMER như luồng cũ -->
-                <input type="hidden" name="accountType" value="CUSTOMER">
-
                 <div class="form-row">
                     <div class="form-group">
                         <label for="firstName">Họ</label>
