@@ -3,7 +3,7 @@
 
 <c:set var="hasSellerAccount" value="${requestScope.hasSellerAccount or sessionScope.hasSellerAccount}" />
 <c:set var="hasPendingSellerRegistration" value="${requestScope.hasPendingSellerRegistration or sessionScope.hasPendingSellerRegistration}" />
-<c:set var="sellerRegistrationRetry" value="${requestScope.sellerRegistrationRetry or sessionScope.sellerRegistrationRetry}" />
+<c:set var="hasRejectedSellerRegistration" value="${requestScope.hasRejectedSellerRegistration or sessionScope.hasRejectedSellerRegistration}" />
 <c:set var="shopSuspended" value="${requestScope.shopSuspended or sessionScope.shopSuspended}" />
 
 <aside class="profile-sidebar">
@@ -47,7 +47,9 @@
                     <span>Trang người bán</span>
                 </a>
             </c:when>
-            <c:when test="${hasPendingSellerRegistration and not sellerRegistrationRetry}">
+            <c:when test="${hasPendingSellerRegistration}">
+            </c:when>
+            <c:when test="${hasRejectedSellerRegistration}">
             </c:when>
             <c:otherwise>
                 <a class="profile-side-link ${param.active == 'seller' ? 'active' : ''}"

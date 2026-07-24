@@ -68,18 +68,27 @@
         </c:if>
 
         <c:if test="${hasRejectedSellerRegistration}">
-            <div class="profile-alert profile-alert--error profile-rejected-shop-alert">
-                <span>Yêu cầu đăng kí shop đã bị từ chối, vui lòng điền đúng thông tin theo yêu cầu.</span>
-                <form action="${pageContext.request.contextPath}/customer/profile" method="post">
-                    <input type="hidden" name="action" value="confirmRejectedShop">
-                    <button type="submit">Xác nhận</button>
-                </form>
+            <div class="profile-rejected-modal-backdrop" role="presentation">
+                <section class="profile-rejected-modal"
+                         role="dialog"
+                         aria-modal="true"
+                         aria-labelledby="rejectedShopTitle">
+                    <div class="profile-rejected-modal__icon" aria-hidden="true">
+                        <span class="material-symbols-outlined">error</span>
+                    </div>
+                    <h2 id="rejectedShopTitle">Yêu cầu đăng ký shop bị từ chối</h2>
+                    <p>Yêu cầu đăng kí shop đã bị từ chối, vui lòng điền đúng thông tin theo yêu cầu.</p>
+                    <form action="${pageContext.request.contextPath}/customer/profile" method="post">
+                        <input type="hidden" name="action" value="confirmRejectedShop">
+                        <button type="submit" autofocus>Xác nhận</button>
+                    </form>
+                </section>
             </div>
         </c:if>
 
         <c:if test="${param.retryConfirmed == '1'}">
             <div class="profile-alert profile-alert--success">
-                Đã xác nhận. Vui lòng chọn “Đăng ký người bán” để cập nhật và gửi lại thông tin shop.
+                Đã hủy yêu cầu cũ. Vui lòng chọn “Đăng ký người bán” để tạo lại hồ sơ từ đầu.
             </div>
         </c:if>
 

@@ -59,13 +59,12 @@ public class AddShopServlet extends HttpServlet {
                 session.setAttribute("hasSellerAccount", true);
                 session.setAttribute("hasPendingSellerRegistration", false);
                 response.sendRedirect(request.getContextPath() + "/seller/orders");
-                return;
-            } else if (!isRetryingRejectedRegistration(session)) {
+            } else {
                 session.setAttribute("hasSellerAccount", false);
                 session.setAttribute("hasPendingSellerRegistration", true);
                 response.sendRedirect(request.getContextPath() + "/customer/profile?shopPending=1");
-                return;
             }
+            return;
         }
         if (!customerDAO.hasCompletedSellerIdentity(ownerId)) {
             response.sendRedirect(request.getContextPath() + "/seller-register");
@@ -74,20 +73,6 @@ public class AddShopServlet extends HttpServlet {
 
         List<Province> provinces = provinceDAO.getAllProvinces();
         request.setAttribute("provinces", provinces);
-        if (existingShop != null) {
-            request.setAttribute("resubmittingShop", true);
-            request.setAttribute("existingLogoUrl", existingShop.getLogoUrl());
-        }
-        if (existingShop != null && request.getAttribute("oldInput") == null) {
-            Map<String, String> oldInput = new HashMap<>();
-            oldInput.put("shopName", existingShop.getShopName());
-            Integer provinceId = shopDAO.getProvinceIdByWardId(existingShop.getWardId());
-            oldInput.put("provinceId", provinceId == null ? "" : String.valueOf(provinceId));
-            oldInput.put("wardId", String.valueOf(existingShop.getWardId()));
-            oldInput.put("streetAddress", existingShop.getStreetAddress());
-            oldInput.put("description", existingShop.getDescription());
-            request.setAttribute("oldInput", oldInput);
-        }
         request.getRequestDispatcher("/seller/shop/add-shop.jsp").forward(request, response);
     }
 
@@ -115,13 +100,12 @@ public class AddShopServlet extends HttpServlet {
                 session.setAttribute("hasSellerAccount", true);
                 session.setAttribute("hasPendingSellerRegistration", false);
                 response.sendRedirect(request.getContextPath() + "/seller/orders");
-                return;
-            } else if (!isRetryingRejectedRegistration(session)) {
+            } else {
                 session.setAttribute("hasSellerAccount", false);
                 session.setAttribute("hasPendingSellerRegistration", true);
                 response.sendRedirect(request.getContextPath() + "/customer/profile?shopPending=1");
-                return;
             }
+            return;
         }
         Map<String, String> errors = new HashMap<>();
         Map<String, String> oldInput = new HashMap<>();
@@ -140,7 +124,7 @@ public class AddShopServlet extends HttpServlet {
         request.setAttribute("oldInput", oldInput);
 
         int wardId = parseWardId(wardIdRaw, errors);
-        validateShopName(shopName, ownerId, errors);
+        validateShopName(shopName, errors);
         validateRequired(provinceId, "provinceId", "Vui lòng chọn Tỉnh/Thành phố.", errors);
         validateRequired(streetAddress, "streetAddress", "Địa chỉ không được để trống.", errors);
 
@@ -149,7 +133,7 @@ public class AddShopServlet extends HttpServlet {
         }
 
         Part logoPart = request.getPart("logo");
-        validateLogo(logoPart, existingShop != null, errors);
+        validateLogo(logoPart, errors);
 
         if (!errors.isEmpty()) {
             request.setAttribute("errors", errors);
@@ -160,9 +144,7 @@ public class AddShopServlet extends HttpServlet {
         }
 
         try {
-            String logoUrl = hasFile(logoPart)
-                    ? saveShopLogo(logoPart)
-                    : existingShop == null ? null : existingShop.getLogoUrl();
+            String logoUrl = saveShopLogo(logoPart);
             if (logoUrl == null || logoUrl.trim().isEmpty()) {
                 throw new Exception("Tải ảnh lên hệ thống thất bại.");
             }
@@ -176,16 +158,13 @@ public class AddShopServlet extends HttpServlet {
                     .streetAddress(streetAddress)
                     .build();
 
-            boolean success = existingShop == null
-                    ? shopDAO.insertShop(shop)
-                    : shopDAO.updatePendingShopForResubmission(shop);
+            boolean success = shopDAO.insertShop(shop);
             if (!success) {
                 throw new Exception("Không thể lưu thông tin cửa hàng.");
             }
 
             session.setAttribute("hasSellerAccount", false);
             session.setAttribute("hasPendingSellerRegistration", true);
-            session.removeAttribute("sellerRegistrationRetry");
             response.sendRedirect(request.getContextPath() + "/customer/profile?shopCreated=1");
         } catch (Exception e) {
             e.printStackTrace();
@@ -195,18 +174,14 @@ public class AddShopServlet extends HttpServlet {
         }
     }
 
-    private void validateShopName(String shopName, int ownerId, Map<String, String> errors) {
+    private void validateShopName(String shopName, Map<String, String> errors) {
         if (shopName.isEmpty()) {
             errors.put("shopName", "Tên cửa hàng không được để trống.");
         } else if (shopName.length() > 100) {
             errors.put("shopName", "Tên cửa hàng không được vượt quá 100 ký tự.");
-        } else if (shopDAO.existsByShopNameForOtherOwner(shopName, ownerId)) {
+        } else if (shopDAO.existsByShopName(shopName)) {
             errors.put("shopName", "Tên cửa hàng đã tồn tại.");
         }
-    }
-
-    private boolean isRetryingRejectedRegistration(HttpSession session) {
-        return session != null && Boolean.TRUE.equals(session.getAttribute("sellerRegistrationRetry"));
     }
 
     private void validateRequired(String value, String field, String message, Map<String, String> errors) {
@@ -229,11 +204,9 @@ public class AddShopServlet extends HttpServlet {
         }
     }
 
-    private void validateLogo(Part logoPart, boolean hasExistingShop, Map<String, String> errors) {
+    private void validateLogo(Part logoPart, Map<String, String> errors) {
         if (logoPart == null || logoPart.getSize() == 0) {
-            if (!hasExistingShop) {
-                errors.put("logo", "Vui lòng tải lên logo cửa hàng.");
-            }
+            errors.put("logo", "Vui lòng tải lên logo cửa hàng.");
             return;
         }
 
@@ -248,10 +221,6 @@ public class AddShopServlet extends HttpServlet {
         } else if (logoPart.getSize() > 2 * 1024 * 1024) {
             errors.put("logo", "Kích thước file không được vượt quá 2MB.");
         }
-    }
-
-    private boolean hasFile(Part part) {
-        return part != null && part.getSize() > 0;
     }
 
     private String saveShopLogo(Part logoPart) throws Exception {

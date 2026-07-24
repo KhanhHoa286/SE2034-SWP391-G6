@@ -139,68 +139,6 @@ public class ShopDAO extends DBContext {
         return false;
     }
 
-    public boolean existsByShopNameForOtherOwner(String shopName, int ownerId) {
-        String sql = """
-                SELECT 1
-                FROM shops
-                WHERE LOWER(LTRIM(RTRIM(shop_name))) = LOWER(LTRIM(RTRIM(?)))
-                  AND owner_id <> ?
-                """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, shopName);
-            ps.setInt(2, ownerId);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            System.err.println("[ShopDAO] existsByShopNameForOtherOwner error: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return true;
-    }
-
-    public boolean updatePendingShopForResubmission(Shop shop) {
-        String sql = """
-                UPDATE shops
-                SET shop_name = ?,
-                    logo_url = ?,
-                    description = ?,
-                    ward_id = ?,
-                    street_address = ?,
-                    approval_status = 'PENDING',
-                    status = 'ACTIVE'
-                WHERE owner_id = ?
-                  AND UPPER(LTRIM(RTRIM(approval_status))) = 'PENDING'
-                """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, shop.getShopName());
-            ps.setString(2, shop.getLogoUrl());
-            ps.setString(3, shop.getDescription());
-            ps.setInt(4, shop.getWardId());
-            ps.setString(5, shop.getStreetAddress());
-            ps.setInt(6, shop.getOwnerId());
-            return ps.executeUpdate() == 1;
-        } catch (SQLException e) {
-            System.err.println("[ShopDAO] updatePendingShopForResubmission error: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public Integer getProvinceIdByWardId(int wardId) {
-        String sql = "SELECT province_id FROM wards WHERE id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, wardId);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? rs.getInt("province_id") : null;
-            }
-        } catch (SQLException e) {
-            System.err.println("[ShopDAO] getProvinceIdByWardId error: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     public boolean createShopAndGrantSellerRole(Shop shop) {
         String insertShopSql =
                 """

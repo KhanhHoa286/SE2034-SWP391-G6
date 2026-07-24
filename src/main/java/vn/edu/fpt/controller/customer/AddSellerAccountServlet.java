@@ -194,9 +194,7 @@ public class AddSellerAccountServlet extends HttpServlet {
             return true;
         }
 
-        boolean retryingRejectedRegistration =
-                Boolean.TRUE.equals(session.getAttribute("sellerRegistrationRetry"));
-        if (customerDAO.hasPendingSellerRegistration(userId) && !retryingRejectedRegistration) {
+        if (customerDAO.hasPendingSellerRegistration(userId)) {
             session.setAttribute("hasSellerAccount", false);
             session.setAttribute("hasPendingSellerRegistration", true);
             response.sendRedirect(request.getContextPath() + "/customer/profile?shopPending=1");

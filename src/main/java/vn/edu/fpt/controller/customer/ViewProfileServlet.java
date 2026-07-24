@@ -104,7 +104,6 @@ public class ViewProfileServlet extends HttpServlet {
         boolean hasPendingSellerRegistration = !hasSellerAccount && customerDAO.hasPendingSellerRegistration(profileUser.getUserId());
         boolean hasRejectedSellerRegistration = !hasSellerAccount
                 && customerDAO.hasRejectedSellerRegistration(profileUser.getUserId());
-        boolean sellerRegistrationRetry = Boolean.TRUE.equals(session.getAttribute("sellerRegistrationRetry"));
 
         // Kiểm tra nếu shop bị admin khóa (SUSPENDED):
         // hasSellerAccount() chỉ trả về true khi status=ACTIVE, nên cần query riêng
@@ -120,10 +119,10 @@ public class ViewProfileServlet extends HttpServlet {
 
         session.setAttribute("hasSellerAccount", hasSellerAccount);
         session.setAttribute("hasPendingSellerRegistration", hasPendingSellerRegistration);
+        session.setAttribute("hasRejectedSellerRegistration", hasRejectedSellerRegistration);
         request.setAttribute("hasSellerAccount", hasSellerAccount);
         request.setAttribute("hasPendingSellerRegistration", hasPendingSellerRegistration);
         request.setAttribute("hasRejectedSellerRegistration", hasRejectedSellerRegistration);
-        request.setAttribute("sellerRegistrationRetry", sellerRegistrationRetry);
         request.setAttribute("shopSuspended", shopSuspended);
         session.setAttribute("shopSuspended", shopSuspended);
 
@@ -224,10 +223,11 @@ public class ViewProfileServlet extends HttpServlet {
             return;
         }
 
-        if (customerDAO.confirmRejectedSellerRegistration(userId)) {
-            session.setAttribute("sellerRegistrationRetry", true);
+        if (customerDAO.cancelRejectedSellerRegistration(userId)) {
+            session.removeAttribute("sellerIdentityCompleted");
             session.setAttribute("hasSellerAccount", false);
             session.setAttribute("hasPendingSellerRegistration", false);
+            session.setAttribute("hasRejectedSellerRegistration", false);
             response.sendRedirect(request.getContextPath() + "/customer/profile?retryConfirmed=1");
             return;
         }

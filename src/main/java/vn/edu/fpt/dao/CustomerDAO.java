@@ -159,20 +159,62 @@ public class CustomerDAO extends DBContext {
         return false;
     }
 
-    public boolean confirmRejectedSellerRegistration(int userId) {
-        String sql = """
-                UPDATE shops
-                SET approval_status = 'PENDING'
+    public boolean cancelRejectedSellerRegistration(int userId) {
+        String deleteRejectedShopSql = """
+                DELETE FROM shops
                 WHERE owner_id = ?
                   AND UPPER(LTRIM(RTRIM(approval_status))) = 'REJECTED'
                 """;
+        String clearSellerIdentitySql = """
+                UPDATE users
+                SET legal_full_name = NULL,
+                    citizen_id = NULL,
+                    citizen_id_issue_date = NULL,
+                    citizen_id_issue_place = NULL,
+                    permanent_address = NULL,
+                    front_id_image = NULL,
+                    back_id_image = NULL,
+                    updated_at = GETDATE()
+                WHERE user_id = ?
+                """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            return ps.executeUpdate() == 1;
+        boolean oldAutoCommit = true;
+        try {
+            oldAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement ps = connection.prepareStatement(deleteRejectedShopSql)) {
+                ps.setInt(1, userId);
+                if (ps.executeUpdate() != 1) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            try (PreparedStatement ps = connection.prepareStatement(clearSellerIdentitySql)) {
+                ps.setInt(1, userId);
+                if (ps.executeUpdate() != 1) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            connection.commit();
+            return true;
         } catch (SQLException e) {
-            System.err.println("[CustomerDAO] confirmRejectedSellerRegistration error: " + e.getMessage());
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackError) {
+                rollbackError.printStackTrace();
+            }
+            System.err.println("[CustomerDAO] cancelRejectedSellerRegistration error: " + e.getMessage());
             e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(oldAutoCommit);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         return false;
     }
