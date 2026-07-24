@@ -179,8 +179,8 @@ public class CustomerDAO extends DBContext {
                 SELECT 1
                 FROM users
                 WHERE user_id = ?
-                  AND id_card_number IS NOT NULL
-                  AND LTRIM(RTRIM(id_card_number)) <> ''
+                  AND citizen_id IS NOT NULL
+                  AND LTRIM(RTRIM(citizen_id)) <> ''
                   AND legal_full_name IS NOT NULL
                   AND LTRIM(RTRIM(legal_full_name)) <> ''
                 """;
@@ -201,7 +201,7 @@ public class CustomerDAO extends DBContext {
         String sql = """
                 SELECT 1
                 FROM users
-                WHERE id_card_number = ?
+                WHERE citizen_id = ?
                   AND user_id <> ?
                 """;
 
@@ -230,10 +230,10 @@ public class CustomerDAO extends DBContext {
     ) {
         String sql = """
                 UPDATE users
-                SET -- legal_full_name = ?,
-                    id_card_number = ?,
-                    -- citizen_id_issue_date = ?,
-                    -- citizen_id_issue_place = ?,
+                SET legal_full_name = ?,
+                    citizen_id = ?,
+                    citizen_id_issue_date = ?,
+                    citizen_id_issue_place = ?,
                     permanent_address = ?,
                     front_id_image = COALESCE(?, front_id_image),
                     back_id_image = COALESCE(?, back_id_image),
