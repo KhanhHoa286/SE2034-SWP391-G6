@@ -30,19 +30,20 @@ public class UpdateStatusOrder extends HttpServlet {
              Integer subOrderId = ParamUtil.getInteger(request, "sub_order_id");
              Integer masterOrderId = ParamUtil.getInteger(request, "master_order_id");
              String paymentMethod = request.getParameter("payment_method");
-             
-             if (subOrderId == null || masterOrderId == null || paymentMethod == null || paymentMethod.trim().isEmpty()) {
-                 result = "{\"status\":\"ERROR\"}";
+             if(subOrderId == null || masterOrderId == null || paymentMethod == null || paymentMethod.isEmpty()) {
+                  result = "{\"status\":\"ERROR\"}";
                  response.getWriter().write(result);
-                 return;
+             }else{
+               checkUpdateStatusOrder =  orderDAO.updateStatusOrder(subOrderId);
+               if("COD".equals(paymentMethod)){
+                   checkUpdatePaymentMethod = orderDAO.updatePaymentMethod(masterOrderId);
+               }else if("BANK".equals(paymentMethod)) {
+                   checkUpdatePaymentMethod = true;
+               }
              }
-             
-             boolean success = orderDAO.completeSubOrderAndCaculateRevenue(subOrderId, masterOrderId, paymentMethod);
-             if (success) {
-                 result = "{\"status\":\"SUCCESS\"}";
-             } else {
-                 result = "{\"status\":\"ERROR\"}";
+             if(checkUpdateStatusOrder == true && checkUpdatePaymentMethod == true) {
+                  result = "{\"status\":\"SUCCESS\"}";
+                  response.getWriter().write(result);
              }
-             response.getWriter().write(result);
          }
 }

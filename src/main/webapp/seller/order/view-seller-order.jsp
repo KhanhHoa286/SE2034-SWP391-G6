@@ -56,8 +56,7 @@
                             <c:when test="${orderDetail.status == 'CONFIRMED'}">Đã xác nhận</c:when>
                             <c:when test="${orderDetail.status == 'PREPARING'}">Đang chuẩn bị</c:when>
                             <c:when test="${orderDetail.status == 'SHIPPING'}">Đang giao</c:when>
-                            <c:when test="${orderDetail.status == 'DELIVERED'}">Đã giao hàng</c:when>
-                            <c:when test="${orderDetail.status == 'COMPLETED'}">Hoàn tất</c:when>
+                            <c:when test="${orderDetail.status == 'DELIVERED'}">Hoàn thành</c:when>
                             <c:when test="${orderDetail.status == 'CANCELLED'}">Đã hủy</c:when>
                             <c:otherwise>${orderDetail.status}</c:otherwise>
                         </c:choose>
@@ -174,6 +173,14 @@
                                         <c:otherwise>Chờ thanh toán</c:otherwise>
                                     </c:choose>
                                 </dd>
+                                <c:if test="${not empty orderDetail.transactionCode}">
+                                    <dt>Mã giao dịch</dt>
+                                    <dd>${orderDetail.transactionCode}</dd>
+                                </c:if>
+                                <c:if test="${not empty orderDetail.bankName}">
+                                    <dt>Ngân hàng</dt>
+                                    <dd>${orderDetail.bankName}</dd>
+                                </c:if>
                                 <c:if test="${not empty orderDetail.paymentDate}">
                                     <dt>Ngày thanh toán</dt>
                                     <dd><fmt:formatDate value="${orderDetail.paymentDate}" pattern="dd/MM/yyyy HH:mm"/></dd>

@@ -147,7 +147,7 @@ public class AddOrderServlet extends HttpServlet {
             checkoutRequest.getReceiverPhone() == null || checkoutRequest.getReceiverPhone().trim().isEmpty() ||
             checkoutRequest.getShippingAddress() == null || checkoutRequest.getShippingAddress().trim().isEmpty()) {
             
-            redirectBackWithError(request, response, "empty_address");
+            redirectBack(request, response);
             return;
         }
 
@@ -158,27 +158,27 @@ public class AddOrderServlet extends HttpServlet {
             checkoutRequest.setQuantity(ParamUtil.getInteger(request, "quantity_details_product"));
 
             if (checkoutRequest.getVariantId() == null || checkoutRequest.getQuantity() == null) {
-                redirectBackWithError(request, response, "invalid_product");
+                redirectBack(request, response);
                 return;
             }
 
             //lấy thông tin biến thể để lấy productId
             SummaryOrderCheckoutResponse summary = productDAO.getVariantInfoForCheckout(checkoutRequest.getVariantId());
             if (summary == null) {
-                redirectBackWithError(request, response, "invalid_product");
+                redirectBack(request, response);
                 return;
             }
 
             //kiểm tra chủ shop
             if (shopDAO.checkProductSeller(summary.getProductId(), user.getUserId())) {
-                redirectBackWithError(request, response, "self_buy");
+                redirectBack(request, response);
                 return;
             }
 
             //kiểm tra số lượng tồn kho
             int currentStock = productDAO.getVariantStock(checkoutRequest.getVariantId());
             if (currentStock == 0 || checkoutRequest.getQuantity() > currentStock) {
-                redirectBackWithError(request, response, "out_of_stock");
+                redirectBack(request, response);
                 return;
             }
         }
@@ -191,23 +191,16 @@ public class AddOrderServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/customer/order-list");
         } else {
             // Thất bại — quay lại trang checkout kèm thông báo lỗi
-            redirectBackWithError(request, response, "order_failed");
+            response.sendRedirect(request.getContextPath() + "/customer/add-order?error=order_failed");
         }
     }
 
-    // Quay về trang trước kèm param error
-    private void redirectBackWithError(HttpServletRequest request, HttpServletResponse response, String errorCode) throws IOException {
+    //quay về trang trước nếu địa chỉ rỗng, mua là chủ shop variant sai
+    private void redirectBack(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String referer = request.getHeader("referer");
         if (referer == null || referer.isEmpty()) {
-            referer = request.getContextPath() + "/customer/add-order";
+            referer = request.getContextPath() + "/home";
         }
-        
-        // Loại bỏ param error cũ nếu có
-        referer = referer.replaceAll("([&?])error=[^&]*", "$1")
-                         .replaceAll("&+$", "")
-                         .replaceAll("\\?$", "");
-
-        String separator = referer.contains("?") ? "&" : "?";
-        response.sendRedirect(referer + separator + "error=" + errorCode);
+        response.sendRedirect(referer);
     }
 }

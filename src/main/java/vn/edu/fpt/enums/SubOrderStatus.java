@@ -5,8 +5,7 @@ public enum SubOrderStatus {
     CONFIRMED("Đã xác nhận"),
     PREPARING("Đang chuẩn bị"),
     SHIPPING("Đang giao hàng"),
-    DELIVERED("Đã giao hàng"),
-    COMPLETED("Đã hoàn thành"),
+    DELIVERED("Đã hoàn thành"),
     CANCELLED("Đã hủy");
 
     private final String displayName;

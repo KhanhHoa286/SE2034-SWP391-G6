@@ -32,7 +32,7 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
 
 <!-- CSS riêng profile, đặt cuối để không bị đè -->
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=20260722-shop-toast">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=4">
 
 
 </head>
@@ -64,37 +64,6 @@
         <c:if test="${not empty successMessage}">
             <div class="profile-alert profile-alert--success">
                 <c:out value="${successMessage}" />
-            </div>
-        </c:if>
-
-        <c:if test="${hasRejectedSellerRegistration}">
-            <div class="profile-rejected-modal-backdrop" role="presentation">
-                <section class="profile-rejected-modal"
-                         role="dialog"
-                         aria-modal="true"
-                         aria-labelledby="rejectedShopTitle">
-                    <div class="profile-rejected-modal__icon" aria-hidden="true">
-                        <span class="material-symbols-outlined">error</span>
-                    </div>
-                    <h2 id="rejectedShopTitle">Yêu cầu đăng ký shop bị từ chối</h2>
-                    <p>Yêu cầu đăng kí shop đã bị từ chối, vui lòng điền đúng thông tin theo yêu cầu.</p>
-                    <form action="${pageContext.request.contextPath}/customer/profile" method="post">
-                        <input type="hidden" name="action" value="confirmRejectedShop">
-                        <button type="submit" autofocus>Xác nhận</button>
-                    </form>
-                </section>
-            </div>
-        </c:if>
-
-        <c:if test="${param.retryConfirmed == '1'}">
-            <div class="profile-alert profile-alert--success">
-                Đã hủy yêu cầu cũ. Vui lòng chọn “Đăng ký người bán” để tạo lại hồ sơ từ đầu.
-            </div>
-        </c:if>
-
-        <c:if test="${param.retryError == '1'}">
-            <div class="profile-alert profile-alert--error">
-                Không thể xác nhận yêu cầu đăng ký lại. Vui lòng tải lại trang và thử lại.
             </div>
         </c:if>
 

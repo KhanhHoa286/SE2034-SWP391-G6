@@ -70,10 +70,8 @@ public class CustomerAddressServlet extends HttpServlet {
         String type = request.getParameter("type");
         if ("checkout".equals(type)) {
             String referer = request.getHeader("referer");
-            if (referer != null && !referer.trim().isEmpty() && referer.contains("add-order")) {
+            if (referer != null && !referer.isEmpty()) {
                 session.setAttribute("CHECKOUT_REFERER", referer);
-            } else {
-                session.setAttribute("CHECKOUT_REFERER", request.getContextPath() + "/customer/add-order");
             }
         }
 

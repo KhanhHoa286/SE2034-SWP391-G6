@@ -47,6 +47,7 @@ public class EditDeliveryStatusServlet extends HttpServlet {
         Integer shipperId = resolveShipperId(request);
         Integer deliveryId = parsePositiveInt(request.getParameter("deliveryId"));
         String newStatus = trim(request.getParameter("newStatus")).toUpperCase();
+        String note = trim(request.getParameter("note"));
 
         if (shipperId == null) {
             response.sendRedirect(request.getContextPath() + "/login");
@@ -76,7 +77,7 @@ public class EditDeliveryStatusServlet extends HttpServlet {
                 return;
             }
 
-            boolean updated = markDelivered(connection, detail, shipperId);
+            boolean updated = markDelivered(connection, detail, shipperId, note);
             if (!updated) {
                 renderStatusPage(request, response, "Trạng thái đơn đã thay đổi. Vui lòng tải lại và thử lại.");
                 return;
@@ -141,6 +142,7 @@ public class EditDeliveryStatusServlet extends HttpServlet {
         request.setAttribute("statusSteps", buildStatusSteps(detail));
         request.setAttribute("canMarkDelivered", canMarkDelivered(detail));
         request.setAttribute("lockedMessage", buildLockedMessage(detail));
+        request.setAttribute("logs", detail.getLogs());
         if (errorMessage != null) {
             request.setAttribute("errorMessage", errorMessage);
         }
@@ -219,12 +221,38 @@ public class EditDeliveryStatusServlet extends HttpServlet {
                 detail.setCollectAmount("PAID".equals(detail.getPaymentStatus())
                         ? BigDecimal.ZERO
                         : safe(detail.getTotalAmount()));
+                detail.setLogs(loadLogs(connection, deliveryId));
                 return detail;
             }
         }
     }
 
-    private boolean markDelivered(Connection connection, DeliveryStatusDetail detail, int shipperId) throws Exception {
+    private List<DeliveryLogRow> loadLogs(Connection connection, int deliveryId) throws Exception {
+        String sql = """
+                SELECT new_status, current_location, created_at
+                FROM delivery_logs
+                WHERE delivery_id = ?
+                ORDER BY created_at DESC, log_id DESC
+                """;
+
+        List<DeliveryLogRow> logs = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, deliveryId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    DeliveryLogRow row = new DeliveryLogRow();
+                    row.setNewStatus(rs.getString("new_status"));
+                    row.setCurrentLocation(rs.getString("current_location"));
+                    row.setCreatedAt(rs.getTimestamp("created_at"));
+                    logs.add(row);
+                }
+            }
+        }
+        return logs;
+    }
+
+    private boolean markDelivered(Connection connection, DeliveryStatusDetail detail, int shipperId, String note) throws Exception {
         boolean oldAutoCommit = connection.getAutoCommit();
         connection.setAutoCommit(false);
 
@@ -260,6 +288,19 @@ public class EditDeliveryStatusServlet extends HttpServlet {
                     connection.rollback();
                     return false;
                 }
+            }
+
+            String logSql = """
+                    INSERT INTO delivery_logs (delivery_id, shipper_id, new_status, current_location)
+                    VALUES (?, ?, 'DELIVERED', ?)
+                    """;
+            try (PreparedStatement ps = connection.prepareStatement(logSql)) {
+                ps.setInt(1, detail.getDeliveryId());
+                ps.setInt(2, shipperId);
+                ps.setString(3, note.isBlank()
+                        ? "Đã giao hàng cho người nhận tại " + detail.getShippingAddress()
+                        : note);
+                ps.executeUpdate();
             }
 
             connection.commit();
@@ -414,6 +455,7 @@ public class EditDeliveryStatusServlet extends HttpServlet {
         private String pickupAddress;
         private String productsSummary;
         private int totalQuantity;
+        private List<DeliveryLogRow> logs = List.of();
 
         public int getDeliveryId() { return deliveryId; }
         public void setDeliveryId(int deliveryId) { this.deliveryId = deliveryId; }
@@ -455,6 +497,21 @@ public class EditDeliveryStatusServlet extends HttpServlet {
         public void setProductsSummary(String productsSummary) { this.productsSummary = productsSummary; }
         public int getTotalQuantity() { return totalQuantity; }
         public void setTotalQuantity(int totalQuantity) { this.totalQuantity = totalQuantity; }
+        public List<DeliveryLogRow> getLogs() { return logs; }
+        public void setLogs(List<DeliveryLogRow> logs) { this.logs = logs; }
+    }
+
+    public static class DeliveryLogRow {
+        private String newStatus;
+        private String currentLocation;
+        private Timestamp createdAt;
+
+        public String getNewStatus() { return newStatus; }
+        public void setNewStatus(String newStatus) { this.newStatus = newStatus; }
+        public String getCurrentLocation() { return currentLocation; }
+        public void setCurrentLocation(String currentLocation) { this.currentLocation = currentLocation; }
+        public Timestamp getCreatedAt() { return createdAt; }
+        public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
     }
 
     public static class StatusStep {

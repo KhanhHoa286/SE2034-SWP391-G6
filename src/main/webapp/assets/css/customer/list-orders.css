@@ -165,45 +165,33 @@
     text-transform: uppercase;
     min-width: 110px;
     text-align: center;
-    /* Mặc định màu xanh lá chuẩn cho Đã hoàn thành / COMPLETED */
-    background-color: transparent;
-    color: #27AE60;
-    border: 1px solid #C3F2D3;
 }
 
-.status-pending,
-.status-PENDING {
+.status-pending {
     background-color: transparent;
     color: #D4A373;
     border: 1px solid #FFE3A8;
 }
 
-.status-preparing,
-.status-CONFIRMED,
-.status-PREPARING {
+.status-preparing {
     background-color: transparent;
     color: #E67E22;
     border: 1px solid #FFD5B8;
 }
 
-.status-shipping,
-.status-SHIPPING {
+.status-shipping {
     background-color: transparent;
     color: #2F80ED;
     border: 1px solid #CDE4FF;
 }
 
-.status-completed,
-.status-COMPLETED,
-.status-delivered,
-.status-DELIVERED {
+.status-completed {
     background-color: transparent;
     color: #27AE60;
     border: 1px solid #C3F2D3;
 }
 
-.status-cancelled,
-.status-CANCELLED {
+.status-cancelled {
     background-color: transparent;
     color: #EB5757;
     border: 1px solid #FAD1CC;

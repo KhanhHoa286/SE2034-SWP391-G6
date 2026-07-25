@@ -31,7 +31,6 @@ public class ViewShopServlet extends HttpServlet {
             return;
         }
 
-
         // Generate initials for the shop name
         String shopName = shop.getShopName();
         String shopInitials = "SH";
