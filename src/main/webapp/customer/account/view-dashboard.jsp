@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
 
     <!-- CSS profile để dùng lại layout + sidebar hiện có -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=20260722-shop-toast">
 
     <!-- CSS riêng dashboard -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/customer-dashboard.css?v=1">

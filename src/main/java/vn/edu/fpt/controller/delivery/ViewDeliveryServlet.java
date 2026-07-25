@@ -125,8 +125,6 @@ public class ViewDeliveryServlet extends HttpServlet {
             }
 
             int deliveryId = insertDelivery(connection, identity, shipperId);
-            insertDeliveryLog(connection, deliveryId, shipperId, identity.pickupAddress);
-
             connection.commit();
             return deliveryId;
         } catch (Exception ex) {
@@ -140,11 +138,8 @@ public class ViewDeliveryServlet extends HttpServlet {
     private DeliveryIdentity loadReceivableOrder(Connection connection, int subOrderId) throws Exception {
         String sql = """
                 SELECT so.sub_order_id,
-                       so.master_order_id,
-                       s.street_address + N', ' + w.path_with_type AS pickup_address
+                       so.master_order_id
                 FROM sub_orders so WITH (UPDLOCK, HOLDLOCK)
-                INNER JOIN shops s ON s.shop_id = so.shop_id
-                INNER JOIN wards w ON w.id = s.ward_id
                 WHERE so.sub_order_id = ?
                   AND so.status = 'PREPARING'
                 """;
@@ -158,8 +153,7 @@ public class ViewDeliveryServlet extends HttpServlet {
 
                 return new DeliveryIdentity(
                         rs.getInt("sub_order_id"),
-                        rs.getInt("master_order_id"),
-                        rs.getString("pickup_address")
+                        rs.getInt("master_order_id")
                 );
             }
         }
@@ -212,22 +206,6 @@ public class ViewDeliveryServlet extends HttpServlet {
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? rs.getInt("delivery_id") : 0;
             }
-        }
-    }
-
-    private void insertDeliveryLog(Connection connection, int deliveryId, int shipperId, String pickupAddress) throws Exception {
-        String sql = """
-                INSERT INTO delivery_logs (delivery_id, shipper_id, new_status, current_location)
-                VALUES (?, ?, 'ASSIGNED', ?)
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, deliveryId);
-            ps.setInt(2, shipperId);
-            ps.setString(3, pickupAddress == null || pickupAddress.isBlank()
-                    ? "Shipper đã nhận đơn"
-                    : pickupAddress);
-            ps.executeUpdate();
         }
     }
 
@@ -445,7 +423,7 @@ public class ViewDeliveryServlet extends HttpServlet {
         return "MODA-SUB-" + subOrderId + "-MO-" + masterOrderId;
     }
 
-    private record DeliveryIdentity(int subOrderId, int masterOrderId, String pickupAddress) {
+    private record DeliveryIdentity(int subOrderId, int masterOrderId) {
     }
 
     public static class DeliveryDetail {

@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -167,7 +167,10 @@
                                                         <span class="badge badge-processing" style="background-color: #dbeafe; color: #2563eb; border-radius: 4px; padding: 4px 8px;">Đang xử lý</span>
                                                     </c:when>
                                                     <c:when test="${ord.status == 'DELIVERED'}">
-                                                        <span class="badge badge-delivered" style="background-color: #d1fae5; color: #059669; border-radius: 4px; padding: 4px 8px;">Đã giao</span>
+                                                        <span class="badge badge-delivered" style="background-color: #fef08a; color: #a16207; border-radius: 4px; padding: 4px 8px;">Đã giao</span>
+                                                    </c:when>
+                                                    <c:when test="${ord.status == 'COMPLETED'}">
+                                                        <span class="badge badge-completed" style="background-color: #d1fae5; color: #059669; border-radius: 4px; padding: 4px 8px;">Hoàn tất</span>
                                                     </c:when>
                                                     <c:otherwise>
                                                         <span class="badge badge-cancelled" style="background-color: #fee2e2; color: #dc2626; border-radius: 4px; padding: 4px 8px;">Đã hủy</span>

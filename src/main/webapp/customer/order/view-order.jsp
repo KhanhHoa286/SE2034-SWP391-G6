@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/public/global.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/profile.css?v=20260722-shop-toast">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer/view-order.css">
 </head>
 <body class="profile-body">
@@ -85,13 +85,13 @@
                                     <p>Số lượng: ${item.quantity}</p>
                                 </div>
                                 <div class="product-actions">
-                                    <c:if test="${subOrderDetail.statusOrder == 'DELIVERED'}">
+                                    <c:if test="${subOrderDetail.statusOrder == 'COMPLETED'}">
                                     <a href="${pageContext.request.contextPath}/product-detail?pid=${item.productId}" class="action-link">Mua lại</a>
                                     </c:if>
-                                    <c:if test="${item.reviewed == false && subOrderDetail.statusOrder == 'DELIVERED'}">
+                                    <c:if test="${item.reviewed == false && subOrderDetail.statusOrder == 'COMPLETED'}">
                                     <a href="${pageContext.request.contextPath}/customer/add-product-review?product_id=${item.productId}&order_item_id=${item.orderItemId}&sub_order_id=${item.subOrderId}" class="action-link">Viết đánh giá</a>
                                     </c:if>
-                                    <c:if test="${item.reviewed == true && subOrderDetail.statusOrder == 'DELIVERED'}">
+                                    <c:if test="${item.reviewed == true && subOrderDetail.statusOrder == 'COMPLETED'}">
                                         <a href="${pageContext.request.contextPath}/product-review?product_id=${item.productId}" class="action-link">Xem đánh giá</a>
                                     </c:if>
                                 </div>

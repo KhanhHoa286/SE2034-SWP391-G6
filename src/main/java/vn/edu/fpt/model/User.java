@@ -30,7 +30,6 @@ public class User {
     private Gender gender;
     private LocalDate dateOfBirth;
 
-    // users.status: PENDING / ACTIVE
     private UserStatus status;
 
     private String legalFullName;

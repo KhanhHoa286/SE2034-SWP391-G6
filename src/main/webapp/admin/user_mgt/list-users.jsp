@@ -143,7 +143,7 @@
         .action-icon { width: 18px; height: 18px; }
 
         /* Pagination & Footer */
-        .table-footer { padding: 24px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-color); background-color: #ffffff; flex-wrap: wrap; gap: 12px; }
+        .table-footer { padding: 24px; display: flex; align-items: center; justify-content: center !important; border-top: 1px solid var(--border-color); background-color: #ffffff; flex-wrap: wrap; gap: 12px; width: 100%; }
         .footer-text { font-size: 14px; color: var(--text-muted); }
         .pagination-list { display: flex; gap: 8px; }
         .page-link { display: flex; align-items: center; justify-content: center; min-width: 40px; height: 40px; padding: 0 8px; border: 1px solid var(--border-color); background-color: #ffffff; color: var(--text-primary); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
@@ -184,8 +184,8 @@
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/seller-management">
-                            <span class="menu-text">Người bán</span>
+                        <a href="${pageContext.request.contextPath}/admin/shop-management">
+                            <span class="menu-text">Danh sách Shop</span>
                         </a>
                     </li>
                     <li class="menu-item">
@@ -341,7 +341,7 @@
             </div>
 
             <div class="table-footer">
-                <span class="footer-text">Hiển thị dữ liệu hệ thống (Tổng số bản ghi: <b>${totalUsers != null ? totalUsers : 2}</b>)</span>
+
                 <div class="pagination-list">
                     <c:forEach begin="1" end="${endP != null ? endP : 1}" var="i">
                         <a href="${pageContext.request.contextPath}/admin/user-management?page=${i}&search=${saveSearch}&status=${saveStatus}"

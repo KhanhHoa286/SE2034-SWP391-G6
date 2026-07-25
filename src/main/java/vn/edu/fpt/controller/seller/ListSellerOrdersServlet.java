@@ -120,7 +120,7 @@ public class ListSellerOrdersServlet extends HttpServlet {
                 SELECT COUNT(*) AS total_orders,
                        COALESCE(SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END), 0) AS pending_orders,
                        COALESCE(SUM(CASE WHEN status IN ('CONFIRMED', 'PREPARING', 'SHIPPING') THEN 1 ELSE 0 END), 0) AS processing_orders,
-                       COALESCE(SUM(CASE WHEN status = 'DELIVERED' THEN 1 ELSE 0 END), 0) AS delivered_orders,
+                       COALESCE(SUM(CASE WHEN status in('DELIVERED', 'COMPLETED') THEN 1 ELSE 0 END), 0) AS delivered_orders,
                        COALESCE(SUM(CASE WHEN status <> 'CANCELLED' THEN total_amount ELSE 0 END), 0) AS gross_amount
                 FROM sub_orders
                 WHERE shop_id = ?
@@ -203,7 +203,7 @@ public class ListSellerOrdersServlet extends HttpServlet {
                     INNER JOIN users shipper ON shipper.user_id = d.shipper_id
                     WHERE d.sub_order_id = so.sub_order_id
                       AND d.shipper_id IS NOT NULL
-                      AND d.status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED')
+                      AND d.status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'COMPLETED')
                     ORDER BY d.delivery_id DESC
                 ) delivery
                 WHERE so.shop_id = ?
