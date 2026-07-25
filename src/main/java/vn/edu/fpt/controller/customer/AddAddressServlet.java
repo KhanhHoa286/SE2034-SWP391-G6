@@ -62,11 +62,19 @@ public class AddAddressServlet extends HttpServlet {
      * Đường dẫn JSP nội bộ.
      * Đây không phải URL người dùng gõ trên trình duyệt.
      */
-    private static final String ADD_ADDRESS_JSP = "/customer/address/add-address.jsp";
+    private static final String ADD_ADDRESS_JSP =
+            "/customer/address/add-address.jsp";
+
+    /*
+     * Mỗi customer chỉ được lưu tối đa 6 địa chỉ giao hàng.
+     */
+    private static final int MAX_ADDRESS_COUNT = 6;
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws ServletException, IOException {
 
         /*
          * Set UTF-8 để tránh lỗi tiếng Việt.
@@ -84,13 +92,38 @@ public class AddAddressServlet extends HttpServlet {
          * Nếu chưa đăng nhập thì đưa về login.
          */
         if (userId == null || userId <= 0) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
+            return;
+        }
+
+        /*
+         * Kiểm tra số lượng địa chỉ trước khi mở form.
+         *
+         * Việc kiểm tra ở backend giúp ngăn trường hợp customer
+         * nhập trực tiếp URL /customer/addresses/add.
+         */
+        int addressCount =
+                addressDAO.countAddressesByUserId(userId);
+
+        if (addressCount >= MAX_ADDRESS_COUNT) {
+            session.setAttribute(
+                    "addressError",
+                    "Bạn chỉ được lưu tối đa 6 địa chỉ giao hàng."
+            );
+
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/customer/addresses"
+            );
             return;
         }
 
         /*
          * Load dữ liệu tỉnh/thành phố cho combobox.
-         * Phường/xã sẽ dùng /load-wards có sẵn trong project để load theo tỉnh.
+         * Phường/xã sẽ dùng /load-wards có sẵn trong project
+         * để load theo tỉnh.
          */
         loadFormData(request, userId);
 
@@ -99,8 +132,10 @@ public class AddAddressServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
@@ -108,8 +143,38 @@ public class AddAddressServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         Integer userId = getLoggedInUserId(session);
 
+        /*
+         * Nếu chưa đăng nhập thì đưa về login.
+         */
         if (userId == null || userId <= 0) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
+            return;
+        }
+
+        /*
+         * Kiểm tra lại số lượng địa chỉ trong POST.
+         *
+         * Không được chỉ kiểm tra ở GET vì customer có thể:
+         * - Gửi request POST trực tiếp
+         * - Mở form khi đang có 5 địa chỉ
+         * - Sau đó tạo thêm địa chỉ ở tab khác
+         * - Quay lại gửi form cũ
+         */
+        int addressCount =
+                addressDAO.countAddressesByUserId(userId);
+
+        if (addressCount >= MAX_ADDRESS_COUNT) {
+            session.setAttribute(
+                    "addressError",
+                    "Bạn chỉ được lưu tối đa 6 địa chỉ giao hàng."
+            );
+
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/customer/addresses"
+            );
             return;
         }
 
@@ -120,24 +185,37 @@ public class AddAddressServlet extends HttpServlet {
          * - Không lấy users.phone làm số giao hàng.
          * - Số giao hàng là receiverPhone user nhập riêng.
          */
-        String receiverName = trim(request.getParameter("receiverName"));
-        String receiverPhone = normalizePhone(request.getParameter("receiverPhone"));
-        String provinceIdRaw = trim(request.getParameter("provinceId"));
-        String wardIdRaw = trim(request.getParameter("wardId"));
-        String streetAddress = trim(request.getParameter("streetAddress"));
+        String receiverName =
+                trim(request.getParameter("receiverName"));
+
+        String receiverPhone =
+                normalizePhone(
+                        request.getParameter("receiverPhone")
+                );
+
+        String provinceIdRaw =
+                trim(request.getParameter("provinceId"));
+
+        String wardIdRaw =
+                trim(request.getParameter("wardId"));
+
+        String streetAddress =
+                trim(request.getParameter("streetAddress"));
 
         /*
          * Checkbox:
          * - Nếu tick thì request có parameter isDefault
          * - Nếu không tick thì null
          */
-        boolean isDefault = request.getParameter("isDefault") != null;
+        boolean isDefault =
+                request.getParameter("isDefault") != null;
 
         /*
          * Nếu là địa chỉ đầu tiên của customer,
-         * bắt buộc set làm mặc định.
+         * bắt buộc đặt làm địa chỉ mặc định.
+         *
+         * Giữ nguyên logic cũ.
          */
-        int addressCount = addressDAO.countAddressesByUserId(userId);
         if (addressCount == 0) {
             isDefault = true;
         }
@@ -157,17 +235,29 @@ public class AddAddressServlet extends HttpServlet {
          * Nếu provinceId và wardId đều parse được,
          * kiểm tra ward có thuộc province đã chọn không.
          */
-        if (!errors.containsKey("provinceId") && !errors.containsKey("wardId")) {
-            int provinceId = Integer.parseInt(provinceIdRaw);
-            int wardId = Integer.parseInt(wardIdRaw);
+        if (!errors.containsKey("provinceId")
+                && !errors.containsKey("wardId")) {
 
-            if (!wardDAO.isWardInProvince(wardId, provinceId)) {
-                errors.put("wardId", "Phường/xã không thuộc tỉnh/thành phố đã chọn.");
+            int provinceId =
+                    Integer.parseInt(provinceIdRaw);
+
+            int wardId =
+                    Integer.parseInt(wardIdRaw);
+
+            if (!wardDAO.isWardInProvince(
+                    wardId,
+                    provinceId
+            )) {
+                errors.put(
+                        "wardId",
+                        "Phường/xã không thuộc tỉnh/thành phố đã chọn."
+                );
             }
         }
 
         /*
-         * Nếu có lỗi validate, quay lại form và giữ dữ liệu user đã nhập.
+         * Nếu có lỗi validate, quay lại form
+         * và giữ dữ liệu user đã nhập.
          */
         if (!errors.isEmpty()) {
             forwardBackToForm(
@@ -200,13 +290,17 @@ public class AddAddressServlet extends HttpServlet {
         /*
          * Insert DB.
          */
-        boolean success = addressDAO.addAddress(address);
+        boolean success =
+                addressDAO.addAddress(address);
 
         /*
          * Nếu insert lỗi, quay lại form.
          */
         if (!success) {
-            errors.put("general", "Không thể thêm địa chỉ. Vui lòng thử lại.");
+            errors.put(
+                    "general",
+                    "Không thể thêm địa chỉ. Vui lòng thử lại."
+            );
 
             forwardBackToForm(
                     request,
@@ -228,15 +322,28 @@ public class AddAddressServlet extends HttpServlet {
          *
          * Dùng redirect để tránh F5 bị insert lại dữ liệu.
          */
-        response.sendRedirect(request.getContextPath() + "/customer/addresses");
+        response.sendRedirect(
+                request.getContextPath()
+                        + "/customer/addresses"
+        );
     }
 
     /*
      * Load dữ liệu cần thiết cho form.
      */
-    private void loadFormData(HttpServletRequest request, int userId) {
-        request.setAttribute("provinces", provinceDAO.getAllProvinces());
-        request.setAttribute("addressCount", addressDAO.countAddressesByUserId(userId));
+    private void loadFormData(
+            HttpServletRequest request,
+            int userId
+    ) {
+        request.setAttribute(
+                "provinces",
+                provinceDAO.getAllProvinces()
+        );
+
+        request.setAttribute(
+                "addressCount",
+                addressDAO.countAddressesByUserId(userId)
+        );
     }
 
     /*
@@ -260,12 +367,35 @@ public class AddAddressServlet extends HttpServlet {
         /*
          * Giữ lại dữ liệu user đã nhập.
          */
-        request.setAttribute("inputReceiverName", receiverName);
-        request.setAttribute("inputReceiverPhone", receiverPhone);
-        request.setAttribute("selectedProvinceId", provinceId);
-        request.setAttribute("selectedWardId", wardId);
-        request.setAttribute("inputStreetAddress", streetAddress);
-        request.setAttribute("inputIsDefault", isDefault);
+        request.setAttribute(
+                "inputReceiverName",
+                receiverName
+        );
+
+        request.setAttribute(
+                "inputReceiverPhone",
+                receiverPhone
+        );
+
+        request.setAttribute(
+                "selectedProvinceId",
+                provinceId
+        );
+
+        request.setAttribute(
+                "selectedWardId",
+                wardId
+        );
+
+        request.setAttribute(
+                "inputStreetAddress",
+                streetAddress
+        );
+
+        request.setAttribute(
+                "inputIsDefault",
+                isDefault
+        );
 
         loadFormData(request, userId);
 
@@ -283,50 +413,94 @@ public class AddAddressServlet extends HttpServlet {
             String wardIdRaw,
             String streetAddress
     ) {
-        Map<String, String> errors = new LinkedHashMap<>();
+        Map<String, String> errors =
+                new LinkedHashMap<>();
 
         if (receiverName.isEmpty()) {
-            errors.put("receiverName", "Vui lòng nhập họ và tên người nhận.");
+            errors.put(
+                    "receiverName",
+                    "Vui lòng nhập họ và tên người nhận."
+            );
         } else if (receiverName.length() > 100) {
-            errors.put("receiverName", "Họ và tên không được quá 100 ký tự.");
+            errors.put(
+                    "receiverName",
+                    "Họ và tên không được quá 100 ký tự."
+            );
         }
 
         if (receiverPhone.isEmpty()) {
-            errors.put("receiverPhone", "Vui lòng nhập số điện thoại nhận hàng.");
-        } else if (!receiverPhone.matches("^0[35789]\\d{8}$")) {
-            errors.put("receiverPhone", "Số điện thoại Việt Nam phải gồm 10 số và bắt đầu bằng 03, 05, 07, 08 hoặc 09.");
+            errors.put(
+                    "receiverPhone",
+                    "Vui lòng nhập số điện thoại nhận hàng."
+            );
+        } else if (!receiverPhone.matches(
+                "^0[35789]\\d{8}$"
+        )) {
+            errors.put(
+                    "receiverPhone",
+                    "Số điện thoại Việt Nam phải gồm 10 số "
+                            + "và bắt đầu bằng 03, 05, 07, 08 hoặc 09."
+            );
         }
 
         if (provinceIdRaw.isEmpty()) {
-            errors.put("provinceId", "Vui lòng chọn tỉnh/thành phố.");
+            errors.put(
+                    "provinceId",
+                    "Vui lòng chọn tỉnh/thành phố."
+            );
         } else {
             try {
-                int provinceId = Integer.parseInt(provinceIdRaw);
+                int provinceId =
+                        Integer.parseInt(provinceIdRaw);
+
                 if (provinceId <= 0) {
-                    errors.put("provinceId", "Tỉnh/thành phố không hợp lệ.");
+                    errors.put(
+                            "provinceId",
+                            "Tỉnh/thành phố không hợp lệ."
+                    );
                 }
             } catch (NumberFormatException e) {
-                errors.put("provinceId", "Tỉnh/thành phố không hợp lệ.");
+                errors.put(
+                        "provinceId",
+                        "Tỉnh/thành phố không hợp lệ."
+                );
             }
         }
 
         if (wardIdRaw.isEmpty()) {
-            errors.put("wardId", "Vui lòng chọn phường/xã.");
+            errors.put(
+                    "wardId",
+                    "Vui lòng chọn phường/xã."
+            );
         } else {
             try {
-                int wardId = Integer.parseInt(wardIdRaw);
+                int wardId =
+                        Integer.parseInt(wardIdRaw);
+
                 if (wardId <= 0) {
-                    errors.put("wardId", "Phường/xã không hợp lệ.");
+                    errors.put(
+                            "wardId",
+                            "Phường/xã không hợp lệ."
+                    );
                 }
             } catch (NumberFormatException e) {
-                errors.put("wardId", "Phường/xã không hợp lệ.");
+                errors.put(
+                        "wardId",
+                        "Phường/xã không hợp lệ."
+                );
             }
         }
 
         if (streetAddress.isEmpty()) {
-            errors.put("streetAddress", "Vui lòng nhập địa chỉ chi tiết.");
+            errors.put(
+                    "streetAddress",
+                    "Vui lòng nhập địa chỉ chi tiết."
+            );
         } else if (streetAddress.length() > 255) {
-            errors.put("streetAddress", "Địa chỉ chi tiết không được quá 255 ký tự.");
+            errors.put(
+                    "streetAddress",
+                    "Địa chỉ chi tiết không được quá 255 ký tự."
+            );
         }
 
         return errors;
@@ -336,7 +510,9 @@ public class AddAddressServlet extends HttpServlet {
      * Cắt khoảng trắng đầu/cuối.
      */
     private String trim(String value) {
-        return value == null ? "" : value.trim();
+        return value == null
+                ? ""
+                : value.trim();
     }
 
     /*
@@ -348,7 +524,9 @@ public class AddAddressServlet extends HttpServlet {
             return "";
         }
 
-        return value.trim().replaceAll("\\s+", "");
+        return value
+                .trim()
+                .replaceAll("\\s+", "");
     }
 
     /*
@@ -360,12 +538,15 @@ public class AddAddressServlet extends HttpServlet {
      *
      * Method này hỗ trợ cả 2 cách.
      */
-    private Integer getLoggedInUserId(HttpSession session) {
+    private Integer getLoggedInUserId(
+            HttpSession session
+    ) {
         if (session == null) {
             return null;
         }
 
-        Object rawUserId = session.getAttribute("userId");
+        Object rawUserId =
+                session.getAttribute("userId");
 
         if (rawUserId instanceof Integer) {
             return (Integer) rawUserId;
@@ -373,13 +554,16 @@ public class AddAddressServlet extends HttpServlet {
 
         if (rawUserId != null) {
             try {
-                return Integer.parseInt(rawUserId.toString());
+                return Integer.parseInt(
+                        rawUserId.toString()
+                );
             } catch (NumberFormatException ignored) {
                 return null;
             }
         }
 
-        Object rawUser = session.getAttribute("user");
+        Object rawUser =
+                session.getAttribute("user");
 
         if (rawUser instanceof User) {
             return ((User) rawUser).getUserId();
