@@ -41,8 +41,8 @@
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="${pageContext.request.contextPath}/admin/seller-management">
-                            <span class="menu-text">Người bán</span>
+                        <a href="${pageContext.request.contextPath}/admin/shop-management">
+                            <span class="menu-text">Danh sách Shop</span>
                         </a>
                     </li>
                     <li class="menu-item">
@@ -326,6 +326,9 @@
                                             <td>
                                                 <c:choose>
                                                     <c:when test="${order.status.name() == 'DELIVERED'}">
+                                                        <span class="order-badge badge-pending">Đã giao hàng</span>
+                                                    </c:when>
+                                                    <c:when test="${order.status.name() == 'COMPLETED'}">
                                                         <span class="order-badge badge-success">Thành công</span>
                                                     </c:when>
                                                     <c:when test="${order.status.name() == 'SHIPPING' or order.status.name() == 'PREPARING' or order.status.name() == 'CONFIRMED'}">

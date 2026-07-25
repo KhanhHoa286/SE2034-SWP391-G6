@@ -163,10 +163,10 @@
                                                     for (Province p : provinces) {
                                             %>
 
-                                            <option value="<%= p.getId() %>">
+                                            <option value="<%= p.getId() %>"
+                                                    <%= String.valueOf(p.getId()).equals(old.apply("provinceId")) ? "selected" : "" %>>
                                                 <%= p.getName() %>
                                             </option>
-
                                             <%
                                                     }
                                                 }
@@ -207,6 +207,7 @@
                                            name="streetAddress"
                                            class="input-control"
                                            placeholder="VD: 123 Nguyễn Huệ"
+                                           value="<%= old.apply("streetAddress") %>"
                                            required>
                                 </div>
                             </div>
@@ -346,6 +347,14 @@
     const logoInput = document.getElementById('logoInput');
     const uploadPlaceholder = document.getElementById('uploadPlaceholder');
     const logoPreview = document.getElementById('logoPreview');
+    const existingLogoUrl = '<%= request.getAttribute("existingLogoUrl") == null ? "" : request.getAttribute("existingLogoUrl") %>';
+
+    if (existingLogoUrl) {
+        logoPreview.src = existingLogoUrl;
+        logoPreview.style.display = 'block';
+        uploadPlaceholder.style.display = 'none';
+        logoUploadBox.style.borderStyle = 'solid';
+    }
 
     logoUploadBox.addEventListener('click', () => logoInput.click());
 
@@ -499,6 +508,24 @@
                         '<option value="">Lỗi tải dữ liệu</option>';
                 });
         });
+
+    const initialProvinceId = '<%= old.apply("provinceId") %>';
+    const initialWardId = '<%= old.apply("wardId") %>';
+    if (initialProvinceId) {
+        fetch('<%= request.getContextPath() %>/load-wards?provinceId=' + initialProvinceId)
+            .then(response => response.json())
+            .then(data => {
+                const wardSelect = document.getElementById("wardId");
+                wardSelect.innerHTML = '<option value="">Phường/Xã</option>';
+                data.forEach(function (ward) {
+                    const option = document.createElement("option");
+                    option.value = ward.id;
+                    option.textContent = ward.name;
+                    option.selected = String(ward.id) === initialWardId;
+                    wardSelect.appendChild(option);
+                });
+            });
+    }
 
 </script>
 <%

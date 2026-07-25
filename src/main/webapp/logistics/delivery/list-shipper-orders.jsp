@@ -175,6 +175,7 @@
                                             <c:when test="${order.orderStatus == 'PREPARING'}">Chờ bàn giao</c:when>
                                             <c:when test="${order.orderStatus == 'SHIPPING'}">Đang vận chuyển</c:when>
                                             <c:when test="${order.orderStatus == 'DELIVERED'}">Đã giao</c:when>
+                                            <c:when test="${order.orderStatus == 'COMPLETED'}">Hoàn tất</c:when>
                                             <c:when test="${order.orderStatus == 'CANCELLED'}">Đã hủy</c:when>
                                             <c:otherwise>${order.orderStatus}</c:otherwise>
                                         </c:choose>

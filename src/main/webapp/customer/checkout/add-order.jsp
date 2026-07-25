@@ -291,6 +291,20 @@
     </div>
 </div>
 
+<!-- Popup Thông báo lỗi thanh toán -->
+<div id="errorAlertModal" class="simple-confirm-modal">
+    <div class="simple-confirm-content">
+        <div class="mb-3 text-danger">
+            <i class="fa-solid fa-circle-exclamation fa-3x"></i>
+        </div>
+        <h5 id="errorAlertTitle" class="simple-confirm-title text-danger mb-2">Thanh toán không thành công</h5>
+        <p id="errorAlertMessage" class="text-secondary mb-4" style="font-size: 0.95rem; line-height: 1.5;"></p>
+        <div class="simple-confirm-actions">
+            <button type="button" class="simple-confirm-btn-ok bg-danger border-0 px-4" onclick="closeErrorAlert()">Đã hiểu</button>
+        </div>
+    </div>
+</div>
+
 <jsp:include page="/common/footer.jsp" />
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -321,6 +335,39 @@
             btn.closest('form').submit();
         });
     }
+
+    // Xử lý Popup hiển thị lỗi thanh toán dựa trên param 'error'
+    const ERROR_MESSAGES = {
+        'order_failed': 'Đã xảy ra lỗi trong quá trình xử lý tạo đơn hàng. Vui lòng thử lại sau!',
+        'empty_address': 'Vui lòng cập nhật đầy đủ thông tin người nhận và địa chỉ giao hàng!',
+        'self_buy': 'Bạn không thể đặt mua sản phẩm từ cửa hàng của chính mình!',
+        'out_of_stock': 'Sản phẩm đã hết hàng hoặc số lượng trong kho không đủ để đáp ứng!',
+        'invalid_product': 'Thông tin sản phẩm hoặc biến thể không hợp lệ!'
+    };
+
+    function showErrorAlert(errorCode) {
+        const message = ERROR_MESSAGES[errorCode] || 'Đã xảy ra lỗi trong quá trình thanh toán. Vui lòng thử lại!';
+        document.getElementById('errorAlertMessage').innerText = message;
+        document.getElementById('errorAlertModal').style.display = 'block';
+    }
+
+    function closeErrorAlert() {
+        document.getElementById('errorAlertModal').style.display = 'none';
+        // Xóa param error khỏi URL sau khi đóng popup để tránh bật lại khi F5
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('error')) {
+            url.searchParams.delete('error');
+            window.history.replaceState({}, document.title, url.toString());
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorCode = urlParams.get('error');
+        if (errorCode) {
+            showErrorAlert(errorCode);
+        }
+    });
 </script>
 </body>
 </html>
