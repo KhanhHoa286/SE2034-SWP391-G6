@@ -16,17 +16,18 @@ import vn.edu.fpt.model.User;
 /**
  * HoaNK - HE195013
  * Date: 31/05/2026
- * Description: Lấy danh sách sản phẩm ưu đãi sâu nhất, danh sách sản phẩm mới, danh sách sản phẩm bán chạy để hiển thị lên trang chủ
+ * Description: Lấy danh sách sản phẩm ưu đãi sâu nhất, danh sách sản phẩm mới,
+ * danh sách sản phẩm bán chạy để hiển thị lên trang chủ
  */
 
-@WebServlet(urlPatterns={"/home"})
+@WebServlet(urlPatterns = { "/home" })
 public class HomeServlet extends HttpServlet {
 
     private final ProductDAO productDAO = new ProductDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         // Lấy danh sách sản phẩm ưu đãi sâu nhất
         List<ProductResponse> topDiscountedProducts = productDAO.getTopDiscountedProducts();
         // Lấy danh sách sản phẩm mới
@@ -46,7 +47,7 @@ public class HomeServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
     }
 
     @Override

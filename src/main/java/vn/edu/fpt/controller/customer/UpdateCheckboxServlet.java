@@ -41,7 +41,7 @@ public class UpdateCheckboxServlet extends HttpServlet {
                 BigDecimal totalPriceAllShop = BigDecimal.ZERO;
                 //
                 for(CartResponse c : cartResponseList) {
-                    if(c.isSelected() == true) {
+                    if(c.isSelected() == true && c.getStockQuantity() >= c.getQuantity()) {
                         totalPriceAllShop = totalPriceAllShop.add(c.getTotalPrice());
                     }
                 }

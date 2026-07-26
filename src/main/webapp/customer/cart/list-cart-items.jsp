@@ -50,8 +50,9 @@
 
                 <!-- Item 1 -->
                 <c:forEach items="${shop.value.items}" var="shopProduct">
+                <c:set var="isStockInvalid" value="${shopProduct.stockQuantity < shopProduct.quantity}" />
                 <div class="cart-item">
-                    <input type="checkbox" ${shopProduct.selected ? 'checked' : ''} value="${shopProduct.cartItemId}" class="cart-item__checkbox" onclick="getListCheckbox('${pageContext.request.contextPath}',${shopProduct.cartItemId}, this)">
+                    <input type="checkbox" ${isStockInvalid ? 'disabled' : (shopProduct.selected ? 'checked' : '')} value="${shopProduct.cartItemId}" class="cart-item__checkbox" onclick="getListCheckbox('${pageContext.request.contextPath}',${shopProduct.cartItemId}, this)">
                     <img src="${shopProduct.thumbnailUrl}" alt="${shopProduct.productName}" class="cart-item__img">
 
                     <div class="cart-item__info">
@@ -62,12 +63,22 @@
 
                     <div class="cart-item__actions">
                         <div class="quantity-control">
-                            <button class="qty-btn" onclick="updateItemQuantity('${pageContext.request.contextPath}', ${shopProduct.cartItemId},${shopProduct.variantId},'decrease', this)">-</button>
+                            <button type="button" class="qty-btn qty-btn--minus" ${shopProduct.quantity <= 1 ? 'disabled' : ''} onclick="updateItemQuantity('${pageContext.request.contextPath}', ${shopProduct.cartItemId},${shopProduct.variantId},'decrease', this)">-</button>
                             <input type="number" value="${shopProduct.quantity}" class="qty-input" min="1" readonly>
-                            <button class="qty-btn"  onclick="updateItemQuantity('${pageContext.request.contextPath}', ${shopProduct.cartItemId},${shopProduct.variantId}, 'increase', this)">+</button>
+                            <button type="button" class="qty-btn qty-btn--plus" ${isStockInvalid ? 'disabled' : (shopProduct.quantity >= shopProduct.stockQuantity ? 'disabled' : '')} onclick="updateItemQuantity('${pageContext.request.contextPath}', ${shopProduct.cartItemId},${shopProduct.variantId}, 'increase', this)">+</button>
                         </div>
                         <button class="cart-item__remove" onclick="removeAnItem('${pageContext.request.contextPath}',${shopProduct.cartItemId},this)"><i class="fa-regular fa-trash-can"></i></button>
-                        <span class="stock-error text-danger" style=" font-size: 12px; margin-top: 5px;"></span>
+                        <c:choose>
+                            <c:when test="${shopProduct.stockQuantity <= 0}">
+                                <span class="stock-error text-danger fw-bold d-block mt-1" style="font-size: 12px;">* Sản phẩm đã hết hàng</span>
+                            </c:when>
+                            <c:when test="${isStockInvalid}">
+                                <span class="stock-error text-danger fw-bold d-block mt-1" style="font-size: 12px;">* Kho chỉ còn ${shopProduct.stockQuantity} sản phẩm</span>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="stock-error text-danger" style="font-size: 12px; margin-top: 5px;"></span>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
                 </c:forEach>

@@ -12,34 +12,38 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 
 /**
- * HoaNK - Load du lieu cart va wishlist len header cho tat cả cac trang co header
+ * HoaNK - Load du lieu cart va wishlist len header cho tat cả cac trang co
+ * header
  */
 @WebFilter("/*")
 public class AuthFilter implements Filter {
     private final CartDAO cartDAO = new CartDAO();
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         Filter.super.init(filterConfig);
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
         // kiểm tra đăng nhập
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
         HttpSession session = req.getSession();
         String path = req.getServletPath();
-        User user = (User)session.getAttribute("user");
+        User user = (User) session.getAttribute("user");
         // bỏ qua các file tĩnh
-        if(path.endsWith("/assets/") || path.endsWith(".css") || path.endsWith(".js") || path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".webp")) {
-            chain.doFilter(request,response);
+        if (path.endsWith("/assets/") || path.endsWith(".css") || path.endsWith(".js") || path.endsWith(".png")
+                || path.endsWith(".jpg") || path.endsWith(".webp")) {
+            chain.doFilter(request, response);
             return;
         }
 
         // số lượng của giỏ hàng và wishlist
         int numberProductCart = 0;
         // đã đăng nhập thì load số lượng lên
-        if(user != null) {
+        if (user != null) {
             Integer userId = extractUserId(session.getAttribute("user"));
             if (userId != null) {
                 numberProductCart = cartDAO.getNumberOfProductCart(userId);
@@ -49,9 +53,9 @@ public class AuthFilter implements Filter {
         req.setAttribute("numberProductCart", numberProductCart);
 
         // chưa đăng nhập
-        if(user == null) {
+        if (user == null) {
             // bắt các api chỉ có thể xài bởi customer
-            if(path.startsWith("/api/customer/")){
+            if (path.startsWith("/api/customer/")) {
                 resp.setContentType("application/json");
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 resp.getWriter().write("{" + "\"status\":\"UNAUTHORIZED\"" + "}");
@@ -59,35 +63,35 @@ public class AuthFilter implements Filter {
             }
 
             // bắt các đường dẫn vào các trang customer nếu cố tình gõ trên url
-            if(path.startsWith("/customer/")) {
+            if (path.startsWith("/customer/")) {
                 resp.sendRedirect(req.getContextPath() + "/login");
                 return;
             }
         }
 
-        chain.doFilter(request,response);
+        chain.doFilter(request, response);
     }
 
-            @Override
-            public void destroy() {
-                Filter.super.destroy();
-            }
+    @Override
+    public void destroy() {
+        Filter.super.destroy();
+    }
 
-            private Integer extractUserId(Object account) {
-                if (account instanceof User user) {
-                    return user.getUserId();
-                }
-
-                try {
-                    Method getter = account.getClass().getMethod("getUserId");
-                    Object value = getter.invoke(account);
-                    if (value instanceof Integer userId) {
-                        return userId;
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-
-                return null;
-            }
+    private Integer extractUserId(Object account) {
+        if (account instanceof User user) {
+            return user.getUserId();
         }
+
+        try {
+            Method getter = account.getClass().getMethod("getUserId");
+            Object value = getter.invoke(account);
+            if (value instanceof Integer userId) {
+                return userId;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+}

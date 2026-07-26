@@ -143,11 +143,6 @@
                                         </button>
                                     </div>
                                 </div>
-
-                                <div class="bank-info-box__row">
-                                    <span class="bank-info-box__label">Nội dung CK</span>
-                                    <span id="paymentContent" class="bank-info-box__value bank-info-box__value--accent">MODA</span>
-                                </div>
                             </div>
                         </div>
                     </div>
