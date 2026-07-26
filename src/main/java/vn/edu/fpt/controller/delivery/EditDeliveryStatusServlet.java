@@ -1,5 +1,7 @@
 package vn.edu.fpt.controller.delivery;
 
+import vn.edu.fpt.dao.DeliveryDAO;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -9,19 +11,15 @@ import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 @WebServlet(urlPatterns = {"/logistics/delivery/status", "/logistics/delivery/edit-delivery-status"})
 public class EditDeliveryStatusServlet extends HttpServlet {
+
+    private final DeliveryDAO deliveryDAO = new DeliveryDAO();
 
     private static final String STATUS_PAGE = "/logistics/delivery/edit-delivery-status.jsp";
 
@@ -63,8 +61,8 @@ public class EditDeliveryStatusServlet extends HttpServlet {
             return;
         }
 
-        try (Connection connection = openConnection()) {
-            DeliveryStatusDetail detail = loadDeliveryDetail(connection, deliveryId, shipperId);
+        try {
+            DeliveryStatusDetail detail = deliveryDAO.getStatusDetail(deliveryId, shipperId);
             if (detail == null) {
                 renderStatusPage(request, response, "Không tìm thấy đơn vận chuyển hoặc đơn không thuộc tài khoản giao hàng của bạn.");
                 return;
@@ -76,7 +74,7 @@ public class EditDeliveryStatusServlet extends HttpServlet {
                 return;
             }
 
-            boolean updated = markDelivered(connection, detail, shipperId);
+            boolean updated = deliveryDAO.markDelivered(detail, shipperId);
             if (!updated) {
                 renderStatusPage(request, response, "Trạng thái đơn đã thay đổi. Vui lòng tải lại và thử lại.");
                 return;
@@ -118,8 +116,8 @@ public class EditDeliveryStatusServlet extends HttpServlet {
             return;
         }
 
-        try (Connection connection = openConnection()) {
-            DeliveryStatusDetail detail = loadDeliveryDetail(connection, deliveryId, shipperId);
+        try {
+            DeliveryStatusDetail detail = deliveryDAO.getStatusDetail(deliveryId, shipperId);
             if (detail == null) {
                 request.setAttribute("errorMessage", "Không tìm thấy đơn vận chuyển hoặc đơn không thuộc tài khoản giao hàng của bạn.");
             } else {
@@ -147,142 +145,11 @@ public class EditDeliveryStatusServlet extends HttpServlet {
         request.getRequestDispatcher(STATUS_PAGE).forward(request, response);
     }
 
-    private DeliveryStatusDetail loadDeliveryDetail(Connection connection, int deliveryId, int shipperId) throws Exception {
-        String sql = """
-                SELECT d.delivery_id,
-                       d.tracking_number,
-                       d.status AS delivery_status,
-                       d.assigned_at,
-                       so.sub_order_id,
-                       so.master_order_id,
-                       so.status AS order_status,
-                       so.total_amount,
-                       mo.created_at AS ordered_at,
-                       mo.payment_method,
-                       mo.payment_status,
-                       mo.receiver_name,
-                       mo.receiver_phone,
-                       mo.shipping_address,
-                       s.shop_name,
-                       owner.phone AS seller_phone,
-                       s.street_address + N', ' + w.path_with_type AS pickup_address,
-                       (
-                           SELECT STRING_AGG(CAST(p.product_name AS NVARCHAR(MAX)) + N' (x' + CAST(oi.quantity AS NVARCHAR(10)) + N')', N', ')
-                           FROM order_items oi
-                           INNER JOIN products p ON p.product_id = oi.product_id
-                           WHERE oi.sub_order_id = so.sub_order_id
-                       ) AS products_summary,
-                       (
-                           SELECT COALESCE(SUM(oi.quantity), 0)
-                           FROM order_items oi
-                           WHERE oi.sub_order_id = so.sub_order_id
-                       ) AS total_quantity
-                FROM deliveries d
-                INNER JOIN sub_orders so ON so.sub_order_id = d.sub_order_id
-                INNER JOIN master_orders mo ON mo.master_order_id = so.master_order_id
-                INNER JOIN shops s ON s.shop_id = so.shop_id
-                INNER JOIN users owner ON owner.user_id = s.owner_id
-                INNER JOIN wards w ON w.id = s.ward_id
-                WHERE d.delivery_id = ?
-                  AND d.shipper_id = ?
-                """;
+    
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, deliveryId);
-            ps.setInt(2, shipperId);
+    
 
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) {
-                    return null;
-                }
-
-                DeliveryStatusDetail detail = new DeliveryStatusDetail();
-                detail.setDeliveryId(rs.getInt("delivery_id"));
-                detail.setTrackingNumber(rs.getString("tracking_number"));
-                detail.setDeliveryStatus(rs.getString("delivery_status"));
-                detail.setAssignedAt(rs.getTimestamp("assigned_at"));
-                detail.setSubOrderId(rs.getInt("sub_order_id"));
-                detail.setMasterOrderId(rs.getInt("master_order_id"));
-                detail.setOrderStatus(rs.getString("order_status"));
-                detail.setTotalAmount(rs.getBigDecimal("total_amount"));
-                detail.setOrderedAt(rs.getTimestamp("ordered_at"));
-                detail.setPaymentMethod(rs.getString("payment_method"));
-                detail.setPaymentStatus(rs.getString("payment_status"));
-                detail.setReceiverName(rs.getString("receiver_name"));
-                detail.setReceiverPhone(rs.getString("receiver_phone"));
-                detail.setShippingAddress(rs.getString("shipping_address"));
-                detail.setShopName(rs.getString("shop_name"));
-                detail.setSellerPhone(rs.getString("seller_phone"));
-                detail.setPickupAddress(rs.getString("pickup_address"));
-                detail.setProductsSummary(rs.getString("products_summary"));
-                detail.setTotalQuantity(rs.getInt("total_quantity"));
-                detail.setCollectAmount("PAID".equals(detail.getPaymentStatus())
-                        ? BigDecimal.ZERO
-                        : safe(detail.getTotalAmount()));
-                return detail;
-            }
-        }
-    }
-
-    private boolean markDelivered(Connection connection, DeliveryStatusDetail detail, int shipperId) throws Exception {
-        boolean oldAutoCommit = connection.getAutoCommit();
-        connection.setAutoCommit(false);
-
-        try {
-            ensureDeliveredAtColumn(connection);
-
-            String updateDeliverySql = """
-                    UPDATE deliveries
-                    SET status = 'DELIVERED'
-                    WHERE delivery_id = ?
-                      AND shipper_id = ?
-                      AND status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT')
-                    """;
-            try (PreparedStatement ps = connection.prepareStatement(updateDeliverySql)) {
-                ps.setInt(1, detail.getDeliveryId());
-                ps.setInt(2, shipperId);
-                if (ps.executeUpdate() == 0) {
-                    connection.rollback();
-                    return false;
-                }
-            }
-
-            String updateOrderSql = """
-                    UPDATE sub_orders
-                    SET status = 'DELIVERED',
-                        delivered_at = COALESCE(delivered_at, GETDATE())
-                    WHERE sub_order_id = ?
-                      AND status = 'SHIPPING'
-                    """;
-            try (PreparedStatement ps = connection.prepareStatement(updateOrderSql)) {
-                ps.setInt(1, detail.getSubOrderId());
-                if (ps.executeUpdate() == 0) {
-                    connection.rollback();
-                    return false;
-                }
-            }
-
-            connection.commit();
-            return true;
-        } catch (Exception ex) {
-            connection.rollback();
-            throw ex;
-        } finally {
-            connection.setAutoCommit(oldAutoCommit);
-        }
-    }
-
-    private void ensureDeliveredAtColumn(Connection connection) throws Exception {
-        String sql = """
-                IF COL_LENGTH('sub_orders', 'delivered_at') IS NULL
-                BEGIN
-                    ALTER TABLE sub_orders ADD delivered_at DATETIME NULL
-                END
-                """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.execute();
-        }
-    }
+    
 
     private boolean canMarkDelivered(DeliveryStatusDetail detail) {
         if (detail == null) {
@@ -355,22 +222,7 @@ public class EditDeliveryStatusServlet extends HttpServlet {
         }
     }
 
-    private Connection openConnection() throws Exception {
-        Properties properties = new Properties();
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("ConnectDB.properties")) {
-            if (inputStream == null) {
-                throw new IllegalStateException("Không tìm thấy ConnectDB.properties.");
-            }
-            properties.load(inputStream);
-        }
-
-        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-        return DriverManager.getConnection(
-                properties.getProperty("url"),
-                properties.getProperty("userID"),
-                properties.getProperty("password")
-        );
-    }
+    
 
     private Integer parsePositiveInt(String rawValue) {
         if (rawValue == null || rawValue.isBlank()) {
@@ -481,3 +333,4 @@ public class EditDeliveryStatusServlet extends HttpServlet {
         }
     }
 }
+

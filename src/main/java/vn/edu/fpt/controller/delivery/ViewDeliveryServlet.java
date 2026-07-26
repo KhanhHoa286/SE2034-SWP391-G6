@@ -1,5 +1,7 @@
 package vn.edu.fpt.controller.delivery;
 
+import vn.edu.fpt.dao.DeliveryDAO;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -9,20 +11,15 @@ import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 @WebServlet(urlPatterns = {"/logistics/delivery/view", "/logistics/delivery/view-delivery"})
 public class ViewDeliveryServlet extends HttpServlet {
+
+    private final DeliveryDAO deliveryDAO = new DeliveryDAO();
 
     private static final String VIEW_PAGE = "/logistics/delivery/view-delivery.jsp";
 
@@ -55,12 +52,12 @@ public class ViewDeliveryServlet extends HttpServlet {
             return;
         }
 
-        try (Connection connection = openConnection()) {
-            DeliveryDetail detail = loadDeliveryDetail(connection, subOrderId, deliveryId, shipperId);
+        try {
+            DeliveryDetail detail = deliveryDAO.getDeliveryDetail(subOrderId, deliveryId, shipperId);
             if (detail == null) {
                 request.setAttribute("errorMessage", "Không tìm thấy đơn giao hàng hoặc đơn đã được shipper khác nhận.");
             } else {
-                detail.setItems(loadDeliveryItems(connection, detail.getSubOrderId()));
+                detail.setItems(deliveryDAO.getDeliveryItems(detail.getSubOrderId()));
                 request.setAttribute("deliveryDetail", detail);
             }
         } catch (Exception ex) {
@@ -89,8 +86,8 @@ public class ViewDeliveryServlet extends HttpServlet {
             return;
         }
 
-        try (Connection connection = openConnection()) {
-            int deliveryId = receiveDelivery(connection, subOrderId, shipperId);
+        try {
+            int deliveryId = deliveryDAO.receiveDelivery(subOrderId, shipperId);
             if (deliveryId <= 0) {
                 response.sendRedirect(request.getContextPath()
                         + "/logistics/delivery/view?subOrderId=" + subOrderId
@@ -108,256 +105,19 @@ public class ViewDeliveryServlet extends HttpServlet {
         }
     }
 
-    private int receiveDelivery(Connection connection, int subOrderId, int shipperId) throws Exception {
-        boolean oldAutoCommit = connection.getAutoCommit();
-        connection.setAutoCommit(false);
+    
 
-        try {
-            DeliveryIdentity identity = loadReceivableOrder(connection, subOrderId);
-            if (identity == null) {
-                connection.rollback();
-                return 0;
-            }
+    
 
-            if (hasDelivery(connection, subOrderId)) {
-                connection.rollback();
-                return 0;
-            }
+    
 
-            int deliveryId = insertDelivery(connection, identity, shipperId);
-            connection.commit();
-            return deliveryId;
-        } catch (Exception ex) {
-            connection.rollback();
-            throw ex;
-        } finally {
-            connection.setAutoCommit(oldAutoCommit);
-        }
-    }
+    
 
-    private DeliveryIdentity loadReceivableOrder(Connection connection, int subOrderId) throws Exception {
-        String sql = """
-                SELECT so.sub_order_id,
-                       so.master_order_id
-                FROM sub_orders so WITH (UPDLOCK, HOLDLOCK)
-                WHERE so.sub_order_id = ?
-                  AND so.status = 'PREPARING'
-                """;
+    
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, subOrderId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) {
-                    return null;
-                }
+    
 
-                return new DeliveryIdentity(
-                        rs.getInt("sub_order_id"),
-                        rs.getInt("master_order_id")
-                );
-            }
-        }
-    }
-
-    private boolean hasDelivery(Connection connection, int subOrderId) throws Exception {
-        String sql = "SELECT 1 FROM deliveries WITH (UPDLOCK, HOLDLOCK) WHERE sub_order_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, subOrderId);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        }
-    }
-
-    private int insertDelivery(Connection connection, DeliveryIdentity identity, int shipperId) throws Exception {
-        String sql = """
-                INSERT INTO deliveries (tracking_number, sub_order_id, shipper_id, status)
-                VALUES (?, ?, ?, 'ASSIGNED')
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, buildTrackingNumber(identity.subOrderId, identity.masterOrderId));
-            ps.setInt(2, identity.subOrderId);
-            ps.setInt(3, shipperId);
-            ps.executeUpdate();
-
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-        }
-
-        return loadDeliveryId(connection, identity.subOrderId, shipperId);
-    }
-
-    private int loadDeliveryId(Connection connection, int subOrderId, int shipperId) throws Exception {
-        String sql = """
-                SELECT TOP 1 delivery_id
-                FROM deliveries
-                WHERE sub_order_id = ?
-                  AND shipper_id = ?
-                ORDER BY delivery_id DESC
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, subOrderId);
-            ps.setInt(2, shipperId);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? rs.getInt("delivery_id") : 0;
-            }
-        }
-    }
-
-    private DeliveryDetail loadDeliveryDetail(
-            Connection connection,
-            Integer subOrderId,
-            Integer deliveryId,
-            int shipperId
-    ) throws Exception {
-        StringBuilder sql = new StringBuilder("""
-                SELECT COALESCE(delivery.delivery_id, 0) AS delivery_id,
-                       COALESCE(delivery.tracking_number, CONCAT('MODA-SUB-', so.sub_order_id, '-MO-', so.master_order_id)) AS tracking_number,
-                       COALESCE(delivery.status, 'WAITING') AS delivery_status,
-                       delivery.assigned_at,
-                       delivery.shipper_id,
-                       so.sub_order_id,
-                       so.master_order_id,
-                       so.status AS order_status,
-                       so.sub_total,
-                       so.discount_amount,
-                       so.total_amount,
-                       so.created_at AS prepared_at,
-                       mo.created_at AS ordered_at,
-                       mo.payment_method,
-                       mo.payment_status,
-                       mo.receiver_name,
-                       mo.receiver_phone,
-                       mo.shipping_address,
-                       s.shop_id,
-                       s.shop_name,
-                       s.street_address + N', ' + w.path_with_type AS pickup_address,
-                       owner.first_name + ' ' + owner.last_name AS seller_name,
-                       owner.phone AS seller_phone,
-                       owner.email AS seller_email,
-                       customer.first_name + ' ' + customer.last_name AS customer_name,
-                       customer.phone AS customer_phone,
-                       customer.email AS customer_email
-                FROM sub_orders so
-                INNER JOIN master_orders mo ON mo.master_order_id = so.master_order_id
-                INNER JOIN shops s ON s.shop_id = so.shop_id
-                INNER JOIN wards w ON w.id = s.ward_id
-                INNER JOIN users owner ON owner.user_id = s.owner_id
-                INNER JOIN users customer ON customer.user_id = mo.customer_id
-                OUTER APPLY (
-                    SELECT TOP 1 d.delivery_id, d.tracking_number, d.status, d.assigned_at, d.shipper_id
-                    FROM deliveries d
-                    WHERE d.sub_order_id = so.sub_order_id
-                    ORDER BY d.delivery_id DESC
-                ) delivery
-                WHERE 1 = 1
-                """);
-
-        List<Object> params = new ArrayList<>();
-        if (deliveryId != null) {
-            sql.append(" AND delivery.delivery_id = ? AND delivery.shipper_id = ? ");
-            params.add(deliveryId);
-            params.add(shipperId);
-        } else {
-            sql.append(" AND so.sub_order_id = ? AND so.status = 'PREPARING' AND delivery.delivery_id IS NULL ");
-            params.add(subOrderId);
-        }
-
-        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) {
-                    return null;
-                }
-
-                DeliveryDetail detail = new DeliveryDetail();
-                detail.setDeliveryId(rs.getInt("delivery_id"));
-                detail.setTrackingNumber(rs.getString("tracking_number"));
-                detail.setDeliveryStatus(rs.getString("delivery_status"));
-                detail.setAssignedAt(rs.getTimestamp("assigned_at"));
-                detail.setShipperId((Integer) rs.getObject("shipper_id"));
-                detail.setSubOrderId(rs.getInt("sub_order_id"));
-                detail.setMasterOrderId(rs.getInt("master_order_id"));
-                detail.setOrderStatus(rs.getString("order_status"));
-                detail.setSubTotal(rs.getBigDecimal("sub_total"));
-                detail.setDiscountAmount(rs.getBigDecimal("discount_amount"));
-                detail.setTotalAmount(rs.getBigDecimal("total_amount"));
-                detail.setPreparedAt(rs.getTimestamp("prepared_at"));
-                detail.setOrderedAt(rs.getTimestamp("ordered_at"));
-                detail.setPaymentMethod(rs.getString("payment_method"));
-                detail.setPaymentStatus(rs.getString("payment_status"));
-                detail.setReceiverName(rs.getString("receiver_name"));
-                detail.setReceiverPhone(rs.getString("receiver_phone"));
-                detail.setShippingAddress(rs.getString("shipping_address"));
-                detail.setShopId(rs.getInt("shop_id"));
-                detail.setShopName(rs.getString("shop_name"));
-                detail.setPickupAddress(rs.getString("pickup_address"));
-                detail.setSellerName(rs.getString("seller_name"));
-                detail.setSellerPhone(rs.getString("seller_phone"));
-                detail.setSellerEmail(rs.getString("seller_email"));
-                detail.setCustomerName(rs.getString("customer_name"));
-                detail.setCustomerPhone(rs.getString("customer_phone"));
-                detail.setCustomerEmail(rs.getString("customer_email"));
-                detail.setCollectAmount("PAID".equals(detail.getPaymentStatus()) ? BigDecimal.ZERO : safe(detail.getTotalAmount()));
-                return detail;
-            }
-        }
-    }
-
-    private List<DeliveryItem> loadDeliveryItems(Connection connection, int subOrderId) throws Exception {
-        String sql = """
-                SELECT oi.order_item_id,
-                       oi.product_id,
-                       oi.variant_id,
-                       oi.quantity,
-                       oi.price_at_purchase,
-                       oi.price_at_purchase * oi.quantity AS line_total,
-                       p.product_name,
-                       p.thumbnail_url,
-                       pv.variant_name,
-                       c.color_name,
-                       sz.size_name
-                FROM order_items oi
-                INNER JOIN products p ON p.product_id = oi.product_id
-                LEFT JOIN product_variants pv ON pv.variant_id = oi.variant_id
-                LEFT JOIN colors c ON c.color_id = pv.color_id
-                LEFT JOIN sizes sz ON sz.size_id = pv.size_id
-                WHERE oi.sub_order_id = ?
-                ORDER BY oi.order_item_id ASC
-                """;
-
-        List<DeliveryItem> items = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, subOrderId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    DeliveryItem item = new DeliveryItem();
-                    item.setOrderItemId(rs.getInt("order_item_id"));
-                    item.setProductId(rs.getInt("product_id"));
-                    item.setVariantId((Integer) rs.getObject("variant_id"));
-                    item.setQuantity(rs.getInt("quantity"));
-                    item.setPriceAtPurchase(rs.getBigDecimal("price_at_purchase"));
-                    item.setLineTotal(rs.getBigDecimal("line_total"));
-                    item.setProductName(rs.getString("product_name"));
-                    item.setThumbnailUrl(rs.getString("thumbnail_url"));
-                    item.setVariantName(rs.getString("variant_name"));
-                    item.setColorName(rs.getString("color_name"));
-                    item.setSizeName(rs.getString("size_name"));
-                    items.add(item);
-                }
-            }
-        }
-        return items;
-    }
+    
 
     private Integer resolveShipperId(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -385,22 +145,7 @@ public class ViewDeliveryServlet extends HttpServlet {
         }
     }
 
-    private Connection openConnection() throws Exception {
-        Properties properties = new Properties();
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("ConnectDB.properties")) {
-            if (inputStream == null) {
-                throw new IllegalStateException("Không tìm thấy ConnectDB.properties.");
-            }
-            properties.load(inputStream);
-        }
-
-        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-        return DriverManager.getConnection(
-                properties.getProperty("url"),
-                properties.getProperty("userID"),
-                properties.getProperty("password")
-        );
-    }
+    
 
     private Integer parsePositiveInt(String rawValue) {
         if (rawValue == null || rawValue.isBlank()) {
@@ -554,3 +299,4 @@ public class ViewDeliveryServlet extends HttpServlet {
         public void setSizeName(String sizeName) { this.sizeName = sizeName; }
     }
 }
+

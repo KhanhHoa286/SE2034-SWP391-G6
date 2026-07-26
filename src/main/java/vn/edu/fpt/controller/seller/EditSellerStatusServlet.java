@@ -6,26 +6,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.dao.ShopDAO;
+import vn.edu.fpt.dao.SellerOrderDAO;
 import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 public class EditSellerStatusServlet extends HttpServlet {
 
     private static final String STATUS_PAGE = "/seller/order/edit-seller-status.jsp";
 
     private final ShopDAO shopDAO = new ShopDAO();
+    private final SellerOrderDAO sellerOrderDAO = new SellerOrderDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -59,8 +55,8 @@ public class EditSellerStatusServlet extends HttpServlet {
         String newStatus = trim(request.getParameter("newStatus")).toUpperCase();
         request.setAttribute("selectedStatus", newStatus);
 
-        try (Connection connection = openConnection()) {
-            SellerStatusOrder order = loadOrder(connection, shop.getShopId(), subOrderId);
+        try {
+            SellerStatusOrder order = sellerOrderDAO.getStatusOrder(shop.getShopId(), subOrderId);
             if (order == null) {
                 renderStatusPage(request, response, "Không tìm thấy đơn hàng hoặc đơn hàng không thuộc cửa hàng của bạn.", null);
                 return;
@@ -78,13 +74,13 @@ public class EditSellerStatusServlet extends HttpServlet {
             }
 
             if ("PREPARING".equals(order.getStatus()) && "SHIPPING".equals(newStatus)
-                    && !hasAssignedDelivery(connection, order.getSubOrderId())) {
+                    && !sellerOrderDAO.hasAssignedDelivery(order.getSubOrderId())) {
                 renderLoadedPage(request, response, shop, order,
                         "Chưa thể chuyển sang đã giao vận chuyển vì chưa có nhân viên giao hàng nhận đơn. Vui lòng chờ shipper nhận đơn trong danh sách đơn giao.");
                 return;
             }
 
-            boolean updated = updateOrderStatus(connection, order, newStatus);
+            boolean updated = sellerOrderDAO.updateStatus(order, newStatus);
             if (!updated) {
                 renderStatusPage(request, response, "Trạng thái đơn hàng đã thay đổi. Vui lòng tải lại và thử lại.", null);
                 return;
@@ -134,8 +130,8 @@ public class EditSellerStatusServlet extends HttpServlet {
             return;
         }
 
-        try (Connection connection = openConnection()) {
-            SellerStatusOrder order = loadOrder(connection, shop.getShopId(), subOrderId);
+        try {
+            SellerStatusOrder order = sellerOrderDAO.getStatusOrder(shop.getShopId(), subOrderId);
             if (order == null) {
                 request.setAttribute("errorMessage", "Không tìm thấy đơn hàng hoặc đơn hàng không thuộc cửa hàng của bạn.");
             } else {
@@ -195,141 +191,11 @@ public class EditSellerStatusServlet extends HttpServlet {
         }
     }
 
-    private SellerStatusOrder loadOrder(Connection connection, int shopId, int subOrderId) throws Exception {
-        String sql = """
-                SELECT so.sub_order_id,
-                       so.master_order_id,
-                       so.shop_id,
-                       s.shop_name,
-                       owner.phone AS seller_phone,
-                       s.street_address + N', ' + w.path_with_type AS pickup_address,
-                       mo.created_at AS buyer_ordered_at,
-                       so.created_at AS seller_ordered_at,
-                       so.status,
-                       so.total_amount,
-                       so.commission_fee,
-                       COALESCE(delivery.tracking_number, CONCAT('MODA-SUB-', so.sub_order_id, '-MO-', so.master_order_id)) AS tracking_number,
-                       delivery.shipper_id AS assigned_shipper_id,
-                       delivery.shipper_name,
-                       delivery.shipper_phone,
-                       mo.payment_method,
-                       mo.payment_status,
-                       mo.receiver_name,
-                       mo.receiver_phone,
-                       mo.shipping_address,
-                       u.first_name + ' ' + u.last_name AS customer_name,
-                       u.email AS customer_email,
-                       (
-                           SELECT STRING_AGG(CAST(p.product_name AS NVARCHAR(MAX)) + N' (x' + CAST(oi.quantity AS NVARCHAR(10)) + N')', N', ')
-                           FROM order_items oi
-                           INNER JOIN products p ON p.product_id = oi.product_id
-                           WHERE oi.sub_order_id = so.sub_order_id
-                       ) AS products_summary,
-                       (
-                           SELECT COUNT(*)
-                           FROM order_items oi
-                           WHERE oi.sub_order_id = so.sub_order_id
-                       ) AS item_count,
-                       (
-                           SELECT COALESCE(SUM(oi.quantity), 0)
-                           FROM order_items oi
-                           WHERE oi.sub_order_id = so.sub_order_id
-                       ) AS total_quantity
-                FROM sub_orders so
-                INNER JOIN shops s ON s.shop_id = so.shop_id
-                INNER JOIN users owner ON owner.user_id = s.owner_id
-                INNER JOIN wards w ON w.id = s.ward_id
-                INNER JOIN master_orders mo ON mo.master_order_id = so.master_order_id
-                INNER JOIN users u ON u.user_id = mo.customer_id
-                OUTER APPLY (
-                    SELECT TOP 1
-                           d.tracking_number,
-                           d.shipper_id,
-                           shipper.first_name + ' ' + shipper.last_name AS shipper_name,
-                           shipper.phone AS shipper_phone
-                    FROM deliveries d
-                    LEFT JOIN users shipper ON shipper.user_id = d.shipper_id
-                    WHERE d.sub_order_id = so.sub_order_id
-                    ORDER BY d.delivery_id DESC
-                ) delivery
-                WHERE so.sub_order_id = ?
-                  AND so.shop_id = ?
-                """;
+    
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, subOrderId);
-            ps.setInt(2, shopId);
+    
 
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) {
-                    return null;
-                }
-
-                SellerStatusOrder order = new SellerStatusOrder();
-                order.setSubOrderId(rs.getInt("sub_order_id"));
-                order.setMasterOrderId(rs.getInt("master_order_id"));
-                order.setShopId(rs.getInt("shop_id"));
-                order.setShopName(rs.getString("shop_name"));
-                order.setSellerPhone(rs.getString("seller_phone"));
-                order.setPickupAddress(rs.getString("pickup_address"));
-                order.setBuyerOrderedAt(rs.getTimestamp("buyer_ordered_at"));
-                order.setSellerOrderedAt(rs.getTimestamp("seller_ordered_at"));
-                order.setStatus(rs.getString("status"));
-                order.setTotalAmount(rs.getBigDecimal("total_amount"));
-                order.setCommissionFee(rs.getBigDecimal("commission_fee"));
-                order.setTrackingNumber(rs.getString("tracking_number"));
-                order.setShipperAssigned(rs.getObject("assigned_shipper_id") != null);
-                order.setShipperName(rs.getString("shipper_name"));
-                order.setShipperPhone(rs.getString("shipper_phone"));
-                order.setPaymentMethod(rs.getString("payment_method"));
-                order.setPaymentStatus(rs.getString("payment_status"));
-                order.setReceiverName(rs.getString("receiver_name"));
-                order.setReceiverPhone(rs.getString("receiver_phone"));
-                order.setShippingAddress(rs.getString("shipping_address"));
-                order.setCustomerName(rs.getString("customer_name"));
-                order.setCustomerEmail(rs.getString("customer_email"));
-                order.setProductsSummary(rs.getString("products_summary"));
-                order.setItemCount(rs.getInt("item_count"));
-                order.setTotalQuantity(rs.getInt("total_quantity"));
-                return order;
-            }
-        }
-    }
-
-    private boolean updateOrderStatus(Connection connection, SellerStatusOrder order, String newStatus) throws Exception {
-        String sql = """
-                UPDATE sub_orders
-                SET status = ?
-                WHERE sub_order_id = ?
-                  AND shop_id = ?
-                  AND status = ?
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, newStatus);
-            ps.setInt(2, order.getSubOrderId());
-            ps.setInt(3, order.getShopId());
-            ps.setString(4, order.getStatus());
-            return ps.executeUpdate() == 1;
-        }
-    }
-
-    private boolean hasAssignedDelivery(Connection connection, int subOrderId) throws Exception {
-        String sql = """
-                SELECT TOP 1 1
-                FROM deliveries
-                WHERE sub_order_id = ?
-                  AND shipper_id IS NOT NULL
-                  AND status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'COMPLETED')
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, subOrderId);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        }
-    }
+    
 
     private List<StatusOption> buildNextStatusOptions(String currentStatus) {
         List<StatusOption> options = new ArrayList<>();
@@ -387,22 +253,7 @@ public class EditSellerStatusServlet extends HttpServlet {
         return false;
     }
 
-    private Connection openConnection() throws Exception {
-        Properties properties = new Properties();
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("ConnectDB.properties")) {
-            if (inputStream == null) {
-                throw new IllegalStateException("Khong tim thay ConnectDB.properties.");
-            }
-            properties.load(inputStream);
-        }
-
-        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-        return DriverManager.getConnection(
-                properties.getProperty("url"),
-                properties.getProperty("userID"),
-                properties.getProperty("password")
-        );
-    }
+    
 
     private String trim(String value) {
         return value == null ? "" : value.trim();
@@ -691,3 +542,4 @@ public class EditSellerStatusServlet extends HttpServlet {
         }
     }
 }
+
