@@ -78,6 +78,7 @@ public class AuthFilter implements Filter {
         }
 
         // --- Quyền SELLER (roleId = 3) ---
+        // Lưu ý: /load-wards KHÔNG nằm ở đây vì endpoint này dùng chung với trang địa chỉ của customer
         if (path.startsWith("/seller/")
                 || path.equals("/sellerDashboard")
                 || path.equals("/add-product")
@@ -87,8 +88,7 @@ public class AuthFilter implements Filter {
                 || path.equals("/view-seller-product")
                 || path.equals("/add-shop")
                 || path.equals("/edit-shop")
-                || path.equals("/edit-seller-status")
-                || path.equals("/load-wards")) {
+                || path.equals("/edit-seller-status")) {
             if (user == null) {
                 resp.sendRedirect(req.getContextPath() + "/login");
                 return;
