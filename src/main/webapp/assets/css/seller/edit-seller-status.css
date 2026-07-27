@@ -320,8 +320,7 @@ body {
 
 .label-header span,
 .label-code span,
-.label-payment span,
-.label-signature > span {
+.label-payment span {
     display: block;
     color: #07111f;
     font-size: 12px;
@@ -354,8 +353,7 @@ body {
 }
 
 .label-address h3,
-.label-products h3,
-.label-instruction h3 {
+.label-products h3 {
     margin: 0 0 8px;
     font-size: 14px;
     font-weight: 900;
@@ -413,25 +411,10 @@ body {
     font-weight: 900;
 }
 
-.label-instruction h3 {
-    margin-bottom: 10px;
-}
-
-.label-instruction p {
-    margin: 2px 0;
-    color: #07111f;
-    font-size: 13px;
-    font-weight: 700;
-}
-
 .label-signature {
     flex: 1;
     padding: 12px;
     text-align: center;
-}
-
-.label-signature > span {
-    margin-bottom: 16px;
 }
 
 .label-signature > div {

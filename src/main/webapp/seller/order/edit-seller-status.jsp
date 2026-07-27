@@ -157,15 +157,8 @@
                                         <div class="label-payment">
                                             <span>Tiền thu Người nhận:</span>
                                             <strong><fmt:formatNumber value="${orderStatus.collectAmount}" type="number" maxFractionDigits="0"/> VND</strong>
-                                            <div class="label-instruction">
-                                                <h3>Chỉ dẫn giao hàng:</h3>
-                                                <p>- Không đồng kiểm;</p>
-                                                <p>- Chuyển hoàn sau 3 lần phát;</p>
-                                                <p>- Lưu kho tối đa 5 ngày.</p>
-                                            </div>
                                         </div>
                                         <div class="label-signature">
-                                            <span>Khối lượng tối đa: 300g</span>
                                             <div>
                                                 <strong>Chữ ký người nhận</strong>
                                                 <p>Xác nhận hàng nguyên vẹn, không móp/méo, bể/vỡ</p>
@@ -332,7 +325,7 @@
                     .label-header, .label-route, .label-footer { display: flex; }
                     .label-header { justify-content: space-between; gap: 16px; padding: 10px 12px; border-bottom: 2px dashed #000; }
                     .label-header strong { display: block; font-size: 20px; font-weight: 900; }
-                    .label-header span, .label-code span, .label-payment span, .label-signature > span { display: block; font-size: 12px; font-weight: 800; }
+                    .label-header span, .label-code span, .label-payment span { display: block; font-size: 12px; font-weight: 800; }
                     .label-code { text-align: right; }
                     .label-code strong { display: block; margin-top: 4px; font-size: 13px; font-weight: 900; }
                     .label-route { min-height: 170px; border-bottom: 2px dashed #000; }
@@ -347,9 +340,7 @@
                     .label-footer { min-height: 190px; }
                     .label-payment { flex: 1; padding: 12px; }
                     .label-payment strong { display: block; margin: 16px 0 18px; text-align: center; font-size: 26px; font-weight: 900; }
-                    .label-instruction p { margin: 2px 0; font-size: 13px; font-weight: 700; }
                     .label-signature { flex: 1; padding: 12px; text-align: center; }
-                    .label-signature > span { margin-bottom: 16px; }
                     .label-signature > div { min-height: 130px; padding: 12px; border: 2px solid #9ca3af; }
                     .label-signature strong { display: block; margin-bottom: 8px; font-size: 15px; font-weight: 900; }
                     .label-signature p { margin: 0; font-size: 13px; font-weight: 700; }

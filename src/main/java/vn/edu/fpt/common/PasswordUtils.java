@@ -2,7 +2,7 @@ package vn.edu.fpt.common;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-public class PasswordUtils {
+public class  PasswordUtils {
 
     // Hàm băm mật khẩu trước khi lưu vào DB
     public static String hashPassword(String plainPassword) {
