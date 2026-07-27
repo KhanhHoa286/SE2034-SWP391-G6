@@ -269,3 +269,16 @@
     white-space: nowrap;
 }
 
+/* Disabled Checkbox & Plus Button styling (only dim disabled controls, keep whole row clear) */
+.cart-item__checkbox:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.qty-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background-color: #f5f5f5;
+    color: #999;
+}
+

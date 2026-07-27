@@ -47,39 +47,43 @@ public class UpdateCart extends HttpServlet {
              response.getWriter().write("{\"status\":\"INVALID_STOCK\"}");
              return;
          }
-         // lấy ra số sản phẩm trong kho của item đó tránh việc + giỏ hàng nó hơn
-             int currentStock = productDAO.getVariantStock(variantId);
-         // nếu quantity + mà vượt mức cái trong kho thì bắn lỗi về
-           if(quantityItem > currentStock) {
-               response.getWriter().write("{\"status\":\"OVER_STOCK\"}");
-               return;
-           }
-           // nếu không vượt quá thì cho vào update
-        boolean checkUpdate = cartDAO.updateQuantityItem(quantityItem, cartItemId, user.getUserId());
-         // trả về cho js để load lại trang
-           if(!checkUpdate) {
-               response.getWriter().write("{\"status\":\"ERROR\"}");
-           }else {
-               // nếu update thành công thì lấy ra list sản phẩm trong giỏ hàng của memeber đó
-               List<CartResponse> cartResponses = cartDAO.getCartForMember(user.getUserId());
+          int currentStock = productDAO.getVariantStock(variantId);
+          int oldQuantity = cartDAO.getQuantityAVariantCart(variantId, user.getUserId());
 
-               BigDecimal newAllShopTotal = new BigDecimal(BigInteger.ZERO); // tiền hcung trong giỏ tất cả sản phẩm có trong giỏ
+          // Chỉ chặn OVER_STOCK khi người dùng cố tình TĂNG (+) số lượng vượt quá tồn kho
+          if (quantityItem > oldQuantity && quantityItem > currentStock) {
+              response.getWriter().write("{\"status\":\"OVER_STOCK\"}");
+              return;
+          }
+          // nếu không vượt quá thì cho vào update
+         boolean checkUpdate = cartDAO.updateQuantityItem(quantityItem, cartItemId, user.getUserId());
+          // trả về cho js để load lại trang
+            if(!checkUpdate) {
+                response.getWriter().write("{\"status\":\"ERROR\"}");
+            }else {
+                // nếu update thành công thì lấy ra list sản phẩm trong giỏ hàng của memeber đó
+                List<CartResponse> cartResponses = cartDAO.getCartForMember(user.getUserId());
 
-               // duyệt qua từng cart items để cộng tiền lại => tiền chung
-               if (cartResponses != null) {
-                   for (CartResponse c : cartResponses) {
-                       newAllShopTotal = newAllShopTotal.add(c.getTotalPrice());
-                   }
-               }
+                BigDecimal newAllShopTotal = new BigDecimal(BigInteger.ZERO); // tiền hcung trong giỏ tất cả sản phẩm có trong giỏ
 
-               String shopAllTotalStr = String.format("%,d", newAllShopTotal.longValue()) + " đ";
-                   // Trả về cho js
-                   String jsonResponse = "{"
-                           + "\"status\":\"SUCCESS\","
-                           + "\"newAllShopTotal\":\"" + shopAllTotalStr + "\""
-                           + "}";
+                // duyệt qua từng cart items để cộng tiền lại => tiền chung
+                if (cartResponses != null) {
+                    for (CartResponse c : cartResponses) {
+                        if (c.isSelected() && c.getStockQuantity() >= c.getQuantity()) {
+                            newAllShopTotal = newAllShopTotal.add(c.getTotalPrice());
+                        }
+                    }
+                }
 
-                   response.getWriter().write(jsonResponse);
-               }
+                String shopAllTotalStr = String.format("%,d", newAllShopTotal.longValue()) + " đ";
+                    // Trả về cho js
+                    String jsonResponse = "{"
+                            + "\"status\":\"SUCCESS\","
+                            + "\"currentStock\":" + currentStock + ","
+                            + "\"newAllShopTotal\":\"" + shopAllTotalStr + "\""
+                            + "}";
+
+                    response.getWriter().write(jsonResponse);
+                }
      }
 }

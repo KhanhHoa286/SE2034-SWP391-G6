@@ -29,10 +29,60 @@ function updateItemQuantity(contextPath, cartItemId, variantId,action,btn) {
     axios.post(contextPath + "/api/customer/update-cart", params)
         .then(response => {
             const data = response.data;
-            if(data.status === "SUCCESS") {
+            if (data.status === "SUCCESS") {
                 quantityInput.value = quantityItem;
-                // shopTotal.innerText = data.newShopTotal;
                 newAllShopTotal.innerText = data.newAllShopTotal;
+
+                const cartItemRow = btn.closest(".cart-item");
+                const checkbox = cartItemRow.querySelector(".cart-item__checkbox");
+                const qtyControl = btn.closest(".quantity-control");
+                const minusBtn = qtyControl.querySelector("button:first-child");
+                const plusBtn = qtyControl.querySelector("button:last-child");
+                const currentStock = data.currentStock;
+
+                if (currentStock !== undefined) {
+                    if (minusBtn) {
+                        if (quantityItem <= 1) {
+                            minusBtn.disabled = true;
+                            minusBtn.setAttribute("disabled", "disabled");
+                        } else {
+                            minusBtn.disabled = false;
+                            minusBtn.removeAttribute("disabled");
+                        }
+                    }
+
+                    if (quantityItem <= currentStock) {
+                        if (checkbox) {
+                            checkbox.disabled = false;
+                            checkbox.removeAttribute("disabled");
+                        }
+                        if (plusBtn) {
+                            if (quantityItem < currentStock) {
+                                plusBtn.disabled = false;
+                                plusBtn.removeAttribute("disabled");
+                            } else {
+                                plusBtn.disabled = true;
+                                plusBtn.setAttribute("disabled", "disabled");
+                            }
+                        }
+                        if (spanError) {
+                            spanError.innerText = "";
+                        }
+                    } else {
+                        if (checkbox) {
+                            checkbox.disabled = true;
+                            checkbox.setAttribute("disabled", "disabled");
+                            checkbox.checked = false;
+                        }
+                        if (plusBtn) {
+                            plusBtn.disabled = true;
+                            plusBtn.setAttribute("disabled", "disabled");
+                        }
+                        if (spanError) {
+                            spanError.innerText = currentStock <= 0 ? "* Sản phẩm đã hết hàng" : `* Kho chỉ còn ${currentStock} sản phẩm`;
+                        }
+                    }
+                }
             }
             if(data.status === "OVER_STOCK") {
                 spanError.innerText = "* Vượt quá số lượng biến thể trong kho!";

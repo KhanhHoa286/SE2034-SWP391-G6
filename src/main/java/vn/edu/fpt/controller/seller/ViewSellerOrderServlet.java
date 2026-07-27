@@ -7,20 +7,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.dao.ShopDAO;
+import vn.edu.fpt.dao.SellerOrderDAO;
 import vn.edu.fpt.model.Shop;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 @WebServlet(urlPatterns = {"/seller/order/view", "/view-seller-order"})
 public class ViewSellerOrderServlet extends HttpServlet {
@@ -28,6 +23,7 @@ public class ViewSellerOrderServlet extends HttpServlet {
     private static final String ORDER_DETAIL_PAGE = "/seller/order/view-seller-order.jsp";
 
     private final ShopDAO shopDAO = new ShopDAO();
+    private final SellerOrderDAO sellerOrderDAO = new SellerOrderDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -54,12 +50,12 @@ public class ViewSellerOrderServlet extends HttpServlet {
 
         request.setAttribute("shop", shop);
 
-        try (Connection connection = openConnection()) {
-            SellerOrderDetail orderDetail = loadOrderDetail(connection, shop.getShopId(), subOrderId);
+        try {
+            SellerOrderDetail orderDetail = sellerOrderDAO.getOrderDetail(shop.getShopId(), subOrderId);
             if (orderDetail == null) {
                 request.setAttribute("errorMessage", "Khong tim thay don hang hoac don hang khong thuoc shop cua ban.");
             } else {
-                orderDetail.setItems(loadOrderItems(connection, subOrderId));
+                
                 request.setAttribute("orderDetail", orderDetail);
             }
         } catch (Exception ex) {
@@ -102,143 +98,13 @@ public class ViewSellerOrderServlet extends HttpServlet {
         }
     }
 
-    private SellerOrderDetail loadOrderDetail(Connection connection, int shopId, int subOrderId) throws Exception {
-        String sql = """
-                SELECT so.sub_order_id,
-                       so.master_order_id,
-                       so.shop_id,
-                       s.shop_name,
-                       mo.created_at AS buyer_ordered_at,
-                       so.created_at AS seller_ordered_at,
-                       so.status,
-                       so.sub_total,
-                       so.discount_amount,
-                       so.total_amount,
-                       so.commission_fee,
-                       mo.payment_method,
-                       mo.payment_status,
-                       mo.payment_date,
-                       mo.receiver_name,
-                       mo.receiver_phone,
-                       mo.shipping_address,
-                       u.user_id AS customer_id,
-                       u.first_name + ' ' + u.last_name AS customer_name,
-                       u.email AS customer_email,
-                       u.phone AS customer_phone
-                FROM sub_orders so
-                INNER JOIN shops s ON s.shop_id = so.shop_id
-                INNER JOIN master_orders mo ON mo.master_order_id = so.master_order_id
-                INNER JOIN users u ON u.user_id = mo.customer_id
-                WHERE so.sub_order_id = ?
-                  AND so.shop_id = ?
-                """;
+    
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, subOrderId);
-            ps.setInt(2, shopId);
+    
 
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) {
-                    return null;
-                }
+    
 
-                SellerOrderDetail detail = new SellerOrderDetail();
-                detail.setSubOrderId(rs.getInt("sub_order_id"));
-                detail.setMasterOrderId(rs.getInt("master_order_id"));
-                detail.setShopId(rs.getInt("shop_id"));
-                detail.setShopName(rs.getString("shop_name"));
-                detail.setBuyerOrderedAt(rs.getTimestamp("buyer_ordered_at"));
-                detail.setSellerOrderedAt(rs.getTimestamp("seller_ordered_at"));
-                detail.setStatus(rs.getString("status"));
-                detail.setSubTotal(rs.getBigDecimal("sub_total"));
-                detail.setDiscountAmount(rs.getBigDecimal("discount_amount"));
-                detail.setTotalAmount(rs.getBigDecimal("total_amount"));
-                detail.setCommissionFee(rs.getBigDecimal("commission_fee"));
-                detail.setSellerReceivable(safe(rs.getBigDecimal("total_amount")).subtract(safe(rs.getBigDecimal("commission_fee"))));
-                detail.setPaymentMethod(rs.getString("payment_method"));
-                detail.setPaymentStatus(rs.getString("payment_status"));
-                detail.setPaymentDate(rs.getTimestamp("payment_date"));
-                detail.setReceiverName(rs.getString("receiver_name"));
-                detail.setReceiverPhone(rs.getString("receiver_phone"));
-                detail.setShippingAddress(rs.getString("shipping_address"));
-                detail.setCustomerId(rs.getInt("customer_id"));
-                detail.setCustomerName(rs.getString("customer_name"));
-                detail.setCustomerEmail(rs.getString("customer_email"));
-                detail.setCustomerPhone(rs.getString("customer_phone"));
-                return detail;
-            }
-        }
-    }
-
-    private List<SellerOrderItem> loadOrderItems(Connection connection, int subOrderId) throws Exception {
-        String sql = """
-                SELECT oi.order_item_id,
-                       oi.product_id,
-                       oi.variant_id,
-                       oi.quantity,
-                       oi.price_at_purchase,
-                       oi.price_at_purchase * oi.quantity AS line_total,
-                       p.product_name,
-                       p.thumbnail_url,
-                       pv.variant_name,
-                       c.color_name,
-                       c.color_code,
-                       sz.size_name
-                FROM order_items oi
-                INNER JOIN products p ON p.product_id = oi.product_id
-                LEFT JOIN product_variants pv ON pv.variant_id = oi.variant_id
-                LEFT JOIN colors c ON c.color_id = pv.color_id
-                LEFT JOIN sizes sz ON sz.size_id = pv.size_id
-                WHERE oi.sub_order_id = ?
-                ORDER BY oi.order_item_id ASC
-                """;
-
-        List<SellerOrderItem> items = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, subOrderId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    SellerOrderItem item = new SellerOrderItem();
-                    item.setOrderItemId(rs.getInt("order_item_id"));
-                    item.setProductId(rs.getInt("product_id"));
-                    item.setVariantId((Integer) rs.getObject("variant_id"));
-                    item.setQuantity(rs.getInt("quantity"));
-                    item.setPriceAtPurchase(rs.getBigDecimal("price_at_purchase"));
-                    item.setLineTotal(rs.getBigDecimal("line_total"));
-                    item.setProductName(rs.getString("product_name"));
-                    item.setThumbnailUrl(rs.getString("thumbnail_url"));
-                    item.setVariantName(rs.getString("variant_name"));
-                    item.setColorName(rs.getString("color_name"));
-                    item.setColorCode(rs.getString("color_code"));
-                    item.setSizeName(rs.getString("size_name"));
-                    items.add(item);
-                }
-            }
-        }
-        return items;
-    }
-
-    private Connection openConnection() throws Exception {
-        Properties properties = new Properties();
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("ConnectDB.properties")) {
-            if (inputStream == null) {
-                throw new IllegalStateException("Khong tim thay ConnectDB.properties.");
-            }
-            properties.load(inputStream);
-        }
-
-        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-        return DriverManager.getConnection(
-                properties.getProperty("url"),
-                properties.getProperty("userID"),
-                properties.getProperty("password")
-        );
-    }
-
-    private BigDecimal safe(BigDecimal value) {
-        return value == null ? BigDecimal.ZERO : value;
-    }
+    
 
     private String trim(String value) {
         return value == null ? "" : value.trim();
@@ -565,3 +431,4 @@ public class ViewSellerOrderServlet extends HttpServlet {
         }
     }
 }
+

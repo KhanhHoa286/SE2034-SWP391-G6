@@ -188,6 +188,43 @@
           max-width: none;
         }
       }
+
+      .seller-sidebar-logout {
+        width: 100%;
+        margin-top: auto;
+        border-top: 1px solid #dedede;
+      }
+
+      .seller-sidebar-logout-link,
+      .seller-sidebar-logout-link:visited {
+        width: 100%;
+        height: 72px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        padding: 0 30px;
+        color: #333333 !important;
+        background: transparent;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        line-height: 1;
+        text-transform: uppercase;
+        text-decoration: none !important;
+        transition: background-color 0.2s ease, color 0.2s ease;
+      }
+
+      .seller-sidebar-logout-link:hover,
+      .seller-sidebar-logout-link:focus-visible {
+        color: #dc2626 !important;
+        background: #f5f5f5;
+        text-decoration: none !important;
+      }
+
+      .seller-sidebar-logout-link:focus-visible {
+        outline: 2px solid #111111;
+        outline-offset: -2px;
+      }
     </style>
     <% if (showPendingOrderToast || showAssignedDeliveryToast) { %>
       <div class="seller-session-toast-stack" aria-live="polite">
@@ -276,5 +313,12 @@
             </a>
           </li>
         </ul>
+      </div>
+
+      <div class="seller-sidebar-logout">
+        <a class="seller-sidebar-logout-link"
+           href="${pageContext.request.contextPath}/logout">
+          <span>Đăng xuất</span>
+        </a>
       </div>
     </aside>

@@ -153,6 +153,17 @@ public class AddOrderServlet extends HttpServlet {
 
         if ("CART".equalsIgnoreCase(checkoutRequest.getType())) {
             checkoutRequest.setCartItemIds(request.getParameter("cartItemIds"));
+
+            List<CartResponse> listCartItems = cartDAO.getCartItemCheckbox(checkoutRequest.getCartItemIds(), user.getUserId());
+            if (listCartItems != null && !listCartItems.isEmpty()) {
+                for (CartResponse item : listCartItems) {
+                    int currentStock = productDAO.getVariantStock(item.getVariantId());
+                    if (currentStock <= 0 || item.getQuantity() > currentStock) {
+                        redirectBackWithError(request, response, "out_of_stock");
+                        return;
+                    }
+                }
+            }
         } else if ("DETAILS_PRODUCT".equalsIgnoreCase(checkoutRequest.getType())) {
             checkoutRequest.setVariantId(ParamUtil.getInteger(request, "variant_id"));
             checkoutRequest.setQuantity(ParamUtil.getInteger(request, "quantity_details_product"));

@@ -29,8 +29,8 @@ public class LoginServlet extends HttpServlet {
     }
 
     private void forwardLogin(HttpServletRequest request,
-                              HttpServletResponse response,
-                              String error)
+            HttpServletResponse response,
+            String error)
             throws ServletException, IOException {
 
         request.setAttribute("error", error);
@@ -59,8 +59,7 @@ public class LoginServlet extends HttpServlet {
                         + "Mã này có hiệu lực trong 1 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.<br><br>"
                         + "Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.<br><br>"
                         + "Trân trọng,<br>"
-                        + "Đội ngũ MODA"
-        );
+                        + "Đội ngũ MODA");
     }
 
     @Override
@@ -151,8 +150,7 @@ public class LoginServlet extends HttpServlet {
 
                 response.sendRedirect(
                         request.getContextPath()
-                                + "/verify-otp?email=" + encodedEmail
-                );
+                                + "/verify-otp?email=" + encodedEmail);
                 return;
 
             } catch (Exception e) {
@@ -161,8 +159,7 @@ public class LoginServlet extends HttpServlet {
                 forwardLogin(
                         request,
                         response,
-                        "Tài khoản chưa xác thực OTP nhưng hệ thống chưa gửi lại được mã. Vui lòng thử lại sau."
-                );
+                        "Tài khoản chưa xác thực OTP nhưng hệ thống chưa gửi lại được mã. Vui lòng thử lại sau.");
                 return;
             }
         }
@@ -171,8 +168,7 @@ public class LoginServlet extends HttpServlet {
             forwardLogin(
                     request,
                     response,
-                    "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên."
-            );
+                    "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
             return;
         }
 
@@ -180,8 +176,7 @@ public class LoginServlet extends HttpServlet {
             forwardLogin(
                     request,
                     response,
-                    "Trạng thái tài khoản không hợp lệ."
-            );
+                    "Trạng thái tài khoản không hợp lệ.");
             return;
         }
 
@@ -191,12 +186,9 @@ public class LoginServlet extends HttpServlet {
             forwardLogin(
                     request,
                     response,
-                    "Tài khoản chưa được gán quyền. Vui lòng liên hệ quản trị viên."
-            );
+                    "Tài khoản chưa được gán quyền. Vui lòng liên hệ quản trị viên.");
             return;
         }
-
-
 
         HttpSession session = request.getSession();
         session.setAttribute("user", user);
@@ -204,7 +196,8 @@ public class LoginServlet extends HttpServlet {
         session.setAttribute("roleId", roleId);
         session.setAttribute("fullName", user.getFirstName() + " " + user.getLastName());
         boolean hasSellerAccount = customerDAO.hasSellerAccount(user.getUserId());
-        boolean hasPendingSellerRegistration = !hasSellerAccount && customerDAO.hasPendingSellerRegistration(user.getUserId());
+        boolean hasPendingSellerRegistration = !hasSellerAccount
+                && customerDAO.hasPendingSellerRegistration(user.getUserId());
         session.setAttribute("hasSellerAccount", hasSellerAccount);
         session.setAttribute("hasPendingSellerRegistration", hasPendingSellerRegistration);
 
