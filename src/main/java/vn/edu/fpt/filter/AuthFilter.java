@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 @WebFilter("/*")
 public class AuthFilter implements Filter {
     private final CartDAO cartDAO = new CartDAO();
+    private final vn.edu.fpt.dao.UserDAO userDAO = new vn.edu.fpt.dao.UserDAO();
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -36,6 +37,14 @@ public class AuthFilter implements Filter {
         
         User user = (User) session.getAttribute("user");
         Integer roleId = (Integer) session.getAttribute("roleId");
+
+        if (user != null) {
+            Integer dbRoleId = userDAO.getRoleIdByUserId(user.getUserId());
+            if (dbRoleId != null && dbRoleId > 0) {
+                roleId = dbRoleId;
+                session.setAttribute("roleId", roleId);
+            }
+        }
 
         // 1. Bỏ qua các file tĩnh (CSS, JS, Hình ảnh, Font, Web Uploads)
         if (path.endsWith("/assets/") || path.contains("/assets/") || path.contains("/uploads/")
@@ -86,7 +95,6 @@ public class AuthFilter implements Filter {
                 || path.equals("/delete-product")
                 || path.equals("/list-seller-products")
                 || path.equals("/view-seller-product")
-                || path.equals("/add-shop")
                 || path.equals("/edit-shop")
                 || path.equals("/edit-seller-status")) {
             if (user == null) {
