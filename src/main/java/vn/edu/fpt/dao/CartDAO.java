@@ -3,6 +3,8 @@ import vn.edu.fpt.common.DBContext;
 import vn.edu.fpt.dto.response.CartResponse;
 import vn.edu.fpt.dto.response.ShopCartResponse;
 import vn.edu.fpt.dto.response.SummaryOrderCheckoutResponse;
+import vn.edu.fpt.enums.ShopApplicationStatus;
+import vn.edu.fpt.enums.ShopStatus;
 import vn.edu.fpt.model.Product;
 
 import java.sql.Statement;
@@ -13,18 +15,26 @@ import java.sql.SQLException;
 
 public class CartDAO extends DBContext {
     /**
-     * HoaNK - Đếm số lượng sản phẩm trong giỏ hàng của user
+     * HoaNK - Đếm số lượng sản phẩm hợp lệ trong giỏ hàng của user
      */
-    private final String COUNT_PRODUCT_CART = "SELECT COUNT(*) FROM cart_items WHERE user_id = ?";
+    private final String COUNT_PRODUCT_CART = """
+            SELECT COUNT(*) 
+            FROM cart_items c
+            JOIN product_variants v ON c.variant_id = v.variant_id
+            JOIN products p ON v.product_id = p.product_id
+            JOIN shops s ON p.shop_id = s.shop_id
+            WHERE c.user_id = ? AND p.is_active = 1 AND p.is_deleted = 0 AND p.status = 'ACTIVE' AND s.status = ? AND s.approval_status = ?
+            """;
     public int getNumberOfProductCart(Integer userId) {
         String sql = COUNT_PRODUCT_CART;
-        try(PreparedStatement stmt = connection.prepareStatement(sql);
-        ) {
+        try(PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
+            stmt.setString(2, ShopStatus.ACTIVE.name());
+            stmt.setString(3, ShopApplicationStatus.APPROVED.name());
             try (ResultSet rs = stmt.executeQuery()) {
-            if(rs.next()) {
-                return rs.getInt(1);
-            }
+                if(rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         }catch(Exception e) {
             e.printStackTrace();
@@ -96,7 +106,7 @@ public class CartDAO extends DBContext {
             JOIN shops s ON p.shop_id = s.shop_id
             JOIN colors co ON v.color_id = co.color_id
             JOIN sizes sz ON v.size_id = sz.size_id  
-            WHERE c.user_id = ?
+            WHERE c.user_id = ? AND p.is_active = 1 AND p.is_deleted = 0 AND p.status = 'ACTIVE' AND s.status = ? AND s.approval_status = ? 
             """;
     // lấy ra danh sách sản phẩm trong giỏ cho người dùng đã đăng nhập nếu trong giỏ ko còn sản pẩm nào thì list rỗng
     public List<CartResponse> getCartForMember(int userId) {
@@ -105,6 +115,8 @@ public class CartDAO extends DBContext {
 
         try(PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
+            stmt.setString(2, ShopStatus.ACTIVE.name());
+            stmt.setString(3, ShopApplicationStatus.APPROVED.name());
             try(ResultSet rs = stmt.executeQuery()) {
                 while(rs.next()) {
                     CartResponse cartResponse = buildCartResponse(rs);
