@@ -234,6 +234,8 @@ public class CartDAO extends DBContext {
         sql += " ORDER BY s.shop_id, c.cart_item_id DESC ";
         try (PreparedStatement stmt = connection.prepareStatement(sql)){
             stmt.setInt(1,userId);
+            stmt.setString(2, ShopStatus.ACTIVE.name());
+            stmt.setString(3, ShopApplicationStatus.APPROVED.name());
              try(ResultSet rs = stmt.executeQuery()) {
                  while (rs.next()) {
                      CartResponse cartResponse = buildCartResponse(rs);
