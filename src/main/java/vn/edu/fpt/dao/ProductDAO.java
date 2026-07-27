@@ -89,7 +89,7 @@ public class ProductDAO extends DBContext {
 
     public List<ProductResponse> getTopBestSellingProducts() {
         List<ProductResponse> products = new ArrayList<>();
-        String sql = BASE_PRODUCT_QUERY + GROUP_PRODUCT + " ORDER BY sold_data.total_sold DESC ";
+        String sql = BASE_PRODUCT_QUERY + " AND sold_data.total_sold > 0 " + GROUP_PRODUCT + " ORDER BY sold_data.total_sold DESC ";
         //
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();

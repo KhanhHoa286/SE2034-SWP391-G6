@@ -64,19 +64,21 @@
     </section>
 
     <!-- Sản phẩm bán chạy -->
-    <section class="product-section container">
-        <div class="section-header">
-            <h2>Sản phẩm bán chạy</h2>
-            <a href="${pageContext.request.contextPath}/product-list?sort_by=best_seller">Xem tất cả</a>
-        </div>
+    <c:if test="${not empty bestSellingProducts}">
+        <section class="product-section container">
+            <div class="section-header">
+                <h2>Sản phẩm bán chạy</h2>
+                <a href="${pageContext.request.contextPath}/product-list?sort_by=best_seller">Xem tất cả</a>
+            </div>
 
-        <div class="row g-4">
-            <!-- Product 1 -->
-            <c:forEach var="product" begin="0" end="3" items="${bestSellingProducts}">
-                <%@ include file="/public/product/product-card.jsp" %>
-            </c:forEach>
-        </div>
-    </section>
+            <div class="row g-4">
+                <!-- Product 1 -->
+                <c:forEach var="product" begin="0" end="3" items="${bestSellingProducts}">
+                    <%@ include file="/public/product/product-card.jsp" %>
+                </c:forEach>
+            </div>
+        </section>
+    </c:if>
 
 </main>
 
